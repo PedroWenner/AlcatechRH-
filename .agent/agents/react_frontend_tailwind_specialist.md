@@ -111,3 +111,4 @@ All frontend implementations must follow:
 - ../standards/react_tailwind/validation_form.md
 - ../standards/react_tailwind/buttons.md
 - ../standards/react_tailwind/datepicker.md
+- ../standards/react_tailwind/filters.md

@@ -333,7 +333,7 @@ export default function Employees() {
                   </button>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-x-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-x-4 gap-y-4">
                   <div className="md:col-span-2">
                     <FormInput
                       label="Nome Completo"

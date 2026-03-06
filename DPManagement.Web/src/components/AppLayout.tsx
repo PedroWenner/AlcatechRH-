@@ -1,6 +1,6 @@
 import { useEffect, type ReactNode } from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, Users, LogOut, Settings, Calculator, Briefcase } from 'lucide-react';
+import { LayoutDashboard, Users, LogOut, Settings, Calculator, Briefcase, History } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 
 export function AppLayout() {
@@ -38,6 +38,7 @@ export function AppLayout() {
             <>
               <NavItem to="/employees" icon={<Users size={20} />} label="Colaboradores" />
               <NavItem to="/cargos" icon={<Briefcase size={20} />} label="Cargos" />
+              <NavItem to="/audit" icon={<History size={20} />} label="Auditoria" />
             </>
           )}
 
