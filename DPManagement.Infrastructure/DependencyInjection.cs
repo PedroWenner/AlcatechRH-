@@ -17,6 +17,7 @@ public static class DependencyInjection
 
         services.AddScoped<IColaboradorRepository, ColaboradorRepository>();
         services.AddScoped<ICargoRepository, CargoRepository>();
+        services.AddScoped<ICboRepository, CboRepository>();
         services.AddHttpClient<IViaCepService, ViaCepService>();
         services.AddScoped<DPManagement.Application.Interfaces.IPerfilService, Services.PerfilService>();
         

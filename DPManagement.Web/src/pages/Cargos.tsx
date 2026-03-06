@@ -6,6 +6,7 @@ import { FormInput } from '../components/common/FormInput';
 import { alertSuccess, alertError, alertDeleteConfirm, showLoading, closeLoading } from '../services/alertService';
 import { Pagination } from '../components/common/Pagination';
 import { FilterBar } from '../components/common/FilterBar';
+import { Autocomplete } from '../components/common/Autocomplete';
 
 interface Cargo {
   id: string;
@@ -184,7 +185,7 @@ export default function Cargos() {
               <div className="absolute inset-0 bg-gray-500 opacity-75"></div>
             </div>
             <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
-            <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full relative z-[1001]">
+            <div className="inline-block align-bottom bg-white rounded-lg text-left shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full relative z-[1001]">
               <form onSubmit={handleSubmit}>
                 <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
                   <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">
@@ -197,11 +198,24 @@ export default function Cargos() {
                       value={formData.nome}
                       onChange={(e) => setFormData({ ...formData, nome: e.target.value })}
                     />
-                    <FormInput
+                    <Autocomplete
                       label="CBO"
                       required
-                      value={formData.cbo}
-                      onChange={(e) => setFormData({ ...formData, cbo: e.target.value })}
+                      placeholder="Busque por código ou título..."
+                      defaultValue={formData.cbo}
+                      onSearch={async (term) => {
+                        const response = await api.get(`/cbos?term=${encodeURIComponent(term)}`);
+                        return response.data;
+                      }}
+                      onSelect={(item) => {
+                        if (item) {
+                          setFormData({ ...formData, cbo: item.codigo });
+                        } else {
+                          setFormData({ ...formData, cbo: '' });
+                        }
+                      }}
+                      displayValue={(item) => `${item.codigo} - ${item.titulo}`}
+                      keyValue={(item) => item.codigo}
                     />
                   </div>
                 </div>

@@ -15,12 +15,12 @@ public class DPManagementDbContext : DbContext
     public DbSet<PerfilPermissao> PerfilPermissoes { get; set; } = null!;
     public DbSet<Cargo> Cargos { get; set; } = null!;
     public DbSet<Colaborador> Colaboradores { get; set; } = null!;
+    public DbSet<Cbo> Cbos { get; set; } = null!;
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
 
-        // Aplica automaticamente todas as classes de configuração (IEntityTypeConfiguration) deste Assembly
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(DPManagementDbContext).Assembly);
     }
 }

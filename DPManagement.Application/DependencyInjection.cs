@@ -12,6 +12,7 @@ public static class DependencyInjection
     {
         services.AddScoped<ICargoAppService, CargoAppService>();
         services.AddScoped<IColaboradorAppService, ColaboradorAppService>();
+        services.AddScoped<ICboAppService, CboAppService>();
         
         services.AddValidatorsFromAssemblyContaining<CreateColaboradorValidator>();
 

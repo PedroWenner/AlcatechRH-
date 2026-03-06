@@ -324,7 +324,7 @@ export default function Employees() {
             <div className="fixed inset-0 transition-opacity" aria-hidden="true" onClick={() => setIsModalOpen(false)}>
               <div className="absolute inset-0 bg-gray-500 opacity-75"></div>
             </div>
-            <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-4xl sm:w-full relative z-[1001]">
+            <div className="inline-block align-bottom bg-white rounded-lg text-left shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-4xl sm:w-full relative z-[1001]">
               <form onSubmit={handleSubmit} className="p-6">
                 <div className="flex justify-between items-center mb-6">
                   <h3 className="text-lg font-medium text-gray-900">{editingEmployee ? 'Editar Colaborador' : 'Novo Colaborador'}</h3>

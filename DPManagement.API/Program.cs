@@ -17,6 +17,15 @@ builder.Services.AddControllers();
 
 var app = builder.Build();
 
+// Run Seeds
+using (var scope = app.Services.CreateScope())
+{
+    var context = scope.ServiceProvider.GetRequiredService<DPManagement.Infrastructure.Persistence.DPManagementDbContext>();
+    var env = scope.ServiceProvider.GetRequiredService<IWebHostEnvironment>();
+    var csvPath = Path.Combine(env.ContentRootPath, "Data", "Seed", "cbo2002.csv");
+    await DPManagement.API.Data.Seed.CboIngestion.SeedCbosAsync(context, csvPath);
+}
+
 // Configure the HTTP request pipeline.
 app.UseApiDocumentation(app.Environment);
 
