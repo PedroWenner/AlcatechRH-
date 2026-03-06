@@ -13,6 +13,7 @@ public static class DependencyInjection
             options.UseNpgsql(configuration.GetConnectionString("DefaultConnection")));
 
         // Repositórios, UnitOfWork e outros serviços de infraestrutura podem ser injetados aqui.
+        services.AddScoped<DPManagement.Application.Interfaces.IPerfilService, Services.PerfilService>();
         
         return services;
     }

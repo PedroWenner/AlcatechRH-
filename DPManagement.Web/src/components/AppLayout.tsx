@@ -1,8 +1,27 @@
-import type { ReactNode } from 'react';
-import { NavLink, Outlet } from 'react-router-dom';
-import { LayoutDashboard, Users, LogOut, Settings } from 'lucide-react';
+import { useEffect, type ReactNode } from 'react';
+import { NavLink, Outlet, useNavigate } from 'react-router-dom';
+import { LayoutDashboard, Users, LogOut, Settings, Calculator } from 'lucide-react';
+import { useAuth } from '../hooks/useAuth';
 
 export function AppLayout() {
+  const { user, token, logout, isAuthorized } = useAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!token) {
+      navigate('/login');
+    }
+  }, [token, navigate]);
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+  };
+
+  if (!token) {
+    return null;
+  }
+
   return (
     <div className="flex h-screen bg-gray-50 text-slate-800">
       {/* Sidebar */}
@@ -14,12 +33,23 @@ export function AppLayout() {
         
         <nav className="flex-1 px-4 py-6 space-y-2">
           <NavItem to="/" icon={<LayoutDashboard size={20} />} label="Dashboard" />
-          <NavItem to="/employees" icon={<Users size={20} />} label="Colaboradores" />
+          
+          {isAuthorized('Funcionario') && (
+            <NavItem to="/employees" icon={<Users size={20} />} label="Colaboradores" />
+          )}
+
+          {isAuthorized('Folha') && (
+            <NavItem to="/payroll" icon={<Calculator size={20} />} label="Folha de Pagamento" />
+          )}
+
           <NavItem to="/settings" icon={<Settings size={20} />} label="Configurações" />
         </nav>
 
         <div className="p-4 border-t border-indigo-800">
-          <button className="flex items-center w-full px-4 py-2 text-sm text-indigo-200 hover:text-white hover:bg-indigo-800 rounded-md transition-colors">
+          <button 
+            onClick={handleLogout}
+            className="flex items-center w-full px-4 py-2 text-sm text-indigo-200 hover:text-white hover:bg-indigo-800 rounded-md transition-colors"
+          >
             <LogOut size={20} className="mr-3" />
             Sair do sistema
           </button>
@@ -29,9 +59,9 @@ export function AppLayout() {
       {/* Main Content */}
       <main className="flex-1 flex flex-col overflow-hidden">
         <header className="bg-white shadow-sm border-b border-gray-200 h-16 flex items-center px-8 justify-between">
-          <h2 className="text-lg font-medium text-gray-700">Bem-vindo, Administrador</h2>
+          <h2 className="text-lg font-medium text-gray-700">Bem-vindo, {user?.nome || 'Usuário'}</h2>
           <div className="h-8 w-8 bg-indigo-100 text-indigo-800 rounded-full flex items-center justify-center font-bold">
-            AD
+            {user?.nome?.substring(0, 2).toUpperCase() || 'US'}
           </div>
         </header>
         <div className="flex-1 overflow-auto p-8">
