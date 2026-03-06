@@ -1,4 +1,7 @@
+using DPManagement.Domain.Repositories;
 using DPManagement.Infrastructure.Persistence;
+using DPManagement.Infrastructure.Repositories;
+using DPManagement.Infrastructure.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -12,7 +15,9 @@ public static class DependencyInjection
         services.AddDbContext<DPManagementDbContext>(options =>
             options.UseNpgsql(configuration.GetConnectionString("DefaultConnection")));
 
-        // Repositórios, UnitOfWork e outros serviços de infraestrutura podem ser injetados aqui.
+        services.AddScoped<IColaboradorRepository, ColaboradorRepository>();
+        services.AddScoped<ICargoRepository, CargoRepository>();
+        services.AddHttpClient<IViaCepService, ViaCepService>();
         services.AddScoped<DPManagement.Application.Interfaces.IPerfilService, Services.PerfilService>();
         
         return services;

@@ -4,6 +4,7 @@ import { AppLayout } from './components/AppLayout';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import Employees from './pages/Employees';
+import Cargos from './pages/Cargos';
 
 function App() {
   return (
@@ -16,6 +17,7 @@ function App() {
           <Route path="/" element={<AppLayout />}>
             <Route index element={<Dashboard />} />
             <Route path="employees" element={<Employees />} />
+            <Route path="cargos" element={<Cargos />} />
             {/* Missing route matching "settings" for now */}
             <Route path="settings" element={<div className="p-4">Configurações...</div>} />
           </Route>

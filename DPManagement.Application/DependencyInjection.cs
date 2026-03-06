@@ -1,6 +1,7 @@
-using System.Reflection;
-using FluentValidation;
+using DPManagement.Application.Interfaces;
 using DPManagement.Application.Services;
+using DPManagement.Application.Validators;
+using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace DPManagement.Application;
@@ -9,12 +10,11 @@ public static class DependencyInjection
 {
     public static IServiceCollection AddApplicationServices(this IServiceCollection services)
     {
-        services.AddScoped<IAuthService, AuthService>();
-        services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
-
-        // Outros serviços de aplicação de diferentes módulos podem ser injetados aqui. 
-        // Em um cenário altamente modular, poderíamos usar Reflection para carregar módulos dinamicamente.
+        services.AddScoped<ICargoAppService, CargoAppService>();
+        services.AddScoped<IColaboradorAppService, ColaboradorAppService>();
         
+        services.AddValidatorsFromAssemblyContaining<CreateColaboradorValidator>();
+
         return services;
     }
 }
