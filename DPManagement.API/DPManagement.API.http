@@ -1,0 +1,6 @@
+@DPManagement.API_HostAddress = http://localhost:5286
+
+GET {{DPManagement.API_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
