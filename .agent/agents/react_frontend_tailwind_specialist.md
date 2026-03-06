@@ -104,3 +104,9 @@ All frontend implementations must follow:
 - Responsive behavior must be verified on mobile, tablet, and desktop  
 - Tailwind classes should be **well-structured, avoiding duplication**  
 - API integration should handle **loading, success, and error states** gracefully  
+
+# Standards
+
+- ../standards/react_tailwind/alerts.md
+- ../standards/react_tailwind/validation_form.md
+- ../standards/react_tailwind/buttons.md
