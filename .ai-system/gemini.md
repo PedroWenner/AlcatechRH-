@@ -2,6 +2,8 @@
 
 > Este arquivo orquestra todos os agentes e suas skills no workspace, garantindo fluxo modular, rastreável e padronizado.
 
+> Todos os nomes devem estar em **português**.
+
 ---
 
 ## 1. Backend Specialist

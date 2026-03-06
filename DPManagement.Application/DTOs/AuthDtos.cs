@@ -5,27 +5,27 @@ namespace DPManagement.Application.DTOs;
 public class LoginDto
 {
     public string Email { get; set; } = string.Empty;
-    public string Password { get; set; } = string.Empty;
+    public string Senha { get; set; } = string.Empty;
 }
 
-public class RegisterDto
+public class RegistroUsuarioDto
 {
-    public string Name { get; set; } = string.Empty;
+    public string Nome { get; set; } = string.Empty;
     public string Email { get; set; } = string.Empty;
-    public string Password { get; set; } = string.Empty;
-    public string Role { get; set; } = "Employee";
+    public string Senha { get; set; } = string.Empty;
+    public string Perfil { get; set; } = "Funcionario";
 }
 
-public class AuthResponseDto
+public class AuthRespostaDto
 {
     public string Token { get; set; } = string.Empty;
-    public UserDto User { get; set; } = null!;
+    public UsuarioDto Usuario { get; set; } = null!;
 }
 
-public class UserDto
+public class UsuarioDto
 {
     public Guid Id { get; set; }
-    public string Name { get; set; } = string.Empty;
+    public string Nome { get; set; } = string.Empty;
     public string Email { get; set; } = string.Empty;
-    public string Role { get; set; } = string.Empty;
+    public string Perfil { get; set; } = string.Empty;
 }

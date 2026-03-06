@@ -1,5 +1,7 @@
 # NAMING CONVENTIONS
 
+Todos os nomes devem estar em **português**.
+
 ## Purpose
 
 Padronizar nomes de tabelas, colunas e arquivos no sistema DP.

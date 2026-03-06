@@ -10,9 +10,9 @@ namespace DPManagement.Application.Services;
 
 public interface IAuthService
 {
-    string HashPassword(string password);
-    bool VerifyPassword(string password, string hash);
-    string GenerateJwtToken(User user);
+    string HashSenha(string senha);
+    bool VerificarSenha(string senha, string hash);
+    string GerarTokenJwt(Usuario usuario);
 }
 
 public class AuthService : IAuthService
@@ -24,29 +24,29 @@ public class AuthService : IAuthService
         _configuration = configuration;
     }
 
-    public string HashPassword(string password)
+    public string HashSenha(string senha)
     {
-        return BCrypt.Net.BCrypt.HashPassword(password);
+        return BCrypt.Net.BCrypt.HashPassword(senha);
     }
 
-    public bool VerifyPassword(string password, string hash)
+    public bool VerificarSenha(string senha, string hash)
     {
-        return BCrypt.Net.BCrypt.Verify(password, hash);
+        return BCrypt.Net.BCrypt.Verify(senha, hash);
     }
 
-    public string GenerateJwtToken(User user)
+    public string GerarTokenJwt(Usuario usuario)
     {
         var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]!));
         var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
 
         var claims = new[]
         {
-            new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
-            new Claim(JwtRegisteredClaimNames.Email, user.Email),
-            new Claim(ClaimTypes.Name, user.Name),
-            new Claim(ClaimTypes.Role, user.Role),
-            // Custom claims for granular permissions could be added here
-            new Claim("Permission:Employee:Read", "true") 
+            new Claim(JwtRegisteredClaimNames.Sub, usuario.Id.ToString()),
+            new Claim(JwtRegisteredClaimNames.Email, usuario.Email),
+            new Claim(ClaimTypes.Name, usuario.Nome),
+            new Claim(ClaimTypes.Role, usuario.Perfil),
+            // Claims personalizadas
+            new Claim("Permission:Funcionario:Ler", "true") 
         };
 
         var token = new JwtSecurityToken(
