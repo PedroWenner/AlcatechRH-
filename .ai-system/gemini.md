@@ -118,7 +118,7 @@
 ---
 
 ## 11. Task Router Agent
-- agents/task_router.md
+- agents/task_router_integrated.md
 - skills/task_router/task_classification.md
 - skills/task_router/agent_matching.md
 - skills/task_router/priority_routing.md

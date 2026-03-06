@@ -33,9 +33,7 @@ public class RegistroUsuarioDtoValidator : AbstractValidator<RegistroUsuarioDto>
             .NotEmpty().WithMessage("A senha é obrigatória.")
             .MinimumLength(6).WithMessage("A senha deve conter no mínimo 6 caracteres.");
 
-        RuleFor(x => x.Perfil)
-            .NotEmpty().WithMessage("O perfil é obrigatório.")
-            .Must(perfil => perfil == "Admin" || perfil == "RH" || perfil == "Funcionario")
-            .WithMessage("O perfil deve ser 'Admin', 'RH' ou 'Funcionario'.");
+        RuleFor(x => x.PerfilId)
+            .NotEmpty().WithMessage("O perfil é obrigatório.");
     }
 }

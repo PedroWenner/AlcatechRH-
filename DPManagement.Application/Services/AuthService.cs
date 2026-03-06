@@ -39,15 +39,22 @@ public class AuthService : IAuthService
         var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]!));
         var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
 
-        var claims = new[]
+        var claims = new List<Claim>
         {
             new Claim(JwtRegisteredClaimNames.Sub, usuario.Id.ToString()),
             new Claim(JwtRegisteredClaimNames.Email, usuario.Email),
             new Claim(ClaimTypes.Name, usuario.Nome),
-            new Claim(ClaimTypes.Role, usuario.Perfil),
-            // Claims personalizadas
-            new Claim("Permission:Funcionario:Ler", "true") 
+            new Claim(ClaimTypes.Role, usuario.Perfil?.Nome ?? "Funcionario")
         };
+
+        // Adicionar permissões como claims
+        if (usuario.Perfil?.PerfilPermissoes != null)
+        {
+            foreach (var pp in usuario.Perfil.PerfilPermissoes)
+            {
+                claims.Add(new Claim("Permission", $"{pp.Permissao.Modulo}:{pp.Permissao.Acao}"));
+            }
+        }
 
         var token = new JwtSecurityToken(
             issuer: _configuration["Jwt:Issuer"],

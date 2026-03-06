@@ -7,5 +7,6 @@ public class Usuario
     public string Email { get; set; } = string.Empty;
     public string SenhaHash { get; set; } = string.Empty;
     public DateTime DataCriacao { get; set; } = DateTime.UtcNow;
-    public string Perfil { get; set; } = "Funcionario"; // Admin, RH, Funcionario
+    public Guid PerfilId { get; set; }
+    public Perfil Perfil { get; set; } = null!;
 }

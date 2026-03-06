@@ -9,11 +9,11 @@ public static class ApplicationBuilderExtensions
     {
         if (env.IsDevelopment())
         {
-            var webApp = app as WebApplication;
-            webApp?.MapOpenApi();
+            app.UseSwagger();
             app.UseSwaggerUI(options =>
             {
-                options.SwaggerEndpoint("/openapi/v1.json", "DP Management API");
+                options.SwaggerEndpoint("/swagger/v1/swagger.json", "DP Management API v1");
+                options.RoutePrefix = "swagger";
             });
         }
 

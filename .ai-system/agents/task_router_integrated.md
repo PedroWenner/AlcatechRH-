@@ -30,13 +30,13 @@ Responsibilities:
 
 ## Mandatory Skills Loading
 
-- skills/task_router/task_classification.md  
-- skills/task_router/agent_matching.md  
-- skills/task_router/priority_routing.md  
-- skills/task_router/monitoring.md  
-- skills/workflow/documentation.md  
-- skills/workflow/branch_creation.md  
-- skills/workflow/task_routing.md  
-- skills/workflow/conventional_commits.md  
-- skills/workflow/pull_request.md  
-- skills/workflow/deploy.md
+- ../skills/task_router/task_classification.md  
+- ../skills/task_router/agent_matching.md  
+- ../skills/task_router/priority_routing.md  
+- ../skills/task_router/monitoring.md  
+- ../skills/workflow/documentation.md  
+- ../skills/workflow/branch_creation.md  
+- ../skills/workflow/task_routing.md  
+- ../skills/workflow/conventional_commits.md  
+- ../skills/workflow/pull_request.md  
+- ../skills/workflow/deploy.md

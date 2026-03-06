@@ -10,6 +10,9 @@ public class DPManagementDbContext : DbContext
     }
 
     public DbSet<Usuario> Usuarios { get; set; } = null!;
+    public DbSet<Perfil> Perfis { get; set; } = null!;
+    public DbSet<Permissao> Permissoes { get; set; } = null!;
+    public DbSet<PerfilPermissao> PerfilPermissoes { get; set; } = null!;
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

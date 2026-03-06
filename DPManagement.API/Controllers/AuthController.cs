@@ -39,7 +39,11 @@ public class AuthController : ControllerBase
             return BadRequest(validationResult.Errors.Select(e => new { Campo = e.PropertyName, Erro = e.ErrorMessage }));
         }
 
-        var usuario = await _context.Usuarios.SingleOrDefaultAsync(u => u.Email == loginDto.Email);
+        var usuario = await _context.Usuarios
+            .Include(u => u.Perfil)
+                .ThenInclude(p => p.PerfilPermissoes)
+                    .ThenInclude(pp => pp.Permissao)
+            .SingleOrDefaultAsync(u => u.Email == loginDto.Email);
         
         if (usuario == null || !_authService.VerificarSenha(loginDto.Senha, usuario.SenhaHash))
         {
@@ -56,7 +60,7 @@ public class AuthController : ControllerBase
                 Id = usuario.Id,
                 Nome = usuario.Nome,
                 Email = usuario.Email,
-                Perfil = usuario.Perfil
+                Perfil = usuario.Perfil?.Nome ?? "Indefinido"
             }
         });
     }
@@ -80,7 +84,7 @@ public class AuthController : ControllerBase
             Nome = registroDto.Nome,
             Email = registroDto.Email,
             SenhaHash = _authService.HashSenha(registroDto.Senha),
-            Perfil = registroDto.Perfil
+            PerfilId = registroDto.PerfilId
         };
 
         _context.Usuarios.Add(usuario);
