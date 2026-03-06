@@ -1,16 +1,26 @@
-import type { ReactNode } from 'react';
+import { useEffect, type ReactNode } from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { LayoutDashboard, Users, LogOut, Settings, Calculator } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 
 export function AppLayout() {
-  const { user, logout, isAuthorized } = useAuth();
+  const { user, token, logout, isAuthorized } = useAuth();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!token) {
+      navigate('/login');
+    }
+  }, [token, navigate]);
 
   const handleLogout = () => {
     logout();
     navigate('/login');
   };
+
+  if (!token) {
+    return null;
+  }
 
   return (
     <div className="flex h-screen bg-gray-50 text-slate-800">
