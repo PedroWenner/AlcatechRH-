@@ -12,24 +12,24 @@ namespace DPManagement.Infrastructure.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
-                name: "Users",
+                name: "Usuarios",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    Name = table.Column<string>(type: "character varying(150)", maxLength: 150, nullable: false),
+                    Nome = table.Column<string>(type: "character varying(150)", maxLength: 150, nullable: false),
                     Email = table.Column<string>(type: "character varying(150)", maxLength: 150, nullable: false),
-                    PasswordHash = table.Column<string>(type: "text", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    Role = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: false)
+                    SenhaHash = table.Column<string>(type: "text", nullable: false),
+                    DataCriacao = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    Perfil = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Users", x => x.Id);
+                    table.PrimaryKey("PK_Usuarios", x => x.Id);
                 });
 
             migrationBuilder.CreateIndex(
-                name: "IX_Users_Email",
-                table: "Users",
+                name: "IX_Usuarios_Email",
+                table: "Usuarios",
                 column: "Email",
                 unique: true);
         }
@@ -38,7 +38,7 @@ namespace DPManagement.Infrastructure.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "Users");
+                name: "Usuarios");
         }
     }
 }

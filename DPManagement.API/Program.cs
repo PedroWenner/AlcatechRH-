@@ -1,8 +1,6 @@
+using DPManagement.API.Extensions;
 using DPManagement.Application;
 using DPManagement.Infrastructure;
-using System.Text;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -10,60 +8,17 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddApplicationServices();
 builder.Services.AddInfrastructureServices(builder.Configuration);
 
-// Add JWT Authentication
-builder.Services.AddAuthentication(options =>
-{
-    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-})
-.AddJwtBearer(options =>
-{
-    options.TokenValidationParameters = new TokenValidationParameters
-    {
-        ValidateIssuer = true,
-        ValidateAudience = true,
-        ValidateLifetime = true,
-        ValidateIssuerSigningKey = true,
-        ValidIssuer = builder.Configuration["Jwt:Issuer"],
-        ValidAudience = builder.Configuration["Jwt:Audience"],
-        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!))
-    };
-});
-
-// Add Authorization Policies (RBAC/Claims)
-builder.Services.AddAuthorization(options =>
-{
-    options.AddPolicy("RequireAdminRole", policy => policy.RequireRole("Admin"));
-    options.AddPolicy("RequireHRRole", policy => policy.RequireRole("Admin", "HR"));
-    options.AddPolicy("CanReadEmployee", policy => policy.RequireClaim("Permission:Employee:Read", "true"));
-});
+// Add Extension Services (Auth, CORS, Swagger)
+builder.Services.AddApiAuthentication(builder.Configuration);
+builder.Services.AddApiCors();
+builder.Services.AddApiDocumentation();
 
 builder.Services.AddControllers();
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
-
-// Configure CORS for React frontend
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy("AllowFrontend",
-        policy =>
-        {
-            policy.WithOrigins("http://localhost:5173") // Default Vite port
-                  .AllowAnyHeader()
-                  .AllowAnyMethod();
-        });
-});
 
 var app = builder.Build();
 
-if (app.Environment.IsDevelopment())
-{
-    app.MapOpenApi();
-    app.UseSwaggerUI(options =>
-    {
-        options.SwaggerEndpoint("/openapi/v1.json", "DP Management API");
-    });
-}
+// Configure the HTTP request pipeline.
+app.UseApiDocumentation(app.Environment);
 
 app.UseHttpsRedirection();
 

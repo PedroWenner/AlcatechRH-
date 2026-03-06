@@ -3,6 +3,7 @@ using System;
 using DPManagement.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace DPManagement.Infrastructure.Migrations
 {
     [DbContext(typeof(DPManagementDbContext))]
-    partial class DPManagementDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260306125634_InitialCreate")]
+    partial class InitialCreate
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -55,18 +58,7 @@ namespace DPManagement.Infrastructure.Migrations
                     b.HasIndex("Email")
                         .IsUnique();
 
-                    b.ToTable("Usuarios", (string)null);
-
-                    b.HasData(
-                        new
-                        {
-                            Id = new Guid("00000000-0000-0000-0000-000000000001"),
-                            DataCriacao = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Email = "admin@dpmanagement.com",
-                            Nome = "Administrador Geral",
-                            Perfil = "Admin",
-                            SenhaHash = "$2a$10$D/j9H67A9/9J6L8.Qh0t8O8jQ.X2xZ0kH0.x0.x0.x0.x0.x0.x0"
-                        });
+                    b.ToTable("Usuarios");
                 });
 #pragma warning restore 612, 618
         }

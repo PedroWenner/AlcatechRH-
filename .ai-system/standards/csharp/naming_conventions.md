@@ -1,5 +1,7 @@
 # NAMING CONVENTIONS
 
+Todos os nomes devem estar em **português**.
+
 ## Purpose
 
 Define naming conventions used in C# backend development.

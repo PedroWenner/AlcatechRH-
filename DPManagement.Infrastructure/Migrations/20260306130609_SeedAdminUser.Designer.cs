@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace DPManagement.Infrastructure.Migrations
 {
     [DbContext(typeof(DPManagementDbContext))]
-    [Migration("20260306121624_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20260306130609_SeedAdminUser")]
+    partial class SeedAdminUser
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -25,13 +25,13 @@ namespace DPManagement.Infrastructure.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("DPManagement.Domain.Entities.User", b =>
+            modelBuilder.Entity("DPManagement.Domain.Entities.Usuario", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<DateTime>("CreatedAt")
+                    b.Property<DateTime>("DataCriacao")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Email")
@@ -39,26 +39,37 @@ namespace DPManagement.Infrastructure.Migrations
                         .HasMaxLength(150)
                         .HasColumnType("character varying(150)");
 
-                    b.Property<string>("Name")
+                    b.Property<string>("Nome")
                         .IsRequired()
                         .HasMaxLength(150)
                         .HasColumnType("character varying(150)");
 
-                    b.Property<string>("PasswordHash")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("Role")
+                    b.Property<string>("Perfil")
                         .IsRequired()
                         .HasMaxLength(20)
                         .HasColumnType("character varying(20)");
+
+                    b.Property<string>("SenhaHash")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.HasKey("Id");
 
                     b.HasIndex("Email")
                         .IsUnique();
 
-                    b.ToTable("Users");
+                    b.ToTable("Usuarios");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("00000000-0000-0000-0000-000000000001"),
+                            DataCriacao = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Email = "admin@dpmanagement.com",
+                            Nome = "Administrador Geral",
+                            Perfil = "Admin",
+                            SenhaHash = "$2a$10$D/j9H67A9/9J6L8.Qh0t8O8jQ.X2xZ0kH0.x0.x0.x0.x0.x0.x0"
+                        });
                 });
 #pragma warning restore 612, 618
         }

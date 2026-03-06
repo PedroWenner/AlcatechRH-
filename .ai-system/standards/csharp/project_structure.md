@@ -64,6 +64,15 @@ Responsibilities include:
 - repository interfaces
 - unit of work interfaces
 - FluentValidation validators
+- FluentAPI
+
+Crie as configurações FluentAPI em pastas separadas para ficar mais limpo o código.
+
+Seeds devem ser criados em pastas para seeds.
+
+criar métodos de extensão para IServiceCollection (para configurar serviços) e IApplicationBuilder (para configurar o pipeline de requisições) em classes separadas. Isso permite agrupar configurações relacionadas (como JWT, CORS, ou serviços de uma camada específica) em um método que pode ser chamado de forma concisa no Program.cs.
+
+Para configurações mais complexas ou que envolvem injeção de dependência, você pode criar classes específicas que implementam interfaces como IStartupFilter ou IConfigureOptions, embora os métodos de extensão sejam mais diretos para a maioria dos casos de Program.cs.
 
 The application layer orchestrates domain operations.
 
