@@ -2,8 +2,11 @@ using DPManagement.Application.DTOs;
 using DPManagement.Application.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
+using Microsoft.AspNetCore.Authorization;
+
 namespace DPManagement.API.Controllers;
 
+[Authorize]
 [ApiController]
 [Route("api/[controller]")]
 public class CargosController : ControllerBase

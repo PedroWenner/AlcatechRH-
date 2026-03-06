@@ -14,6 +14,9 @@ builder.Services.AddApiCors();
 builder.Services.AddApiDocumentation();
 
 builder.Services.AddControllers();
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<DPManagement.Application.Interfaces.IUserContext, DPManagement.API.Services.UserContextService>();
+
 
 var app = builder.Build();
 
@@ -29,12 +32,18 @@ using (var scope = app.Services.CreateScope())
 // Configure the HTTP request pipeline.
 app.UseApiDocumentation(app.Environment);
 
-app.UseHttpsRedirection();
-
 app.UseCors("AllowFrontend");
+
+if (app.Environment.IsDevelopment())
+{
+    app.UseDeveloperExceptionPage();
+}
+
+app.UseHttpsRedirection();
 
 app.UseAuthentication();
 app.UseAuthorization();
+
 
 app.MapControllers();
 

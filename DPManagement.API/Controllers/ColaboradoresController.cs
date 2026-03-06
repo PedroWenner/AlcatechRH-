@@ -3,8 +3,11 @@ using DPManagement.Application.Interfaces;
 using DPManagement.Infrastructure.Services;
 using Microsoft.AspNetCore.Mvc;
 
+using Microsoft.AspNetCore.Authorization;
+
 namespace DPManagement.API.Controllers;
 
+[Authorize]
 [ApiController]
 [Route("api/[controller]")]
 public class ColaboradoresController : ControllerBase

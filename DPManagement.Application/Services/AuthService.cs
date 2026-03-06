@@ -43,8 +43,8 @@ public class AuthService : IAuthService
         {
             new Claim(JwtRegisteredClaimNames.Sub, usuario.Id.ToString()),
             new Claim(JwtRegisteredClaimNames.Email, usuario.Email),
-            new Claim(ClaimTypes.Name, usuario.Nome),
-            new Claim(ClaimTypes.Role, usuario.Perfil?.Nome ?? "Funcionario")
+            new Claim(JwtRegisteredClaimNames.Name, usuario.Nome),
+            new Claim("role", usuario.Perfil?.Nome ?? "Funcionario")
         };
 
         // Adicionar permissões como claims

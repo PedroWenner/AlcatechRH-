@@ -1,9 +1,12 @@
+using DPManagement.Domain.Interfaces;
+
 namespace DPManagement.Domain.Entities;
 
-public class Cargo
+public class Cargo : ISoftDelete
 {
     public Guid Id { get; set; } = Guid.NewGuid();
     public string Nome { get; set; } = string.Empty;
     public string CBO { get; set; } = string.Empty;
     public ICollection<Colaborador> Colaboradores { get; set; } = new List<Colaborador>();
+    public bool IsDeleted { get; set; }
 }
