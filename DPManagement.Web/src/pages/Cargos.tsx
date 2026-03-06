@@ -4,6 +4,7 @@ import { Plus, Trash2, Edit } from 'lucide-react';
 import api from '../services/api';
 import { FormInput } from '../components/common/FormInput';
 import { alertSuccess, alertError, alertDeleteConfirm, showLoading, closeLoading } from '../services/alertService';
+import { Pagination } from '../components/common/Pagination';
 
 interface Cargo {
   id: string;
@@ -13,6 +14,12 @@ interface Cargo {
 
 export default function Cargos() {
   const [cargos, setCargos] = useState<Cargo[]>([]);
+  const [pagination, setPagination] = useState({
+    currentPage: 1,
+    totalPages: 1,
+    totalCount: 0,
+    pageSize: 10
+  });
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingCargo, setEditingCargo] = useState<Cargo | null>(null);
   const [formData, setFormData] = useState({ nome: '', cbo: '' });
@@ -21,13 +28,22 @@ export default function Cargos() {
     fetchCargos();
   }, []);
 
-  const fetchCargos = async () => {
+  const fetchCargos = async (page = 1) => {
     try {
-      const response = await api.get('/cargos');
-      setCargos(response.data);
+      showLoading('Carregando...');
+      const response = await api.get(`/cargos?page=${page}&pageSize=${pagination.pageSize}`);
+      setCargos(response.data.items);
+      setPagination(prev => ({
+        ...prev,
+        currentPage: response.data.page,
+        totalPages: response.data.totalPages,
+        totalCount: response.data.totalCount
+      }));
     } catch (error) {
       console.error('Erro ao buscar cargos', error);
       alertError('Erro ao carregar cargos');
+    } finally {
+      closeLoading();
     }
   };
 
@@ -116,6 +132,13 @@ export default function Cargos() {
             ))}
           </tbody>
         </table>
+        <Pagination
+          currentPage={pagination.currentPage}
+          totalPages={pagination.totalPages}
+          onPageChange={(page) => fetchCargos(page)}
+          totalCount={pagination.totalCount}
+          pageSize={pagination.pageSize}
+        />
       </div>
 
       {isModalOpen && typeof document !== 'undefined' && createPortal(

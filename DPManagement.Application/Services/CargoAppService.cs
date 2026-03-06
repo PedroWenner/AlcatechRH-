@@ -20,6 +20,17 @@ public class CargoAppService : ICargoAppService
         return entities.Select(e => new CargoDto { Id = e.Id, Nome = e.Nome, CBO = e.CBO });
     }
 
+    public async Task<PagedResultDto<CargoDto>> GetPagedAsync(int page, int pageSize)
+    {
+        var result = await _cargoRepository.GetPagedAsync(page, pageSize);
+        return new PagedResultDto<CargoDto>(
+            result.Items.Select(e => new CargoDto { Id = e.Id, Nome = e.Nome, CBO = e.CBO }),
+            result.TotalCount,
+            page,
+            pageSize
+        );
+    }
+
     public async Task<CargoDto?> GetByIdAsync(Guid id)
     {
         var entity = await _cargoRepository.GetByIdAsync(id);

@@ -5,6 +5,7 @@ import api from '../services/api';
 import { maskCPF, maskPhone, maskCell, maskCEP } from '../utils/masks';
 import { FormInput } from '../components/common/FormInput';
 import { alertSuccess, alertError, alertDeleteConfirm, showLoading, closeLoading } from '../services/alertService';
+import { Pagination } from '../components/common/Pagination';
 
 interface Cargo {
   id: string;
@@ -34,6 +35,12 @@ interface Colaborador {
 export default function Employees() {
   const [employees, setEmployees] = useState<Colaborador[]>([]);
   const [cargos, setCargos] = useState<Cargo[]>([]);
+  const [pagination, setPagination] = useState({
+    currentPage: 1,
+    totalPages: 1,
+    totalCount: 0,
+    pageSize: 10
+  });
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingEmployee, setEditingEmployee] = useState<Colaborador | null>(null);
   const [formData, setFormData] = useState({
@@ -49,13 +56,22 @@ export default function Employees() {
     fetchCargos();
   }, []);
 
-  const fetchEmployees = async () => {
+  const fetchEmployees = async (page = 1) => {
     try {
-      const response = await api.get('/colaboradores');
-      setEmployees(response.data);
+      showLoading('Carregando...');
+      const response = await api.get(`/colaboradores?page=${page}&pageSize=${pagination.pageSize}`);
+      setEmployees(response.data.items);
+      setPagination(prev => ({
+        ...prev,
+        currentPage: response.data.page,
+        totalPages: response.data.totalPages,
+        totalCount: response.data.totalCount
+      }));
     } catch (error) {
       console.error('Erro ao buscar colaboradores', error);
       alertError('Erro ao carregar colaboradores');
+    } finally {
+      closeLoading();
     }
   };
 
@@ -243,6 +259,13 @@ export default function Employees() {
             ))}
           </tbody>
         </table>
+        <Pagination
+          currentPage={pagination.currentPage}
+          totalPages={pagination.totalPages}
+          onPageChange={(page) => fetchEmployees(page)}
+          totalCount={pagination.totalCount}
+          pageSize={pagination.pageSize}
+        />
       </div>
 
       {isModalOpen && typeof document !== 'undefined' && createPortal(

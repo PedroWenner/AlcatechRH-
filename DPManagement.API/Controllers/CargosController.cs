@@ -16,7 +16,11 @@ public class CargosController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<IActionResult> GetAll() => Ok(await _cargoAppService.GetAllAsync());
+    public async Task<IActionResult> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 10) 
+        => Ok(await _cargoAppService.GetPagedAsync(page, pageSize));
+
+    [HttpGet("all")]
+    public async Task<IActionResult> GetAllOld() => Ok(await _cargoAppService.GetAllAsync());
 
     [HttpGet("{id}")]
     public async Task<IActionResult> GetById(Guid id)

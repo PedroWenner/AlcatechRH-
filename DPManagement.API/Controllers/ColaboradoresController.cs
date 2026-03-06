@@ -19,7 +19,11 @@ public class ColaboradoresController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<IActionResult> GetAll() => Ok(await _colaboradorAppService.GetAllAsync());
+    public async Task<IActionResult> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 10) 
+        => Ok(await _colaboradorAppService.GetPagedAsync(page, pageSize));
+
+    [HttpGet("all")]
+    public async Task<IActionResult> GetAllOld() => Ok(await _colaboradorAppService.GetAllAsync());
 
     [HttpGet("{id}")]
     public async Task<IActionResult> GetById(Guid id)

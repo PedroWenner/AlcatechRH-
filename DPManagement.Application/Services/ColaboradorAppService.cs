@@ -20,6 +20,17 @@ public class ColaboradorAppService : IColaboradorAppService
         return entities.Select(e => MapToDto(e));
     }
 
+    public async Task<PagedResultDto<ColaboradorDto>> GetPagedAsync(int page, int pageSize)
+    {
+        var result = await _colaboradorRepository.GetPagedAsync(page, pageSize);
+        return new PagedResultDto<ColaboradorDto>(
+            result.Items.Select(e => MapToDto(e)),
+            result.TotalCount,
+            page,
+            pageSize
+        );
+    }
+
     public async Task<ColaboradorDto?> GetByIdAsync(Guid id)
     {
         var entity = await _colaboradorRepository.GetByIdAsync(id);

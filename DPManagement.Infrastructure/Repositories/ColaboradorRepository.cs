@@ -20,6 +20,19 @@ public class ColaboradorRepository : IColaboradorRepository
     public async Task<IEnumerable<Colaborador>> GetAllAsync() => 
         await _context.Colaboradores.Include(c => c.Cargo).ToListAsync();
 
+    public async Task<(IEnumerable<Colaborador> Items, int TotalCount)> GetPagedAsync(int page, int pageSize)
+    {
+        var totalCount = await _context.Colaboradores.CountAsync();
+        var items = await _context.Colaboradores
+            .Include(c => c.Cargo)
+            .OrderBy(c => c.Nome)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
+        
+        return (items, totalCount);
+    }
+
     public async Task AddAsync(Colaborador colaborador)
     {
         await _context.Colaboradores.AddAsync(colaborador);

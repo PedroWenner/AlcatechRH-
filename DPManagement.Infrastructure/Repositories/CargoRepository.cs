@@ -18,6 +18,18 @@ public class CargoRepository : ICargoRepository
 
     public async Task<IEnumerable<Cargo>> GetAllAsync() => await _context.Cargos.ToListAsync();
 
+    public async Task<(IEnumerable<Cargo> Items, int TotalCount)> GetPagedAsync(int page, int pageSize)
+    {
+        var totalCount = await _context.Cargos.CountAsync();
+        var items = await _context.Cargos
+            .OrderBy(c => c.Nome)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
+        
+        return (items, totalCount);
+    }
+
     public async Task AddAsync(Cargo cargo)
     {
         await _context.Cargos.AddAsync(cargo);
