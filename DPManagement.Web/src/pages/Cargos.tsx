@@ -5,6 +5,7 @@ import api from '../services/api';
 import { FormInput } from '../components/common/FormInput';
 import { alertSuccess, alertError, alertDeleteConfirm, showLoading, closeLoading } from '../services/alertService';
 import { Pagination } from '../components/common/Pagination';
+import { FilterBar } from '../components/common/FilterBar';
 
 interface Cargo {
   id: string;
@@ -20,6 +21,10 @@ export default function Cargos() {
     totalCount: 0,
     pageSize: 10
   });
+  const [filters, setFilters] = useState({
+    nome: '',
+    cbo: ''
+  });
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingCargo, setEditingCargo] = useState<Cargo | null>(null);
   const [formData, setFormData] = useState({ nome: '', cbo: '' });
@@ -28,10 +33,17 @@ export default function Cargos() {
     fetchCargos();
   }, []);
 
-  const fetchCargos = async (page = 1) => {
+  const fetchCargos = async (page = 1, f = filters) => {
     try {
       showLoading('Carregando...');
-      const response = await api.get(`/cargos?page=${page}&pageSize=${pagination.pageSize}`);
+      const params: any = {
+        page,
+        pageSize: pagination.pageSize
+      };
+      if (f.nome) params.nome = f.nome;
+      if (f.cbo) params.cbo = f.cbo;
+
+      const response = await api.get('/cargos', { params });
       setCargos(response.data.items);
       setPagination(prev => ({
         ...prev,
@@ -46,6 +58,15 @@ export default function Cargos() {
       closeLoading();
     }
   };
+
+  const applyFilters = () => fetchCargos(1);
+  const clearFilters = () => {
+    const newFilters = { nome: '', cbo: '' };
+    setFilters(newFilters);
+    fetchCargos(1, newFilters);
+  };
+
+
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -105,6 +126,21 @@ export default function Cargos() {
           Novo Cargo
         </button>
       </div>
+
+      <FilterBar onFilter={applyFilters} onClear={clearFilters}>
+        <FormInput
+          label="Nome"
+          value={filters.nome}
+          onChange={e => setFilters({ ...filters, nome: e.target.value })}
+          placeholder="Buscar por nome..."
+        />
+        <FormInput
+          label="CBO"
+          value={filters.cbo}
+          onChange={e => setFilters({ ...filters, cbo: e.target.value })}
+          placeholder="Buscar por CBO..."
+        />
+      </FilterBar>
 
       <div className="bg-white shadow overflow-hidden border-b border-gray-200 sm:rounded-lg">
         <table className="min-w-full divide-y divide-gray-200">

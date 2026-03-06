@@ -20,11 +20,21 @@ public class ColaboradorRepository : IColaboradorRepository
     public async Task<IEnumerable<Colaborador>> GetAllAsync() => 
         await _context.Colaboradores.Include(c => c.Cargo).ToListAsync();
 
-    public async Task<(IEnumerable<Colaborador> Items, int TotalCount)> GetPagedAsync(int page, int pageSize)
+    public async Task<(IEnumerable<Colaborador> Items, int TotalCount)> GetPagedAsync(int page, int pageSize, string? nome = null, string? cpf = null, Guid? cargoId = null)
     {
-        var totalCount = await _context.Colaboradores.CountAsync();
-        var items = await _context.Colaboradores
-            .Include(c => c.Cargo)
+        var query = _context.Colaboradores.Include(c => c.Cargo).AsQueryable();
+
+        if (!string.IsNullOrWhiteSpace(nome))
+            query = query.Where(c => c.Nome.ToLower().Contains(nome.ToLower()));
+
+        if (!string.IsNullOrWhiteSpace(cpf))
+            query = query.Where(c => c.CPF.Contains(cpf));
+
+        if (cargoId.HasValue && cargoId != Guid.Empty)
+            query = query.Where(c => c.CargoId == cargoId.Value);
+
+        var totalCount = await query.CountAsync();
+        var items = await query
             .OrderBy(c => c.Nome)
             .Skip((page - 1) * pageSize)
             .Take(pageSize)

@@ -20,9 +20,9 @@ public class CargoAppService : ICargoAppService
         return entities.Select(e => new CargoDto { Id = e.Id, Nome = e.Nome, CBO = e.CBO });
     }
 
-    public async Task<PagedResultDto<CargoDto>> GetPagedAsync(int page, int pageSize)
+    public async Task<PagedResultDto<CargoDto>> GetPagedAsync(int page, int pageSize, string? nome = null, string? cbo = null)
     {
-        var result = await _cargoRepository.GetPagedAsync(page, pageSize);
+        var result = await _cargoRepository.GetPagedAsync(page, pageSize, nome, cbo);
         return new PagedResultDto<CargoDto>(
             result.Items.Select(e => new CargoDto { Id = e.Id, Nome = e.Nome, CBO = e.CBO }),
             result.TotalCount,
