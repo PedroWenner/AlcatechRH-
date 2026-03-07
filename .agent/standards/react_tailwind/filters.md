@@ -6,3 +6,4 @@
 - tudo que for cadastro, deve ter o botão de adicionar com o nome "Salvar" e o botão de cancelar com o nome "Cancelar"
 - tudo que for edição, deve ter o botão de editar com o nome "Atualizar" e o botão de cancelar com o nome "Cancelar"
 - tudo que for exclusão, deve ter o botão de excluir com o nome "Excluir" e o botão de cancelar com o nome "Cancelar"
+- todos os campos de data devem usar o componente <DatePicker /> que está em src/components/common/DatePicker.tsx

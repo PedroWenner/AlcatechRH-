@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Plus, Edit, Save, Trash2 } from 'lucide-react';
+import { Plus, Edit, Trash2 } from 'lucide-react';
 import api from '../services/api';
 import { maskCPF, maskPhone, maskCell, maskCEP } from '../utils/masks';
 import { FormInput } from '../components/common/FormInput';
@@ -7,6 +7,8 @@ import { alertSuccess, alertError, alertDeleteConfirm, showLoading, closeLoading
 import { Pagination } from '../components/common/Pagination';
 import { FilterBar } from '../components/common/FilterBar';
 import { Modal } from '../components/common/Modal';
+import { DatePicker } from '../components/common/DatePicker';
+import { parseISO, format } from 'date-fns';
 
 interface Cargo {
   id: string;
@@ -377,14 +379,18 @@ export default function Employees() {
               value={formData.pis}
               onChange={e => setFormData({ ...formData, pis: e.target.value })}
             />
-            <FormInput
+            <DatePicker
               label="Data de Nascimento"
               required
-              type="date"
-              value={formData.dataNascimento}
+              selected={formData.dataNascimento ? parseISO(formData.dataNascimento) : null}
+              onChange={(date) => {
+                const dateStr = date ? format(date, 'yyyy-MM-dd') : '';
+                setFormData({ ...formData, dataNascimento: dateStr });
+                if (dateStr) {
+                  setErrors(prev => ({ ...prev, dataNascimento: '' }));
+                }
+              }}
               error={errors.dataNascimento}
-              onChange={e => setFormData({ ...formData, dataNascimento: e.target.value })}
-              onBlur={e => handleBlur('dataNascimento', e.target.value)}
             />
 
             <FormInput

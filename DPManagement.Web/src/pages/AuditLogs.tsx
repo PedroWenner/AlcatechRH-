@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
-import { History, FileText, User as UserIcon, Calendar, Info, X } from 'lucide-react';
+import { History, FileText, User as UserIcon, Info, X } from 'lucide-react';
 import api from '../services/api';
 import { showLoading, closeLoading, alertError } from '../utils/swal';
 import { FilterBar } from '../components/common/FilterBar';
 import { Pagination } from '../components/common/Pagination';
-import { FormInput } from '../components/common/FormInput';
+import { DatePicker } from '../components/common/DatePicker';
+import { parseISO, format } from 'date-fns';
 
 interface AuditLog {
   id: string;
@@ -116,29 +117,29 @@ export default function AuditLogs() {
       </div>
 
       <FilterBar onFilter={applyFilters} onClear={clearFilters}>
-        <FormInput
+        <DatePicker
           label="Início"
-          type="date"
-          name="dataInicio"
-          value={filters.dataInicio}
-          onChange={handleFilterChange}
-          icon={<Calendar size={18} />}
+          selected={filters.dataInicio ? parseISO(filters.dataInicio) : null}
+          onChange={(date) => {
+            const dateStr = date ? format(date, 'yyyy-MM-dd') : '';
+            setFilters(prev => ({ ...prev, dataInicio: dateStr }));
+          }}
         />
 
-        <FormInput
+        <DatePicker
           label="Fim"
-          type="date"
-          name="dataFim"
-          value={filters.dataFim}
-          onChange={handleFilterChange}
-          icon={<Calendar size={18} />}
+          selected={filters.dataFim ? parseISO(filters.dataFim) : null}
+          onChange={(date) => {
+            const dateStr = date ? format(date, 'yyyy-MM-dd') : '';
+            setFilters(prev => ({ ...prev, dataFim: dateStr }));
+          }}
         />
 
         <div className="space-y-1">
           <label className="text-sm font-medium text-gray-700 mb-1">Tabela</label>
           <div className="relative">
             <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
-               <FileText size={18} />
+              <FileText size={18} />
             </div>
             <select
               name="tableName"
@@ -203,7 +204,7 @@ export default function AuditLogs() {
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className={`text-xs font-semibold px-2 py-1 rounded-full border border-opacity-20 uppercase tracking-tighter ${log.action === 'Insert' ? 'bg-green-50 text-green-600 border-green-200' :
                         log.action === 'Update' ? 'bg-amber-50 text-amber-600 border-amber-200' :
-                        'bg-red-50 text-red-600 border-red-200'
+                          'bg-red-50 text-red-600 border-red-200'
                         }`}>
                         {log.action === 'Insert' ? 'Inclusão' : log.action === 'Update' ? 'Alteração' : 'Exclusão'}
                       </span>
