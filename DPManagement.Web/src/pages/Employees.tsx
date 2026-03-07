@@ -9,6 +9,7 @@ import { FilterBar } from '../components/common/FilterBar';
 import { Modal } from '../components/common/Modal';
 import { DatePicker } from '../components/common/DatePicker';
 import { parseISO, format } from 'date-fns';
+import { useAuth } from '../hooks/useAuth';
 
 interface Cargo {
   id: string;
@@ -44,6 +45,7 @@ export default function Employees() {
     totalCount: 0,
     pageSize: 10
   });
+  const { hasPermission } = useAuth();
   const [filters, setFilters] = useState({
     nome: '',
     cpf: '',
@@ -248,12 +250,16 @@ export default function Employees() {
       align: 'right',
       render: (emp) => (
         <div className="space-x-4">
-          <button onClick={() => handleEdit(emp)} className="text-indigo-600 hover:text-indigo-900">
-            <Edit size={18} />
-          </button>
-          <button onClick={() => handleDelete(emp.id)} className="text-red-600 hover:text-red-900">
-            <Trash2 size={18} />
-          </button>
+          {hasPermission('Colaboradores', 'Editar') && (
+            <button onClick={() => handleEdit(emp)} className="text-indigo-600 hover:text-indigo-900">
+              <Edit size={18} />
+            </button>
+          )}
+          {hasPermission('Colaboradores', 'Excluir') && (
+            <button onClick={() => handleDelete(emp.id)} className="text-red-600 hover:text-red-900">
+              <Trash2 size={18} />
+            </button>
+          )}
         </div>
       ),
     },
@@ -263,23 +269,25 @@ export default function Employees() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-semibold text-gray-900">Gestão de Colaboradores</h1>
-        <button
-          onClick={() => {
-            setEditingEmployee(null);
-            setFormData({
-              nome: '', cpf: '', rg: '', pis: '', dataNascimento: '',
-              telefone: '', celular: '', cep: '', logradouro: '',
-              numero: '', complemento: '', bairro: '', cidade: '',
-              estado: '', cargoId: ''
-            });
-            setErrors({});
-            setIsModalOpen(true);
-          }}
-          className="flex items-center px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors"
-        >
-          <Plus size={18} className="mr-2" />
-          Novo Colaborador
-        </button>
+        {hasPermission('Colaboradores', 'Criar') && (
+          <button
+            onClick={() => {
+              setEditingEmployee(null);
+              setFormData({
+                nome: '', cpf: '', rg: '', pis: '', dataNascimento: '',
+                telefone: '', celular: '', cep: '', logradouro: '',
+                numero: '', complemento: '', bairro: '', cidade: '',
+                estado: '', cargoId: ''
+              });
+              setErrors({});
+              setIsModalOpen(true);
+            }}
+            className="flex items-center px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors"
+          >
+            <Plus size={18} className="mr-2" />
+            Novo Colaborador
+          </button>
+        )}
       </div>
 
       <FilterBar onFilter={applyFilters} onClear={clearFilters}>

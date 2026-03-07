@@ -4,7 +4,7 @@ import { LayoutDashboard, Users, LogOut, Settings, Calculator, Briefcase, Histor
 import { useAuth } from '../hooks/useAuth';
 
 export function AppLayout() {
-  const { user, token, logout, isAuthorized } = useAuth();
+  const { user, token, logout, hasPermission } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -32,22 +32,33 @@ export function AppLayout() {
         </div>
 
         <nav className="flex-1 px-4 py-6 space-y-2">
-          <NavItem to="/" icon={<LayoutDashboard size={20} />} label="Dashboard" />
-
-          {isAuthorized('Funcionario') && (
-            <>
-              <NavItem to="/employees" icon={<Users size={20} />} label="Colaboradores" />
-              <NavItem to="/cargos" icon={<Briefcase size={20} />} label="Cargos" />
-              <NavItem to="/perfis" icon={<Shield size={20} />} label="Perfis" />
-              <NavItem to="/audit" icon={<History size={20} />} label="Auditoria" />
-            </>
+          {hasPermission('Dashboard', 'Visualizar') && (
+            <NavItem to="/" icon={<LayoutDashboard size={20} />} label="Dashboard" />
           )}
 
-          {isAuthorized('Folha') && (
+          {hasPermission('Colaboradores', 'Visualizar') && (
+            <NavItem to="/employees" icon={<Users size={20} />} label="Colaboradores" />
+          )}
+
+          {hasPermission('Cargos', 'Visualizar') && (
+            <NavItem to="/cargos" icon={<Briefcase size={20} />} label="Cargos" />
+          )}
+
+          {hasPermission('Perfis', 'Visualizar') && (
+            <NavItem to="/perfis" icon={<Shield size={20} />} label="Perfis" />
+          )}
+
+          {hasPermission('Auditoria', 'Visualizar') && (
+            <NavItem to="/audit" icon={<History size={20} />} label="Auditoria" />
+          )}
+
+          {hasPermission('Folha', 'Visualizar') && (
             <NavItem to="/payroll" icon={<Calculator size={20} />} label="Folha de Pagamento" />
           )}
 
-          <NavItem to="/settings" icon={<Settings size={20} />} label="Configurações" />
+          {hasPermission('Configuracoes', 'Visualizar') && (
+            <NavItem to="/settings" icon={<Settings size={20} />} label="Configurações" />
+          )}
         </nav>
 
         <div className="p-4 border-t border-indigo-800">

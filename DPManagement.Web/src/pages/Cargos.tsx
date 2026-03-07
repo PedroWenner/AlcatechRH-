@@ -7,6 +7,7 @@ import { Table, type TableColumn } from '../components/common/Table';
 import { FilterBar } from '../components/common/FilterBar';
 import { Autocomplete } from '../components/common/Autocomplete';
 import { Modal } from '../components/common/Modal';
+import { useAuth } from '../hooks/useAuth';
 
 interface Cargo {
   id: string;
@@ -22,6 +23,7 @@ export default function Cargos() {
     totalCount: 0,
     pageSize: 10
   });
+  const { hasPermission } = useAuth();
   const [filters, setFilters] = useState({
     nome: '',
     cbo: ''
@@ -123,12 +125,16 @@ export default function Cargos() {
       align: 'right',
       render: (cargo) => (
         <div className="space-x-4">
-          <button onClick={() => handleEdit(cargo)} className="text-indigo-600 hover:text-indigo-900">
-            <Edit size={18} />
-          </button>
-          <button onClick={() => handleDelete(cargo.id)} className="text-red-600 hover:text-red-900">
-            <Trash2 size={18} />
-          </button>
+          {hasPermission('Cargos', 'Editar') && (
+            <button onClick={() => handleEdit(cargo)} className="text-indigo-600 hover:text-indigo-900">
+              <Edit size={18} />
+            </button>
+          )}
+          {hasPermission('Cargos', 'Excluir') && (
+            <button onClick={() => handleDelete(cargo.id)} className="text-red-600 hover:text-red-900">
+              <Trash2 size={18} />
+            </button>
+          )}
         </div>
       ),
     },
@@ -138,13 +144,15 @@ export default function Cargos() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-semibold text-gray-900">Gestão de Cargos</h1>
-        <button
-          onClick={() => { setEditingCargo(null); setFormData({ nome: '', cbo: '' }); setIsModalOpen(true); }}
-          className="flex items-center px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors"
-        >
-          <Plus size={18} className="mr-2" />
-          Novo Cargo
-        </button>
+        {hasPermission('Cargos', 'Criar') && (
+          <button
+            onClick={() => { setEditingCargo(null); setFormData({ nome: '', cbo: '' }); setIsModalOpen(true); }}
+            className="flex items-center px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors"
+          >
+            <Plus size={18} className="mr-2" />
+            Novo Cargo
+          </button>
+        )}
       </div>
 
       <FilterBar onFilter={applyFilters} onClear={clearFilters}>
