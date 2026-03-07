@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
-import { History, FileText, User as UserIcon, Info, X } from 'lucide-react';
+import { History, FileText, User as UserIcon, Info } from 'lucide-react';
 import api from '../services/api';
 import { showLoading, closeLoading, alertError } from '../utils/swal';
 import { FilterBar } from '../components/common/FilterBar';
 import { Table, type TableColumn } from '../components/common/Table';
+import { Modal } from '../components/common/Modal';
 import { DatePicker } from '../components/common/DatePicker';
 import { parseISO, format } from 'date-fns';
 
@@ -134,10 +135,10 @@ export default function AuditLogs() {
       render: (log) => (
         <span
           className={`text-xs font-semibold px-2 py-1 rounded-full border border-opacity-20 uppercase tracking-tighter ${log.action === 'Insert'
-              ? 'bg-green-50 text-green-600 border-green-200'
-              : log.action === 'Update'
-                ? 'bg-amber-50 text-amber-600 border-amber-200'
-                : 'bg-red-50 text-red-600 border-red-200'
+            ? 'bg-green-50 text-green-600 border-green-200'
+            : log.action === 'Update'
+              ? 'bg-amber-50 text-amber-600 border-amber-200'
+              : 'bg-red-50 text-red-600 border-red-200'
             }`}
         >
           {log.action === 'Insert' ? 'Inclusão' : log.action === 'Update' ? 'Alteração' : 'Exclusão'}
@@ -235,84 +236,67 @@ export default function AuditLogs() {
         emptyMessage="Nenhum log encontrado para os filtros selecionados."
       />
 
-      {/* Modal de Detalhes */}
-      {selectedLog && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
-            <div className="p-6 border-b border-gray-100 flex items-center justify-between bg-indigo-600 text-white">
-              <div className="flex items-center space-x-3">
-                <Info size={24} />
-                <div>
-                  <h2 className="text-xl font-bold">Detalhes da Alteração</h2>
-                  <p className="text-xs text-indigo-100 opacity-80">
-                    ID: {selectedLog.id} • {formatDate(selectedLog.createdAt)}
-                  </p>
-                </div>
+      <Modal
+        isOpen={selectedLog !== null}
+        onClose={() => setSelectedLog(null)}
+        title="Detalhes da Alteração"
+        size="4xl"
+        footer={(
+          <button
+            onClick={() => setSelectedLog(null)}
+            className="px-8 py-2 bg-indigo-600 text-white rounded-md font-medium hover:bg-indigo-700 transition-all shadow-md active:scale-95"
+          >
+            Fechar
+          </button>
+        )}
+      >
+        {selectedLog && (
+          <div className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-1">Tabela</span>
+                <p className="font-bold text-gray-700">{selectedLog.tableName}</p>
               </div>
-              <button
-                onClick={() => setSelectedLog(null)}
-                className="p-2 hover:bg-white/20 rounded-xl transition-colors"
-              >
-                <X size={24} />
-              </button>
-            </div>
-
-            <div className="p-6 overflow-y-auto space-y-6 flex-1 bg-gray-50">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
-                  <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-1">Tabela</span>
-                  <p className="font-bold text-gray-700">{selectedLog.tableName}</p>
-                </div>
-                <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
-                  <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-1">Ação</span>
-                  <p className="font-bold text-gray-700">{selectedLog.action}</p>
-                </div>
-                <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
-                  <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-1">Usuário</span>
-                  <p className="font-bold text-gray-700">{selectedLog.userName}</p>
-                </div>
+              <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-1">Ação</span>
+                <p className="font-bold text-gray-700">{selectedLog.action}</p>
               </div>
-
-              {selectedLog.action === 'Update' && (
-                <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
-                  <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-3">Colunas Alteradas</span>
-                  <div className="flex flex-wrap gap-2">
-                    {parseJson(selectedLog.changedColumns)?.map((col: string) => (
-                      <span key={col} className="bg-indigo-50 text-indigo-600 px-3 py-1 rounded-lg text-xs font-bold border border-indigo-100">
-                        {col}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <span className="text-xs font-bold text-red-500 uppercase tracking-widest px-2">Valor Anterior</span>
-                  <div className="bg-red-50 p-4 rounded-2xl border border-red-100 font-mono text-xs overflow-auto max-h-64 shadow-inner text-red-900 whitespace-pre-wrap">
-                    {selectedLog.oldValues ? JSON.stringify(parseJson(selectedLog.oldValues), null, 2) : 'N/A'}
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <span className="text-xs font-bold text-green-500 uppercase tracking-widest px-2">Novo Valor</span>
-                  <div className="bg-green-50 p-4 rounded-2xl border border-green-100 font-mono text-xs overflow-auto max-h-64 shadow-inner text-green-900 whitespace-pre-wrap">
-                    {selectedLog.newValues ? JSON.stringify(parseJson(selectedLog.newValues), null, 2) : 'N/A'}
-                  </div>
-                </div>
+              <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-1">Usuário</span>
+                <p className="font-bold text-gray-700">{selectedLog.userName}</p>
               </div>
             </div>
 
-            <div className="p-4 bg-white border-t border-gray-100 flex justify-end">
-              <button
-                onClick={() => setSelectedLog(null)}
-                className="px-8 py-3 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 transition-all shadow-lg active:scale-95"
-              >
-                Fechar Detalhes
-              </button>
+            {selectedLog.action === 'Update' && (
+              <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-3">Colunas Alteradas</span>
+                <div className="flex flex-wrap gap-2">
+                  {parseJson(selectedLog.changedColumns)?.map((col: string) => (
+                    <span key={col} className="bg-indigo-50 text-indigo-600 px-3 py-1 rounded-lg text-xs font-bold border border-indigo-100">
+                      {col}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <span className="text-xs font-bold text-red-500 uppercase tracking-widest px-2">Valor Anterior</span>
+                <div className="bg-red-50 p-4 rounded-2xl border border-red-100 font-mono text-xs overflow-auto max-h-64 shadow-inner text-red-900 whitespace-pre-wrap">
+                  {selectedLog.oldValues ? JSON.stringify(parseJson(selectedLog.oldValues), null, 2) : 'N/A'}
+                </div>
+              </div>
+              <div className="space-y-2">
+                <span className="text-xs font-bold text-green-500 uppercase tracking-widest px-2">Novo Valor</span>
+                <div className="bg-green-50 p-4 rounded-2xl border border-green-100 font-mono text-xs overflow-auto max-h-64 shadow-inner text-green-900 whitespace-pre-wrap">
+                  {selectedLog.newValues ? JSON.stringify(parseJson(selectedLog.newValues), null, 2) : 'N/A'}
+                </div>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
+      </Modal>
     </div>
   );
 }
