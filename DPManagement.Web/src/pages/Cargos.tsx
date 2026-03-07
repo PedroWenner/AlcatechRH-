@@ -3,7 +3,7 @@ import { Plus, Trash2, Edit } from 'lucide-react';
 import api from '../services/api';
 import { FormInput } from '../components/common/FormInput';
 import { alertSuccess, alertError, alertDeleteConfirm, showLoading, closeLoading } from '../services/alertService';
-import { Pagination } from '../components/common/Pagination';
+import { Table, type TableColumn } from '../components/common/Table';
 import { FilterBar } from '../components/common/FilterBar';
 import { Autocomplete } from '../components/common/Autocomplete';
 import { Modal } from '../components/common/Modal';
@@ -115,6 +115,25 @@ export default function Cargos() {
     }
   };
 
+  const columns: TableColumn<Cargo>[] = [
+    { header: 'Nome', accessor: 'nome' },
+    { header: 'CBO', accessor: 'cbo' },
+    {
+      header: 'Ações',
+      align: 'right',
+      render: (cargo) => (
+        <div className="space-x-4">
+          <button onClick={() => handleEdit(cargo)} className="text-indigo-600 hover:text-indigo-900">
+            <Edit size={18} />
+          </button>
+          <button onClick={() => handleDelete(cargo.id)} className="text-red-600 hover:text-red-900">
+            <Trash2 size={18} />
+          </button>
+        </div>
+      ),
+    },
+  ];
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -143,40 +162,17 @@ export default function Cargos() {
         />
       </FilterBar>
 
-      <div className="bg-white shadow overflow-hidden border-b border-gray-200 sm:rounded-lg">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nome</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">CBO</th>
-              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Ações</th>
-            </tr>
-          </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
-            {cargos.map((cargo) => (
-              <tr key={cargo.id}>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{cargo.nome}</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{cargo.cbo}</td>
-                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                  <button onClick={() => handleEdit(cargo)} className="text-indigo-600 hover:text-indigo-900 mr-4">
-                    <Edit size={18} />
-                  </button>
-                  <button onClick={() => handleDelete(cargo.id)} className="text-red-600 hover:text-red-900">
-                    <Trash2 size={18} />
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-        <Pagination
-          currentPage={pagination.currentPage}
-          totalPages={pagination.totalPages}
-          onPageChange={(page) => fetchCargos(page)}
-          totalCount={pagination.totalCount}
-          pageSize={pagination.pageSize}
-        />
-      </div>
+      <Table
+        data={cargos}
+        columns={columns}
+        pagination={{
+          currentPage: pagination.currentPage,
+          totalPages: pagination.totalPages,
+          totalCount: pagination.totalCount,
+          pageSize: pagination.pageSize,
+          onPageChange: (page) => fetchCargos(page),
+        }}
+      />
 
       <Modal
         isOpen={isModalOpen}

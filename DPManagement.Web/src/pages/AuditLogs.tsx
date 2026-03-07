@@ -3,7 +3,7 @@ import { History, FileText, User as UserIcon, Info, X } from 'lucide-react';
 import api from '../services/api';
 import { showLoading, closeLoading, alertError } from '../utils/swal';
 import { FilterBar } from '../components/common/FilterBar';
-import { Pagination } from '../components/common/Pagination';
+import { Table, type TableColumn } from '../components/common/Table';
 import { DatePicker } from '../components/common/DatePicker';
 import { parseISO, format } from 'date-fns';
 
@@ -107,6 +107,57 @@ export default function AuditLogs() {
     }
   };
 
+  const columns: TableColumn<AuditLog>[] = [
+    {
+      header: 'Data / Hora',
+      render: (log) => formatDate(log.createdAt),
+    },
+    {
+      header: 'Usuário',
+      render: (log) => (
+        <div className="flex items-center space-x-2">
+          <UserIcon size={16} className="text-gray-400" />
+          <span className="text-sm text-gray-700">{log.userName}</span>
+        </div>
+      ),
+    },
+    {
+      header: 'Tabela',
+      render: (log) => (
+        <span className="text-xs font-semibold bg-blue-50 text-blue-600 px-2 py-1 rounded-full border border-blue-100 uppercase tracking-tighter">
+          {log.tableName}
+        </span>
+      ),
+    },
+    {
+      header: 'Ação',
+      render: (log) => (
+        <span
+          className={`text-xs font-semibold px-2 py-1 rounded-full border border-opacity-20 uppercase tracking-tighter ${log.action === 'Insert'
+              ? 'bg-green-50 text-green-600 border-green-200'
+              : log.action === 'Update'
+                ? 'bg-amber-50 text-amber-600 border-amber-200'
+                : 'bg-red-50 text-red-600 border-red-200'
+            }`}
+        >
+          {log.action === 'Insert' ? 'Inclusão' : log.action === 'Update' ? 'Alteração' : 'Exclusão'}
+        </span>
+      ),
+    },
+    {
+      header: 'Detalhes',
+      align: 'center',
+      render: (log) => (
+        <button
+          onClick={() => setSelectedLog(log)}
+          className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all"
+        >
+          <Info size={20} />
+        </button>
+      ),
+    },
+  ];
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -171,73 +222,18 @@ export default function AuditLogs() {
         </div>
       </FilterBar>
 
-      <div className="bg-white rounded-xl shadow-md border border-gray-100 overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Data/Hora</th>
-                <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Usuário</th>
-                <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Tabela</th>
-                <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Ação</th>
-                <th className="px-6 py-4 text-center text-xs font-bold text-gray-500 uppercase tracking-wider">Detalhes</th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-100">
-              {logs.length > 0 ? (
-                logs.map((log) => (
-                  <tr key={log.id} className="hover:bg-gray-50 transition-colors">
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 font-medium">
-                      {formatDate(log.createdAt)}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center space-x-2">
-                        <UserIcon size={16} className="text-gray-400" />
-                        <span className="text-sm text-gray-700">{log.userName}</span>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className="text-xs font-semibold bg-blue-50 text-blue-600 px-2 py-1 rounded-full border border-blue-100 uppercase tracking-tighter">
-                        {log.tableName}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`text-xs font-semibold px-2 py-1 rounded-full border border-opacity-20 uppercase tracking-tighter ${log.action === 'Insert' ? 'bg-green-50 text-green-600 border-green-200' :
-                        log.action === 'Update' ? 'bg-amber-50 text-amber-600 border-amber-200' :
-                          'bg-red-50 text-red-600 border-red-200'
-                        }`}>
-                        {log.action === 'Insert' ? 'Inclusão' : log.action === 'Update' ? 'Alteração' : 'Exclusão'}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-center">
-                      <button
-                        onClick={() => setSelectedLog(log)}
-                        className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all"
-                      >
-                        <Info size={20} />
-                      </button>
-                    </td>
-                  </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan={5} className="px-6 py-12 text-center text-gray-400 italic">
-                    Nenhum log encontrado para os filtros selecionados.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-
-        <Pagination
-          currentPage={pagination.currentPage}
-          totalPages={pagination.totalPages}
-          onPageChange={(page) => fetchLogs(page)}
-          totalCount={pagination.totalCount}
-          pageSize={pagination.pageSize}
-        />
-      </div>
+      <Table
+        data={logs}
+        columns={columns}
+        pagination={{
+          currentPage: pagination.currentPage,
+          totalPages: pagination.totalPages,
+          totalCount: pagination.totalCount,
+          pageSize: pagination.pageSize,
+          onPageChange: (page) => fetchLogs(page),
+        }}
+        emptyMessage="Nenhum log encontrado para os filtros selecionados."
+      />
 
       {/* Modal de Detalhes */}
       {selectedLog && (

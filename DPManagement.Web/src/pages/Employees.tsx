@@ -4,7 +4,7 @@ import api from '../services/api';
 import { maskCPF, maskPhone, maskCell, maskCEP } from '../utils/masks';
 import { FormInput } from '../components/common/FormInput';
 import { alertSuccess, alertError, alertDeleteConfirm, showLoading, closeLoading } from '../services/alertService';
-import { Pagination } from '../components/common/Pagination';
+import { Table, type TableColumn } from '../components/common/Table';
 import { FilterBar } from '../components/common/FilterBar';
 import { Modal } from '../components/common/Modal';
 import { DatePicker } from '../components/common/DatePicker';
@@ -228,6 +228,37 @@ export default function Employees() {
     setIsModalOpen(true);
   };
 
+  const columns: TableColumn<Colaborador>[] = [
+    {
+      header: 'Nome / CPF',
+      render: (emp) => (
+        <>
+          <div className="text-sm font-medium text-gray-900">{emp.nome}</div>
+          <div className="text-sm text-gray-500">{maskCPF(emp.cpf)}</div>
+        </>
+      ),
+    },
+    { header: 'Cargo', accessor: 'cargoNome' },
+    {
+      header: 'Contato',
+      render: (emp) => emp.celular && <div className="text-xs text-gray-500">Cell: {maskCell(emp.celular)}</div>,
+    },
+    {
+      header: 'Ações',
+      align: 'right',
+      render: (emp) => (
+        <div className="space-x-4">
+          <button onClick={() => handleEdit(emp)} className="text-indigo-600 hover:text-indigo-900">
+            <Edit size={18} />
+          </button>
+          <button onClick={() => handleDelete(emp.id)} className="text-red-600 hover:text-red-900">
+            <Trash2 size={18} />
+          </button>
+        </div>
+      ),
+    },
+  ];
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -278,47 +309,17 @@ export default function Employees() {
         </div>
       </FilterBar>
 
-      <div className="bg-white shadow overflow-hidden border-b border-gray-200 sm:rounded-lg">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nome / CPF</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cargo</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Contato</th>
-              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Ações</th>
-            </tr>
-          </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
-            {employees.map((emp) => (
-              <tr key={emp.id}>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm font-medium text-gray-900">{emp.nome}</div>
-                  <div className="text-sm text-gray-500">{maskCPF(emp.cpf)}</div>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{emp.cargoNome}</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {emp.celular && <div className="text-xs">Cell: {maskCell(emp.celular)}</div>}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                  <button onClick={() => handleEdit(emp)} className="text-indigo-600 hover:text-indigo-900 mr-4">
-                    <Edit size={18} />
-                  </button>
-                  <button onClick={() => handleDelete(emp.id)} className="text-red-600 hover:text-red-900">
-                    <Trash2 size={18} />
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-        <Pagination
-          currentPage={pagination.currentPage}
-          totalPages={pagination.totalPages}
-          onPageChange={(page) => fetchEmployees(page)}
-          totalCount={pagination.totalCount}
-          pageSize={pagination.pageSize}
-        />
-      </div>
+      <Table
+        data={employees}
+        columns={columns}
+        pagination={{
+          currentPage: pagination.currentPage,
+          totalPages: pagination.totalPages,
+          totalCount: pagination.totalCount,
+          pageSize: pagination.pageSize,
+          onPageChange: (page) => fetchEmployees(page),
+        }}
+      />
 
       <Modal
         isOpen={isModalOpen}
