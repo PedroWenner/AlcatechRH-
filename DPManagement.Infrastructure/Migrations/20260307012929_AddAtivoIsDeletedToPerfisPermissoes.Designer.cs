@@ -3,6 +3,7 @@ using System;
 using DPManagement.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace DPManagement.Infrastructure.Migrations
 {
     [DbContext(typeof(DPManagementDbContext))]
-    partial class DPManagementDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260307012929_AddAtivoIsDeletedToPerfisPermissoes")]
+    partial class AddAtivoIsDeletedToPerfisPermissoes
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -312,156 +315,39 @@ namespace DPManagement.Infrastructure.Migrations
                     b.HasData(
                         new
                         {
-                            Id = new Guid("c1111111-1111-1111-1111-111111111111"),
-                            Acao = "Visualizar",
+                            Id = new Guid("a1111111-1111-1111-1111-111111111111"),
+                            Acao = "Acessar",
                             Ativo = true,
-                            Descricao = "Listar e ver detalhes de cargos",
-                            IsDeleted = false,
-                            Modulo = "Cargos"
-                        },
-                        new
-                        {
-                            Id = new Guid("c1111111-1111-1111-1111-111111111112"),
-                            Acao = "Criar",
-                            Ativo = true,
-                            Descricao = "Criar novos cargos",
-                            IsDeleted = false,
-                            Modulo = "Cargos"
-                        },
-                        new
-                        {
-                            Id = new Guid("c1111111-1111-1111-1111-111111111113"),
-                            Acao = "Editar",
-                            Ativo = true,
-                            Descricao = "Editar cargos existentes",
-                            IsDeleted = false,
-                            Modulo = "Cargos"
-                        },
-                        new
-                        {
-                            Id = new Guid("c1111111-1111-1111-1111-111111111114"),
-                            Acao = "Excluir",
-                            Ativo = true,
-                            Descricao = "Excluir cargos",
-                            IsDeleted = false,
-                            Modulo = "Cargos"
-                        },
-                        new
-                        {
-                            Id = new Guid("c2222222-2222-2222-2222-222222222221"),
-                            Acao = "Visualizar",
-                            Ativo = true,
-                            Descricao = "Listar e ver detalhes de colaboradores",
-                            IsDeleted = false,
-                            Modulo = "Colaboradores"
-                        },
-                        new
-                        {
-                            Id = new Guid("c2222222-2222-2222-2222-222222222222"),
-                            Acao = "Criar",
-                            Ativo = true,
-                            Descricao = "Criar novos colaboradores",
-                            IsDeleted = false,
-                            Modulo = "Colaboradores"
-                        },
-                        new
-                        {
-                            Id = new Guid("c2222222-2222-2222-2222-222222222223"),
-                            Acao = "Editar",
-                            Ativo = true,
-                            Descricao = "Editar colaboradores existentes",
-                            IsDeleted = false,
-                            Modulo = "Colaboradores"
-                        },
-                        new
-                        {
-                            Id = new Guid("c2222222-2222-2222-2222-222222222224"),
-                            Acao = "Excluir",
-                            Ativo = true,
-                            Descricao = "Excluir colaboradores",
-                            IsDeleted = false,
-                            Modulo = "Colaboradores"
-                        },
-                        new
-                        {
-                            Id = new Guid("c3333333-3333-3333-3333-333333333331"),
-                            Acao = "Visualizar",
-                            Ativo = true,
-                            Descricao = "Visualizar fechamentos de folha",
+                            Descricao = "Visualizar módulo de folha",
                             IsDeleted = false,
                             Modulo = "Folha"
                         },
                         new
                         {
-                            Id = new Guid("c3333333-3333-3333-3333-333333333332"),
-                            Acao = "Criar",
+                            Id = new Guid("a1111111-1111-1111-1111-111111111112"),
+                            Acao = "Calcular",
                             Ativo = true,
-                            Descricao = "Gerar nova folha",
+                            Descricao = "Realizar cálculo da folha",
                             IsDeleted = false,
                             Modulo = "Folha"
                         },
                         new
                         {
-                            Id = new Guid("c3333333-3333-3333-3333-333333333333"),
+                            Id = new Guid("b2222222-2222-2222-2222-222222222221"),
+                            Acao = "Listar",
+                            Ativo = true,
+                            Descricao = "Ver lista de funcionários",
+                            IsDeleted = false,
+                            Modulo = "Funcionario"
+                        },
+                        new
+                        {
+                            Id = new Guid("b2222222-2222-2222-2222-222222222222"),
                             Acao = "Editar",
                             Ativo = true,
-                            Descricao = "Ajustar valores da folha",
+                            Descricao = "Editar dados de funcionários",
                             IsDeleted = false,
-                            Modulo = "Folha"
-                        },
-                        new
-                        {
-                            Id = new Guid("c3333333-3333-3333-3333-333333333334"),
-                            Acao = "Excluir",
-                            Ativo = true,
-                            Descricao = "Excluir ou cancelar folha",
-                            IsDeleted = false,
-                            Modulo = "Folha"
-                        },
-                        new
-                        {
-                            Id = new Guid("c4444444-4444-4444-4444-444444444441"),
-                            Acao = "Visualizar",
-                            Ativo = true,
-                            Descricao = "Listar e ver detalhes de perfis",
-                            IsDeleted = false,
-                            Modulo = "Perfis"
-                        },
-                        new
-                        {
-                            Id = new Guid("c4444444-4444-4444-4444-444444444442"),
-                            Acao = "Criar",
-                            Ativo = true,
-                            Descricao = "Criar novos perfis",
-                            IsDeleted = false,
-                            Modulo = "Perfis"
-                        },
-                        new
-                        {
-                            Id = new Guid("c4444444-4444-4444-4444-444444444443"),
-                            Acao = "Editar",
-                            Ativo = true,
-                            Descricao = "Editar perfis e acessos",
-                            IsDeleted = false,
-                            Modulo = "Perfis"
-                        },
-                        new
-                        {
-                            Id = new Guid("c4444444-4444-4444-4444-444444444444"),
-                            Acao = "Excluir",
-                            Ativo = true,
-                            Descricao = "Excluir perfis",
-                            IsDeleted = false,
-                            Modulo = "Perfis"
-                        },
-                        new
-                        {
-                            Id = new Guid("c5555555-5555-5555-5555-555555555551"),
-                            Acao = "Visualizar",
-                            Ativo = true,
-                            Descricao = "Visualizar logs de auditoria",
-                            IsDeleted = false,
-                            Modulo = "Auditoria"
+                            Modulo = "Funcionario"
                         });
                 });
 

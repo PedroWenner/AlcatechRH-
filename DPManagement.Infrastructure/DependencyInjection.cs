@@ -21,6 +21,7 @@ public static class DependencyInjection
         services.AddScoped<IAuditLogRepository, AuditLogRepository>();
         services.AddHttpClient<IViaCepService, ViaCepService>();
         services.AddScoped<DPManagement.Application.Interfaces.IPerfilService, Services.PerfilService>();
+        services.AddScoped<DPManagement.Application.Interfaces.IPermissaoService, Services.PermissaoService>();
         
         return services;
     }

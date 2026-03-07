@@ -20,6 +20,8 @@ public class PerfilConfiguration : IEntityTypeConfiguration<Perfil>
         builder.Property(e => e.Descricao)
             .HasMaxLength(250);
 
+        builder.HasQueryFilter(e => !e.IsDeleted);
+
         // Seed Perfis
         builder.HasData(
             new Perfil { Id = Guid.Parse("11111111-1111-1111-1111-111111111111"), Nome = "Admin", Descricao = "Acesso total ao sistema" },

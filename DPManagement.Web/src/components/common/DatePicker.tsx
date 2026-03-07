@@ -21,7 +21,7 @@ export const DatePicker: React.FC<DatePickerProps> = ({
   selected,
   onChange,
   error,
-  placeholder = "DD/MM/AAAA",
+  placeholder = "dd/mm/aaaa",
   required
 }) => {
   return (
