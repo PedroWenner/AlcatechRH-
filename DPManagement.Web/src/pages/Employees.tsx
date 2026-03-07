@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react';
-import { createPortal } from 'react-dom';
-import { Plus, Edit, Save, X, Trash2 } from 'lucide-react';
+import { Plus, Edit, Save, Trash2 } from 'lucide-react';
 import api from '../services/api';
 import { maskCPF, maskPhone, maskCell, maskCEP } from '../utils/masks';
 import { FormInput } from '../components/common/FormInput';
 import { alertSuccess, alertError, alertDeleteConfirm, showLoading, closeLoading } from '../services/alertService';
 import { Pagination } from '../components/common/Pagination';
 import { FilterBar } from '../components/common/FilterBar';
+import { Modal } from '../components/common/Modal';
 
 interface Cargo {
   id: string;
@@ -318,181 +318,178 @@ export default function Employees() {
         />
       </div>
 
-      {isModalOpen && typeof document !== 'undefined' && createPortal(
-        <div className="fixed z-[1000] inset-0 overflow-y-auto">
-          <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-            <div className="fixed inset-0 transition-opacity" aria-hidden="true" onClick={() => setIsModalOpen(false)}>
-              <div className="absolute inset-0 bg-gray-500 opacity-75"></div>
+      <Modal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        title={editingEmployee ? 'Editar Colaborador' : 'Novo Colaborador'}
+        size="4xl"
+        footer={(
+          <>
+            <button
+              type="submit"
+              form="employee-form"
+              className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none sm:ml-3 sm:w-auto sm:text-sm"
+            >
+              Salvar
+            </button>
+            <button
+              type="button"
+              onClick={() => setIsModalOpen(false)}
+              className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
+            >
+              Cancelar
+            </button>
+          </>
+        )}
+      >
+        <form id="employee-form" onSubmit={handleSubmit}>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-x-4 gap-y-4">
+            <div className="md:col-span-2">
+              <FormInput
+                label="Nome Completo"
+                required
+                value={formData.nome}
+                error={errors.nome}
+                onChange={e => setFormData({ ...formData, nome: e.target.value })}
+                onBlur={e => handleBlur('nome', e.target.value)}
+              />
             </div>
-            <div className="inline-block align-bottom bg-white rounded-lg text-left shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-4xl sm:w-full relative z-[1001]">
-              <form onSubmit={handleSubmit} className="p-6">
-                <div className="flex justify-between items-center mb-6">
-                  <h3 className="text-lg font-medium text-gray-900">{editingEmployee ? 'Editar Colaborador' : 'Novo Colaborador'}</h3>
-                  <button type="button" onClick={() => setIsModalOpen(false)} className="text-gray-400 hover:text-gray-500">
-                    <X size={24} />
-                  </button>
-                </div>
+            <div>
+              <FormInput
+                label="CPF"
+                required
+                mask={maskCPF}
+                value={formData.cpf}
+                error={errors.cpf}
+                onChange={e => setFormData({ ...formData, cpf: e.target.value.replace(/\D/g, '') })}
+                onBlur={e => handleBlur('cpf', e.target.value)}
+                placeholder="000.000.000-00"
+              />
+            </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-x-4 gap-y-4">
-                  <div className="md:col-span-2">
-                    <FormInput
-                      label="Nome Completo"
-                      required
-                      value={formData.nome}
-                      error={errors.nome}
-                      onChange={e => setFormData({ ...formData, nome: e.target.value })}
-                      onBlur={e => handleBlur('nome', e.target.value)}
-                    />
-                  </div>
-                  <div>
-                    <FormInput
-                      label="CPF"
-                      required
-                      mask={maskCPF}
-                      value={formData.cpf}
-                      error={errors.cpf}
-                      onChange={e => setFormData({ ...formData, cpf: e.target.value.replace(/\D/g, '') })}
-                      onBlur={e => handleBlur('cpf', e.target.value)}
-                      placeholder="000.000.000-00"
-                    />
-                  </div>
+            <FormInput
+              label="RG"
+              value={formData.rg}
+              onChange={e => setFormData({ ...formData, rg: e.target.value })}
+            />
+            <FormInput
+              label="PIS"
+              value={formData.pis}
+              onChange={e => setFormData({ ...formData, pis: e.target.value })}
+            />
+            <FormInput
+              label="Data de Nascimento"
+              required
+              type="date"
+              value={formData.dataNascimento}
+              error={errors.dataNascimento}
+              onChange={e => setFormData({ ...formData, dataNascimento: e.target.value })}
+              onBlur={e => handleBlur('dataNascimento', e.target.value)}
+            />
 
-                  <FormInput
-                    label="RG"
-                    value={formData.rg}
-                    onChange={e => setFormData({ ...formData, rg: e.target.value })}
-                  />
-                  <FormInput
-                    label="PIS"
-                    value={formData.pis}
-                    onChange={e => setFormData({ ...formData, pis: e.target.value })}
-                  />
-                  <FormInput
-                    label="Data de Nascimento"
-                    required
-                    type="date"
-                    value={formData.dataNascimento}
-                    error={errors.dataNascimento}
-                    onChange={e => setFormData({ ...formData, dataNascimento: e.target.value })}
-                    onBlur={e => handleBlur('dataNascimento', e.target.value)}
-                  />
+            <FormInput
+              label="Telefone Fixo"
+              mask={maskPhone}
+              value={formData.telefone}
+              onChange={e => setFormData({ ...formData, telefone: e.target.value.replace(/\D/g, '') })}
+              placeholder="(00) 0000-0000"
+            />
+            <FormInput
+              label="Celular"
+              mask={maskCell}
+              value={formData.celular}
+              onChange={e => setFormData({ ...formData, celular: e.target.value.replace(/\D/g, '') })}
+              placeholder="(00) 0 0000-0000"
+            />
 
-                  <FormInput
-                    label="Telefone Fixo"
-                    mask={maskPhone}
-                    value={formData.telefone}
-                    onChange={e => setFormData({ ...formData, telefone: e.target.value.replace(/\D/g, '') })}
-                    placeholder="(00) 0000-0000"
-                  />
-                  <FormInput
-                    label="Celular"
-                    mask={maskCell}
-                    value={formData.celular}
-                    onChange={e => setFormData({ ...formData, celular: e.target.value.replace(/\D/g, '') })}
-                    placeholder="(00) 0 0000-0000"
-                  />
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-1">Cargo</label>
+              <select
+                required
+                value={formData.cargoId}
+                onChange={e => setFormData({ ...formData, cargoId: e.target.value })}
+                onBlur={e => handleBlur('cargoId', e.target.value)}
+                className={`w-full rounded-md border px-3 py-2 transition-all outline-none focus:ring-2 
+                  ${errors.cargoId ? "border-red-500 bg-red-50 focus:ring-red-200" : "border-gray-300 focus:ring-indigo-100 focus:border-indigo-500"}
+                `}
+              >
+                <option value="">Selecione...</option>
+                {cargos.map(c => <option key={c.id} value={c.id}>{c.nome}</option>)}
+              </select>
+              {errors.cargoId && <p className="text-sm text-red-600 mt-1">{errors.cargoId}</p>}
+            </div>
 
-                  <div className="mb-4">
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Cargo</label>
-                    <select
-                      required
-                      value={formData.cargoId}
-                      onChange={e => setFormData({ ...formData, cargoId: e.target.value })}
-                      onBlur={e => handleBlur('cargoId', e.target.value)}
-                      className={`w-full rounded-md border px-3 py-2 transition-all outline-none focus:ring-2 
-                        ${errors.cargoId ? "border-red-500 bg-red-50 focus:ring-red-200" : "border-gray-300 focus:ring-indigo-100 focus:border-indigo-500"}
-                      `}
-                    >
-                      <option value="">Selecione...</option>
-                      {cargos.map(c => <option key={c.id} value={c.id}>{c.nome}</option>)}
-                    </select>
-                    {errors.cargoId && <p className="text-sm text-red-600 mt-1">{errors.cargoId}</p>}
-                  </div>
+            <div className="md:col-span-3 border-t pt-4 mt-2">
+              <h4 className="text-sm font-bold text-gray-600 mb-2 uppercase tracking-wider">Endereço</h4>
+            </div>
 
-                  <div className="md:col-span-3 border-t pt-4 mt-2">
-                    <h4 className="text-sm font-bold text-gray-600 mb-2 uppercase tracking-wider">Endereço</h4>
-                  </div>
-
-                  <FormInput
-                    label="CEP"
-                    required
-                    mask={maskCEP}
-                    value={formData.cep}
-                    error={errors.cep}
-                    onChange={e => {
-                      const val = e.target.value.replace(/\D/g, '');
-                      setFormData({ ...formData, cep: val });
-                      if (val.length === 8) handleCepSearch(val);
-                    }}
-                    onBlur={e => handleBlur('cep', e.target.value)}
-                    placeholder="00000-000"
-                  />
-                  <div className="md:col-span-2">
-                    <FormInput
-                      label="Logradouro"
-                      required
-                      value={formData.logradouro}
-                      error={errors.logradouro}
-                      onChange={e => setFormData({ ...formData, logradouro: e.target.value })}
-                      onBlur={e => handleBlur('logradouro', e.target.value)}
-                    />
-                  </div>
-                  <FormInput
-                    label="Número"
-                    required
-                    value={formData.numero}
-                    error={errors.numero}
-                    onChange={e => setFormData({ ...formData, numero: e.target.value })}
-                    onBlur={e => handleBlur('numero', e.target.value)}
-                  />
-                  <FormInput
-                    label="Bairro"
-                    required
-                    value={formData.bairro}
-                    error={errors.bairro}
-                    onChange={e => setFormData({ ...formData, bairro: e.target.value })}
-                    onBlur={e => handleBlur('bairro', e.target.value)}
-                  />
-                  <FormInput
-                    label="Cidade"
-                    required
-                    value={formData.cidade}
-                    error={errors.cidade}
-                    onChange={e => setFormData({ ...formData, cidade: e.target.value })}
-                    onBlur={e => handleBlur('cidade', e.target.value)}
-                  />
-                  <FormInput
-                    label="Estado (UF)"
-                    required
-                    maxLength={2}
-                    value={formData.estado}
-                    error={errors.estado}
-                    onChange={e => setFormData({ ...formData, estado: e.target.value.toUpperCase() })}
-                    onBlur={e => handleBlur('estado', e.target.value)}
-                  />
-                  <div className="md:col-span-3">
-                    <FormInput
-                      label="Complemento"
-                      value={formData.complemento}
-                      onChange={e => setFormData({ ...formData, complemento: e.target.value })}
-                    />
-                  </div>
-                </div>
-
-                <div className="mt-8 flex justify-end space-x-3">
-                  <button type="button" onClick={() => setIsModalOpen(false)} className="px-6 py-2 border rounded-md text-gray-700 hover:bg-gray-50 flex items-center transition-colors">
-                    Cancelar
-                  </button>
-                  <button type="submit" className="px-8 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 flex items-center shadow-md transition-all active:scale-95">
-                    <Save size={18} className="mr-2" /> Salvar Colaborador
-                  </button>
-                </div>
-              </form>
+            <FormInput
+              label="CEP"
+              required
+              mask={maskCEP}
+              value={formData.cep}
+              error={errors.cep}
+              onChange={e => {
+                const val = e.target.value.replace(/\D/g, '');
+                setFormData({ ...formData, cep: val });
+                if (val.length === 8) handleCepSearch(val);
+              }}
+              onBlur={e => handleBlur('cep', e.target.value)}
+              placeholder="00000-000"
+            />
+            <div className="md:col-span-2">
+              <FormInput
+                label="Logradouro"
+                required
+                value={formData.logradouro}
+                error={errors.logradouro}
+                onChange={e => setFormData({ ...formData, logradouro: e.target.value })}
+                onBlur={e => handleBlur('logradouro', e.target.value)}
+              />
+            </div>
+            <FormInput
+              label="Número"
+              required
+              value={formData.numero}
+              error={errors.numero}
+              onChange={e => setFormData({ ...formData, numero: e.target.value })}
+              onBlur={e => handleBlur('numero', e.target.value)}
+            />
+            <FormInput
+              label="Bairro"
+              required
+              value={formData.bairro}
+              error={errors.bairro}
+              onChange={e => setFormData({ ...formData, bairro: e.target.value })}
+              onBlur={e => handleBlur('bairro', e.target.value)}
+            />
+            <FormInput
+              label="Cidade"
+              required
+              value={formData.cidade}
+              error={errors.cidade}
+              onChange={e => setFormData({ ...formData, cidade: e.target.value })}
+              onBlur={e => handleBlur('cidade', e.target.value)}
+            />
+            <FormInput
+              label="Estado (UF)"
+              required
+              maxLength={2}
+              value={formData.estado}
+              error={errors.estado}
+              onChange={e => setFormData({ ...formData, estado: e.target.value.toUpperCase() })}
+              onBlur={e => handleBlur('estado', e.target.value)}
+            />
+            <div className="md:col-span-3">
+              <FormInput
+                label="Complemento"
+                value={formData.complemento}
+                onChange={e => setFormData({ ...formData, complemento: e.target.value })}
+              />
             </div>
           </div>
-        </div>,
-        document.body
-      )}
+        </form>
+      </Modal>
     </div>
   );
 }

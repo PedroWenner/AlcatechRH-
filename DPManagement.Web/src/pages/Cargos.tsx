@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { createPortal } from 'react-dom';
 import { Plus, Trash2, Edit } from 'lucide-react';
 import api from '../services/api';
 import { FormInput } from '../components/common/FormInput';
@@ -7,6 +6,7 @@ import { alertSuccess, alertError, alertDeleteConfirm, showLoading, closeLoading
 import { Pagination } from '../components/common/Pagination';
 import { FilterBar } from '../components/common/FilterBar';
 import { Autocomplete } from '../components/common/Autocomplete';
+import { Modal } from '../components/common/Modal';
 
 interface Cargo {
   id: string;
@@ -178,68 +178,60 @@ export default function Cargos() {
         />
       </div>
 
-      {isModalOpen && typeof document !== 'undefined' && createPortal(
-        <div className="fixed z-[1000] inset-0 overflow-y-auto">
-          <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-            <div className="fixed inset-0 transition-opacity" aria-hidden="true" onClick={() => setIsModalOpen(false)}>
-              <div className="absolute inset-0 bg-gray-500 opacity-75"></div>
-            </div>
-            <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
-            <div className="inline-block align-bottom bg-white rounded-lg text-left shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full relative z-[1001]">
-              <form onSubmit={handleSubmit}>
-                <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
-                  <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">
-                    {editingCargo ? 'Editar Cargo' : 'Novo Cargo'}
-                  </h3>
-                  <div className="space-y-4">
-                    <FormInput
-                      label="Nome"
-                      required
-                      value={formData.nome}
-                      onChange={(e) => setFormData({ ...formData, nome: e.target.value })}
-                    />
-                    <Autocomplete
-                      label="CBO"
-                      required
-                      placeholder="Busque por código ou título..."
-                      defaultValue={formData.cbo}
-                      onSearch={async (term) => {
-                        const response = await api.get(`/cbos?term=${encodeURIComponent(term)}`);
-                        return response.data;
-                      }}
-                      onSelect={(item) => {
-                        if (item) {
-                          setFormData({ ...formData, cbo: item.codigo });
-                        } else {
-                          setFormData({ ...formData, cbo: '' });
-                        }
-                      }}
-                      displayValue={(item) => `${item.codigo} - ${item.titulo}`}
-                      keyValue={(item) => item.codigo}
-                    />
-                  </div>
-                </div>
-                <div className="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
-                  <button
-                    type="submit"
-                    className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none sm:ml-3 sm:w-auto sm:text-sm"
-                  >
-                    Salvar
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setIsModalOpen(false)}
-                    className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
-                  >
-                    Cancelar
-                  </button>
-                </div>
-              </form>
-            </div>
+      <Modal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        title={editingCargo ? 'Editar Cargo' : 'Novo Cargo'}
+        size="lg"
+        footer={(
+          <>
+            <button
+              type="submit"
+              form="cargo-form"
+              className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none sm:ml-3 sm:w-auto sm:text-sm"
+            >
+              Salvar
+            </button>
+            <button
+              type="button"
+              onClick={() => setIsModalOpen(false)}
+              className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
+            >
+              Cancelar
+            </button>
+          </>
+        )}
+      >
+        <form id="cargo-form" onSubmit={handleSubmit}>
+          <div className="space-y-4">
+            <FormInput
+              label="Nome"
+              required
+              value={formData.nome}
+              onChange={(e) => setFormData({ ...formData, nome: e.target.value })}
+            />
+            <Autocomplete
+              label="CBO"
+              required
+              placeholder="Busque por código ou título..."
+              defaultValue={formData.cbo}
+              onSearch={async (term) => {
+                const response = await api.get(`/cbos?term=${encodeURIComponent(term)}`);
+                return response.data;
+              }}
+              onSelect={(item) => {
+                if (item) {
+                  setFormData({ ...formData, cbo: item.codigo });
+                } else {
+                  setFormData({ ...formData, cbo: '' });
+                }
+              }}
+              displayValue={(item) => `${item.codigo} - ${item.titulo}`}
+              keyValue={(item) => item.codigo}
+            />
           </div>
-        </div>,
-        document.body
-      )}
+        </form>
+      </Modal>
     </div>
   );
 }
