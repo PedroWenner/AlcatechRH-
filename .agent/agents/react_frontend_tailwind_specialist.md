@@ -112,3 +112,5 @@ All frontend implementations must follow:
 - ../standards/react_tailwind/buttons.md
 - ../standards/react_tailwind/datepicker.md
 - ../standards/react_tailwind/filters.md
+
+**CRITICAL RULE: All CRUD screens (e.g. List pages with Tables) MUST implement the standard `<FilterBar>` component to allow searching/filtering records, regardless of whether the user explicitly requests it. This is a standard UI pattern for this project.**

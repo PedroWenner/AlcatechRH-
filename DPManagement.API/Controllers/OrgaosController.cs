@@ -17,9 +17,9 @@ public class OrgaosController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<IActionResult> GetAll()
+    public async Task<IActionResult> GetAll([FromQuery] string? nome, [FromQuery] string? abreviatura)
     {
-        var orgaos = await _service.ObterTodosAsync();
+        var orgaos = await _service.ObterTodosAsync(nome, abreviatura);
         var dtos = orgaos.Select(o => new OrgaoDto
         {
             Id = o.Id,

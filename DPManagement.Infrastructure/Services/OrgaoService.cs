@@ -14,10 +14,17 @@ public class OrgaoService : IOrgaoService
         _context = context;
     }
 
-    public async Task<IEnumerable<Orgao>> ObterTodosAsync()
+    public async Task<IEnumerable<Orgao>> ObterTodosAsync(string? nome = null, string? abreviatura = null)
     {
-        return await _context.Orgaos
-            .Include(o => o.OrgaoPai)
+        var query = _context.Orgaos.Include(o => o.OrgaoPai).AsQueryable();
+
+        if (!string.IsNullOrWhiteSpace(nome))
+            query = query.Where(o => o.Nome.Contains(nome));
+
+        if (!string.IsNullOrWhiteSpace(abreviatura))
+            query = query.Where(o => o.Abreviatura.Contains(abreviatura));
+
+        return await query
             .OrderBy(o => o.Nivel)
             .ThenBy(o => o.Nome)
             .ToListAsync();

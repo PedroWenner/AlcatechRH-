@@ -3,6 +3,7 @@ import { Plus, Edit, Trash2, Power, Building2 } from 'lucide-react';
 import api from '../services/api';
 import { FormInput } from '../components/common/FormInput';
 import { Table, type TableColumn } from '../components/common/Table';
+import { FilterBar } from '../components/common/FilterBar';
 import { Modal } from '../components/common/Modal';
 import { Autocomplete } from '../components/common/Autocomplete';
 import { alertSuccess, alertError, alertDeleteConfirm, showLoading, closeLoading } from '../services/alertService';
@@ -35,18 +36,34 @@ export default function Orgaos() {
   const canDelete = hasPermission('Estrutura', 'Excluir');
   const canAdd = hasPermission('Estrutura', 'Cadastrar');
 
+  const [filters, setFilters] = useState({
+    nome: '',
+    abreviatura: ''
+  });
+
   useEffect(() => {
     fetchData();
   }, []);
 
-  const fetchData = async () => {
+  const fetchData = async (f = filters) => {
     try {
-      const response = await api.get('/orgaos');
+      const params: any = {};
+      if (f.nome) params.nome = f.nome;
+      if (f.abreviatura) params.abreviatura = f.abreviatura;
+
+      const response = await api.get('/orgaos', { params });
       setData(response.data);
     } catch (error) {
       console.error('Erro ao buscar estruturas:', error);
       alertError('Não foi possível carregar as estruturas');
     }
+  };
+
+  const applyFilters = () => fetchData(filters);
+  const clearFilters = () => {
+    const newFilters = { nome: '', abreviatura: '' };
+    setFilters(newFilters);
+    fetchData(newFilters);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -217,6 +234,21 @@ export default function Orgaos() {
           </button>
         )}
       </div>
+
+      <FilterBar onFilter={applyFilters} onClear={clearFilters}>
+        <FormInput
+          label="Nome"
+          value={filters.nome}
+          onChange={e => setFilters({ ...filters, nome: e.target.value })}
+          placeholder="Buscar por nome..."
+        />
+        <FormInput
+          label="Abreviatura"
+          value={filters.abreviatura}
+          onChange={e => setFilters({ ...filters, abreviatura: e.target.value })}
+          placeholder="Buscar por abreviatura..."
+        />
+      </FilterBar>
 
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
         <Table data={data} columns={columns} />

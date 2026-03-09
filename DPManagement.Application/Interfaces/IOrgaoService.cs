@@ -4,7 +4,7 @@ namespace DPManagement.Application.Interfaces;
 
 public interface IOrgaoService
 {
-    Task<IEnumerable<Orgao>> ObterTodosAsync();
+    Task<IEnumerable<Orgao>> ObterTodosAsync(string? nome = null, string? abreviatura = null);
     Task<IEnumerable<Orgao>> ObterPorNivelAsync(int nivel);
     Task<Orgao?> ObterPorIdAsync(Guid id);
     Task<Orgao> AdicionarAsync(Orgao orgao);
