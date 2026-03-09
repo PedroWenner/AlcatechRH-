@@ -27,6 +27,9 @@ using (var scope = app.Services.CreateScope())
     var env = scope.ServiceProvider.GetRequiredService<IWebHostEnvironment>();
     var csvPath = Path.Combine(env.ContentRootPath, "Data", "Seed", "cbo2002.csv");
     await DPManagement.API.Data.Seed.CboIngestion.SeedCbosAsync(context, csvPath);
+
+    var sqlPath = Path.Combine(env.ContentRootPath, "..", "DPManagement.Web", "public", "banco", "bancos.sql");
+    await DPManagement.API.Data.Seed.BancoIngestion.SeedBancosAsync(context, sqlPath);
 }
 
 // Configure the HTTP request pipeline.

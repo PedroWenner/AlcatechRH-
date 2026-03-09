@@ -22,6 +22,7 @@ public class DPManagementDbContext : DbContext
     public DbSet<Cargo> Cargos { get; set; } = null!;
     public DbSet<Colaborador> Colaboradores { get; set; } = null!;
     public DbSet<Cbo> Cbos { get; set; } = null!;
+    public DbSet<Banco> Bancos { get; set; } = null!;
     public DbSet<AuditLog> AuditLogs { get; set; } = null!;
     public DbSet<DadoBancario> DadosBancarios { get; set; } = null!;
 

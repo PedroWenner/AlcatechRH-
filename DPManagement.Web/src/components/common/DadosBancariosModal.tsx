@@ -5,6 +5,7 @@ import { FormInput } from './FormInput';
 import { alertSuccess, alertError, alertDeleteConfirm, showLoading, closeLoading } from '../../services/alertService';
 import { Table, type TableColumn } from './Table';
 import { Modal } from './Modal';
+import { Autocomplete } from './Autocomplete';
 
 interface DadoBancario {
   id: string;
@@ -197,9 +198,24 @@ export function DadosBancariosModal({ isOpen, onClose, colaboradorId, colaborado
         >
           <form id="banco-form" onSubmit={handleSubmit} className="p-1">
             <div className="grid grid-cols-1 gap-y-4">
-              <FormInput
-                label="Código do Banco" required placeholder="Ex: 001, 341..."
-                value={formData.codigoBanco} onChange={e => setFormData({ ...formData, codigoBanco: e.target.value })}
+              <Autocomplete
+                label="Código do Banco"
+                required
+                placeholder="Ex: 001, Brasil..."
+                defaultValue={formData.codigoBanco}
+                onSearch={async (term) => {
+                  const response = await api.get(`/bancos?term=${encodeURIComponent(term)}`);
+                  return response.data;
+                }}
+                onSelect={(item) => {
+                  if (item) {
+                    setFormData({ ...formData, codigoBanco: item.codigo });
+                  } else {
+                    setFormData({ ...formData, codigoBanco: '' });
+                  }
+                }}
+                displayValue={(item) => `${item.codigo} - ${item.titulo}`}
+                keyValue={(item) => item.codigo}
               />
               <div className="grid grid-cols-2 gap-4">
                 <FormInput
