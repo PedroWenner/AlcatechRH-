@@ -1,11 +1,12 @@
-import { useEffect, type ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, Users, LogOut, Settings, Calculator, Briefcase, History, Shield } from 'lucide-react';
+import { LayoutDashboard, Users, LogOut, Settings, Calculator, Briefcase, History, Shield, Clock } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 
 export function AppLayout() {
-  const { user, token, logout, hasPermission } = useAuth();
+  const { user, token, tokenExp, logout, hasPermission } = useAuth();
   const navigate = useNavigate();
+  const [timeLeft, setTimeLeft] = useState<number | null>(null);
 
   useEffect(() => {
     if (!token) {
@@ -13,9 +14,33 @@ export function AppLayout() {
     }
   }, [token, navigate]);
 
+  useEffect(() => {
+    if (!tokenExp) {
+      setTimeLeft(null);
+      return;
+    }
+
+    const updateTimer = () => {
+      const remaining = Math.max(0, tokenExp - Date.now());
+      setTimeLeft(remaining);
+    };
+
+    updateTimer();
+    const interval = setInterval(updateTimer, 1000);
+
+    return () => clearInterval(interval);
+  }, [tokenExp]);
+
   const handleLogout = () => {
     logout();
     navigate('/login');
+  };
+
+  const formatTime = (ms: number) => {
+    const totalSeconds = Math.floor(ms / 1000);
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+    return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
   };
 
   if (!token) {
@@ -76,8 +101,16 @@ export function AppLayout() {
       <main className="flex-1 flex flex-col overflow-hidden">
         <header className="bg-white shadow-sm border-b border-gray-200 h-16 flex items-center px-8 justify-between">
           <h2 className="text-lg font-medium text-gray-700">Bem-vindo, {user?.nome || 'Usuário'}</h2>
-          <div className="h-8 w-8 bg-indigo-100 text-indigo-800 rounded-full flex items-center justify-center font-bold">
-            {user?.nome?.substring(0, 2).toUpperCase() || 'US'}
+          <div className="flex items-center space-x-4">
+            {timeLeft !== null && (
+              <div className="flex items-center text-sm font-medium text-amber-600 bg-amber-50 px-3 py-1.5 rounded-full border border-amber-200">
+                <Clock size={16} className="mr-1.5" />
+                <span>{formatTime(timeLeft)}</span>
+              </div>
+            )}
+            <div className="h-8 w-8 bg-indigo-100 text-indigo-800 rounded-full flex items-center justify-center font-bold">
+              {user?.nome?.substring(0, 2).toUpperCase() || 'US'}
+            </div>
           </div>
         </header>
         <div className="flex-1 overflow-auto p-8">
