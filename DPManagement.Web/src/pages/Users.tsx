@@ -31,17 +31,17 @@ export default function Users() {
     totalCount: 0,
     pageSize: 10
   });
-  
+
   const { hasPermission } = useAuth();
-  
+
   const [filters, setFilters] = useState({
     nome: '',
     email: ''
   });
-  
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<Usuario | null>(null);
-  
+
   const [formData, setFormData] = useState({
     nome: '',
     email: '',
@@ -57,10 +57,9 @@ export default function Users() {
   const fetchUsuarios = async () => {
     try {
       showLoading('Carregando usuários...');
-      
-      // The API currently returns a full list. If we add pagination to API later, pass params.
+
       const response = await api.get('/usuarios');
-      
+
       let filtered = response.data;
       if (filters.nome) {
         filtered = filtered.filter((u: Usuario) => u.nome.toLowerCase().includes(filters.nome.toLowerCase()));
@@ -94,18 +93,14 @@ export default function Users() {
   };
 
   const applyFilters = () => fetchUsuarios();
-  
+
   const clearFilters = () => {
     const newFilters = { nome: '', email: '' };
     setFilters(newFilters);
-    // Setting state is async, so we'll fetch with the cleared object directly if we were calling API with filters.
-    // For now we just call fetchUsuarios and it will see the state change on next render, or we can wait.
     setTimeout(() => {
-        const resetFilters = { nome: '', email: '' };
-        setFilters(resetFilters);
-        // re-fetch using reset logic or just update local
-        // here we'll just trigger a reload
-        api.get('/usuarios').then(res => setUsuarios(res.data));
+      const resetFilters = { nome: '', email: '' };
+      setFilters(resetFilters);
+      api.get('/usuarios').then(res => setUsuarios(res.data));
     }, 0);
   };
 
@@ -114,10 +109,9 @@ export default function Users() {
     showLoading('Salvando usuário...');
     try {
       if (editingUser) {
-        // Para edição a senha pode ser opcional. Se estiver em branco, remove do payload.
         const payload = { ...formData, id: editingUser.id };
         if (!payload.senha) {
-            delete (payload as any).senha; 
+          delete (payload as any).senha;
         }
         await api.put(`/usuarios/${editingUser.id}`, payload);
         alertSuccess('Usuário atualizado com sucesso');
@@ -140,11 +134,11 @@ export default function Users() {
 
   const handleEdit = (user: Usuario) => {
     setEditingUser(user);
-    setFormData({ 
-      nome: user.nome, 
-      email: user.email, 
-      senha: '', // don't load hash
-      perfilId: user.perfilId 
+    setFormData({
+      nome: user.nome,
+      email: user.email,
+      senha: '',
+      perfilId: user.perfilId
     });
     setIsModalOpen(true);
   };
@@ -224,11 +218,11 @@ export default function Users() {
         data={usuarios.slice((pagination.currentPage - 1) * pagination.pageSize, pagination.currentPage * pagination.pageSize)}
         columns={columns}
         pagination={{
-            currentPage: pagination.currentPage,
-            totalPages: pagination.totalPages,
-            totalCount: pagination.totalCount,
-            pageSize: pagination.pageSize,
-            onPageChange: (page) => setPagination({ ...pagination, currentPage: page }),
+          currentPage: pagination.currentPage,
+          totalPages: pagination.totalPages,
+          totalCount: pagination.totalCount,
+          pageSize: pagination.pageSize,
+          onPageChange: (page) => setPagination({ ...pagination, currentPage: page }),
         }}
       />
 
@@ -278,7 +272,7 @@ export default function Users() {
               value={formData.senha}
               onChange={(e) => setFormData({ ...formData, senha: e.target.value })}
             />
-            
+
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Perfil de Acesso</label>
               <select
