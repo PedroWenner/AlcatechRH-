@@ -25,26 +25,44 @@ interface PermissaoMatriz {
     }[];
 }
 
+interface Permissao {
+    id: string;
+    modulo: string;
+    acao: string;
+    descricao?: string;
+    ativo: boolean;
+}
+
 export default function Perfis() {
+    const [activeTab, setActiveTab] = useState<'perfis' | 'permissoes'>('perfis');
+
+    // === PERFIL STATE ===
     const [perfis, setPerfis] = useState<Perfil[]>([]);
-    const [filters, setFilters] = useState({
-        nome: ''
-    });
+    const [filters, setFilters] = useState({ nome: '' });
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingPerfil, setEditingPerfil] = useState<Perfil | null>(null);
     const [formData, setFormData] = useState({ nome: '', descricao: '' });
 
-    // Access Matrix State
+    // === MATRIX STATE ===
     const [isMatrixOpen, setIsMatrixOpen] = useState(false);
     const [selectedPerfil, setSelectedPerfil] = useState<Perfil | null>(null);
     const [permissoesMatriz, setPermissoesMatriz] = useState<PermissaoMatriz[]>([]);
     const [selectedPermissoesIds, setSelectedPermissoesIds] = useState<Set<string>>(new Set());
 
+    // === PERMISSOES STATE ===
+    const [permissoesList, setPermissoesList] = useState<Permissao[]>([]);
+    const [permFilters, setPermFilters] = useState({ modulo: '', acao: '' });
+    const [isPermModalOpen, setIsPermModalOpen] = useState(false);
+    const [editingPermissao, setEditingPermissao] = useState<Permissao | null>(null);
+    const [permFormData, setPermFormData] = useState({ modulo: '', acao: '', descricao: '' });
+
     useEffect(() => {
         fetchPerfis();
         fetchMatriz();
+        fetchPermissoes();
     }, []);
 
+    // --- FETCHES ---
     const fetchMatriz = async () => {
         try {
             const response = await api.get('/permissoes/matriz');
@@ -56,9 +74,8 @@ export default function Perfis() {
 
     const fetchPerfis = async () => {
         try {
-            showLoading('Carregando...');
+            showLoading('Carregando perfis...');
             const response = await api.get('/perfis');
-            // Simulated filtering since API currently lists all
             let data = response.data;
             if (filters.nome) {
                 data = data.filter((p: Perfil) => p.nome.toLowerCase().includes(filters.nome.toLowerCase()));
@@ -72,14 +89,40 @@ export default function Perfis() {
         }
     };
 
-    const applyFilters = () => fetchPerfis();
-    const clearFilters = () => {
-        setFilters({ nome: '' });
-        // setTimeout to allow state update before fetching
-        setTimeout(() => fetchPerfis(), 0);
+    const fetchPermissoes = async () => {
+        try {
+            showLoading('Carregando permissões...');
+            const response = await api.get('/permissoes');
+            let data = response.data;
+            if (permFilters.modulo) {
+                data = data.filter((p: Permissao) => p.modulo.toLowerCase().includes(permFilters.modulo.toLowerCase()));
+            }
+            if (permFilters.acao) {
+                data = data.filter((p: Permissao) => p.acao.toLowerCase().includes(permFilters.acao.toLowerCase()));
+            }
+            setPermissoesList(data);
+        } catch (error) {
+            console.error('Erro ao buscar permissoes', error);
+            alertError('Erro ao carregar permissões');
+        } finally {
+            closeLoading();
+        }
     };
 
-    const handleSubmit = async (e: React.FormEvent) => {
+    // --- FILTERS ---
+    const applyFilters = () => activeTab === 'perfis' ? fetchPerfis() : fetchPermissoes();
+    const clearFilters = () => {
+        if (activeTab === 'perfis') {
+            setFilters({ nome: '' });
+            setTimeout(() => fetchPerfis(), 0);
+        } else {
+            setPermFilters({ modulo: '', acao: '' });
+            setTimeout(() => fetchPermissoes(), 0);
+        }
+    };
+
+    // --- PERFIL HANDLERS ---
+    const handleSubmitPerfil = async (e: React.FormEvent) => {
         e.preventDefault();
         showLoading('Salvando perfil...');
         try {
@@ -102,13 +145,13 @@ export default function Perfis() {
         }
     };
 
-    const handleEdit = (perfil: Perfil) => {
+    const handleEditPerfil = (perfil: Perfil) => {
         setEditingPerfil(perfil);
         setFormData({ nome: perfil.nome, descricao: perfil.descricao || '' });
         setIsModalOpen(true);
     };
 
-    const handleToggleStatus = async (perfil: Perfil) => {
+    const handleToggleStatusPerfil = async (perfil: Perfil) => {
         showLoading(perfil.ativo ? 'Inativando...' : 'Ativando...');
         try {
             await api.patch(`/perfis/${perfil.id}/ativar?ativo=${!perfil.ativo}`);
@@ -122,7 +165,7 @@ export default function Perfis() {
         }
     };
 
-    const handleDelete = async (id: string) => {
+    const handleDeletePerfil = async (id: string) => {
         const confirmed = await alertDeleteConfirm('Excluir Perfil?', 'Esta ação removerá o perfil permanentemente.');
         if (confirmed) {
             showLoading('Excluindo...');
@@ -139,9 +182,9 @@ export default function Perfis() {
         }
     };
 
+    // --- MATRIX HANDLERS ---
     const handleManageAccess = (perfil: Perfil) => {
         setSelectedPerfil(perfil);
-        // Pre-select the existing permissions
         setSelectedPermissoesIds(new Set(perfil.permissoesIds || []));
         setIsMatrixOpen(true);
     };
@@ -163,7 +206,7 @@ export default function Perfis() {
             await api.post(`/perfis/${selectedPerfil.id}/permissoes`, Array.from(selectedPermissoesIds));
             alertSuccess('Permissões atualizadas com sucesso');
             setIsMatrixOpen(false);
-            fetchPerfis(); // Reload to get updated permissoesIds
+            fetchPerfis(); 
         } catch (error) {
             console.error('Erro ao salvar permissões', error);
             alertError('Erro ao atualizar permissões');
@@ -172,17 +215,79 @@ export default function Perfis() {
         }
     };
 
-    const columns: TableColumn<Perfil>[] = [
+    // --- PERMISSAO HANDLERS ---
+    const handleSubmitPermissao = async (e: React.FormEvent) => {
+        e.preventDefault();
+        showLoading('Salvando permissão...');
+        try {
+            if (editingPermissao) {
+                await api.put(`/permissoes/${editingPermissao.id}`, permFormData);
+                alertSuccess('Permissão atualizada');
+            } else {
+                await api.post('/permissoes', permFormData);
+                alertSuccess('Permissão cadastrada');
+            }
+            setIsPermModalOpen(false);
+            setEditingPermissao(null);
+            setPermFormData({ modulo: '', acao: '', descricao: '' });
+            fetchPermissoes();
+            fetchMatriz(); // Refresh matrix dynamically after a generic permissão add/edit
+        } catch (error) {
+            console.error('Erro ao salvar permissao', error);
+            alertError('Erro ao salvar permissão');
+        } finally {
+            closeLoading();
+        }
+    };
+
+    const handleEditPermissao = (permissao: Permissao) => {
+        setEditingPermissao(permissao);
+        setPermFormData({ modulo: permissao.modulo, acao: permissao.acao, descricao: permissao.descricao || '' });
+        setIsPermModalOpen(true);
+    };
+
+    const handleToggleStatusPermissao = async (permissao: Permissao) => {
+        showLoading(permissao.ativo ? 'Inativando...' : 'Ativando...');
+        try {
+            await api.patch(`/permissoes/${permissao.id}/ativar?ativo=${!permissao.ativo}`);
+            alertSuccess(`Permissão ${permissao.ativo ? 'inativada' : 'ativada'} com sucesso`);
+            fetchPermissoes();
+            fetchMatriz();
+        } catch (error) {
+            console.error('Erro ao alterar status da permissão', error);
+            alertError('Erro ao alterar status');
+        } finally {
+            closeLoading();
+        }
+    };
+
+    const handleDeletePermissao = async (id: string) => {
+        const confirmed = await alertDeleteConfirm('Excluir Permissão?', 'Esta ação removerá permanentemente o registro.');
+        if (confirmed) {
+            showLoading('Excluindo...');
+            try {
+                await api.delete(`/permissoes/${id}`);
+                alertSuccess('Permissão excluída');
+                fetchPermissoes();
+                fetchMatriz();
+            } catch (error) {
+                console.error('Erro ao excluir permissão', error);
+                alertError('Erro ao excluir permissão');
+            } finally {
+                closeLoading();
+            }
+        }
+    };
+
+    // --- COLUMNS ---
+    const columnsPerfis: TableColumn<Perfil>[] = [
         { header: 'Nome', accessor: 'nome' },
         { header: 'Descrição', accessor: 'descricao' },
         {
             header: 'Status',
             accessor: 'ativo',
             render: (perfil) => (
-                <span
-                    className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${perfil.ativo ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                        }`}
-                >
+                <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${perfil.ativo ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
                     {perfil.ativo ? 'Ativo' : 'Inativo'}
                 </span>
             ),
@@ -194,7 +299,7 @@ export default function Perfis() {
                 <div className="space-x-4 flex justify-end">
                     <button
                         title={perfil.ativo ? 'Inativar' : 'Ativar'}
-                        onClick={() => handleToggleStatus(perfil)}
+                        onClick={() => handleToggleStatusPerfil(perfil)}
                         className={`${perfil.ativo ? 'text-red-500 hover:text-red-700' : 'text-green-500 hover:text-green-700'}`}
                     >
                         {perfil.ativo ? <XCircle size={18} /> : <CheckCircle size={18} />}
@@ -206,10 +311,10 @@ export default function Perfis() {
                     >
                         <CheckCircle size={18} />
                     </button>
-                    <button title="Editar" onClick={() => handleEdit(perfil)} className="text-indigo-600 hover:text-indigo-900">
+                    <button title="Editar" onClick={() => handleEditPerfil(perfil)} className="text-indigo-600 hover:text-indigo-900">
                         <Edit size={18} />
                     </button>
-                    <button title="Excluir" onClick={() => handleDelete(perfil.id)} className="text-red-600 hover:text-red-900">
+                    <button title="Excluir" onClick={() => handleDeletePerfil(perfil.id)} className="text-red-600 hover:text-red-900">
                         <Trash2 size={18} />
                     </button>
                 </div>
@@ -217,7 +322,42 @@ export default function Perfis() {
         },
     ];
 
-    // Helper function to order actions visually
+    const columnsPermissoes: TableColumn<Permissao>[] = [
+        { header: 'Módulo', accessor: 'modulo' },
+        { header: 'Ação', accessor: 'acao' },
+        { header: 'Descrição', accessor: 'descricao' },
+        {
+            header: 'Status',
+            accessor: 'ativo',
+            render: (permissao) => (
+                <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${permissao.ativo ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                    {permissao.ativo ? 'Ativo' : 'Inativo'}
+                </span>
+            ),
+        },
+        {
+            header: 'Ações',
+            align: 'right',
+            render: (permissao) => (
+                <div className="space-x-4 flex justify-end">
+                    <button
+                        title={permissao.ativo ? 'Inativar' : 'Ativar'}
+                        onClick={() => handleToggleStatusPermissao(permissao)}
+                        className={`${permissao.ativo ? 'text-red-500 hover:text-red-700' : 'text-green-500 hover:text-green-700'}`}
+                    >
+                        {permissao.ativo ? <XCircle size={18} /> : <CheckCircle size={18} />}
+                    </button>
+                    <button title="Editar" onClick={() => handleEditPermissao(permissao)} className="text-indigo-600 hover:text-indigo-900">
+                        <Edit size={18} />
+                    </button>
+                    <button title="Excluir" onClick={() => handleDeletePermissao(permissao.id)} className="text-red-600 hover:text-red-900">
+                        <Trash2 size={18} />
+                    </button>
+                </div>
+            ),
+        },
+    ];
+
     const getOrderedActions = (permissoes: any[]) => {
         const order = ['Visualizar', 'Criar', 'Editar', 'Excluir'];
         return [...permissoes].sort((a, b) => {
@@ -229,31 +369,84 @@ export default function Perfis() {
 
     return (
         <div className="space-y-6">
-            <div className="flex justify-between items-center">
-                <h1 className="text-2xl font-semibold text-gray-900">Gestão de Perfis</h1>
-                <button
-                    onClick={() => { setEditingPerfil(null); setFormData({ nome: '', descricao: '' }); setIsModalOpen(true); }}
-                    className="flex items-center px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors"
-                >
-                    <Plus size={18} className="mr-2" />
-                    Novo Perfil
-                </button>
+            <div className="flex justify-between items-center mb-6">
+                <h1 className="text-2xl font-semibold text-gray-900">Perfis & Acessos</h1>
+                {activeTab === 'perfis' ? (
+                    <button
+                        onClick={() => { setEditingPerfil(null); setFormData({ nome: '', descricao: '' }); setIsModalOpen(true); }}
+                        className="flex items-center px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors"
+                    >
+                        <Plus size={18} className="mr-2" />
+                        Novo Perfil
+                    </button>
+                ) : (
+                    <button
+                        onClick={() => { setEditingPermissao(null); setPermFormData({ modulo: '', acao: '', descricao: '' }); setIsPermModalOpen(true); }}
+                        className="flex items-center px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors"
+                    >
+                        <Plus size={18} className="mr-2" />
+                        Nova Permissão
+                    </button>
+                )}
             </div>
 
-            <FilterBar onFilter={applyFilters} onClear={clearFilters}>
-                <FormInput
-                    label="Nome do Perfil"
-                    value={filters.nome}
-                    onChange={e => setFilters({ ...filters, nome: e.target.value })}
-                    placeholder="Buscar por nome..."
-                />
-            </FilterBar>
+            {/* TABS */}
+            <div className="border-b border-gray-200">
+                <nav className="-mb-px flex space-x-8" aria-label="Tabs">
+                    <button
+                        onClick={() => setActiveTab('perfis')}
+                        className={`whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm
+                            ${activeTab === 'perfis' ? 'border-indigo-500 text-indigo-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}
+                    >
+                        Gerenciar Perfis
+                    </button>
+                    <button
+                        onClick={() => setActiveTab('permissoes')}
+                        className={`whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm
+                            ${activeTab === 'permissoes' ? 'border-indigo-500 text-indigo-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}
+                    >
+                        Cadastros de Permissões
+                    </button>
+                </nav>
+            </div>
 
-            <Table
-                data={perfis}
-                columns={columns}
-            />
+            {/* TAB CONTENT: PERFIS */}
+            {activeTab === 'perfis' && (
+                <div className="space-y-6">
+                    <FilterBar onFilter={applyFilters} onClear={clearFilters}>
+                        <FormInput
+                            label="Nome do Perfil"
+                            value={filters.nome}
+                            onChange={e => setFilters({ ...filters, nome: e.target.value })}
+                            placeholder="Buscar por nome..."
+                        />
+                    </FilterBar>
+                    <Table data={perfis} columns={columnsPerfis} />
+                </div>
+            )}
 
+            {/* TAB CONTENT: PERMISSOES */}
+            {activeTab === 'permissoes' && (
+                <div className="space-y-6">
+                    <FilterBar onFilter={applyFilters} onClear={clearFilters}>
+                        <FormInput
+                            label="Módulo"
+                            value={permFilters.modulo}
+                            onChange={e => setPermFilters({ ...permFilters, modulo: e.target.value })}
+                            placeholder="Buscar por módulo..."
+                        />
+                        <FormInput
+                            label="Ação"
+                            value={permFilters.acao}
+                            onChange={e => setPermFilters({ ...permFilters, acao: e.target.value })}
+                            placeholder="Buscar por ação..."
+                        />
+                    </FilterBar>
+                    <Table data={permissoesList} columns={columnsPermissoes} />
+                </div>
+            )}
+
+            {/* MODALS: PERFIS */}
             <Modal
                 isOpen={isModalOpen}
                 onClose={() => setIsModalOpen(false)}
@@ -278,7 +471,7 @@ export default function Perfis() {
                     </>
                 )}
             >
-                <form id="perfil-form" onSubmit={handleSubmit} className="space-y-4">
+                <form id="perfil-form" onSubmit={handleSubmitPerfil} className="space-y-4">
                     <FormInput
                         label="Nome"
                         required
@@ -295,6 +488,7 @@ export default function Perfis() {
                 </form>
             </Modal>
 
+            {/* MODALS: PERMISSION MATRIX */}
             <Modal
                 isOpen={isMatrixOpen}
                 onClose={() => setIsMatrixOpen(false)}
@@ -364,6 +558,55 @@ export default function Perfis() {
                         </tbody>
                     </table>
                 </div>
+            </Modal>
+
+            {/* MODALS: PERMISSOES (CREATE/EDIT) */}
+            <Modal
+                isOpen={isPermModalOpen}
+                onClose={() => setIsPermModalOpen(false)}
+                title={editingPermissao ? 'Editar Permissão' : 'Nova Permissão'}
+                size="md"
+                footer={(
+                    <>
+                        <button
+                            type="submit"
+                            form="permissao-form"
+                            className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none sm:ml-3 sm:w-auto sm:text-sm"
+                        >
+                            Salvar
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => setIsPermModalOpen(false)}
+                            className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
+                        >
+                            Cancelar
+                        </button>
+                    </>
+                )}
+            >
+                <form id="permissao-form" onSubmit={handleSubmitPermissao} className="space-y-4">
+                    <FormInput
+                        label="Módulo"
+                        required
+                        value={permFormData.modulo}
+                        onChange={(e) => setPermFormData({ ...permFormData, modulo: e.target.value })}
+                        placeholder="Ex: Auditoria"
+                    />
+                    <FormInput
+                        label="Ação"
+                        required
+                        value={permFormData.acao}
+                        onChange={(e) => setPermFormData({ ...permFormData, acao: e.target.value })}
+                        placeholder="Ex: Visualizar"
+                    />
+                    <FormInput
+                        label="Descrição"
+                        value={permFormData.descricao}
+                        onChange={(e) => setPermFormData({ ...permFormData, descricao: e.target.value })}
+                        placeholder="Breve descrição da permissão"
+                    />
+                </form>
             </Modal>
         </div>
     );

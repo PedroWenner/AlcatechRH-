@@ -74,7 +74,7 @@ export function AppLayout() {
           )}
 
           {hasPermission('Perfis', 'Visualizar') && (
-            <NavItem to="/perfis" icon={<Shield size={20} />} label="Perfis" />
+            <NavItem to="/perfis" icon={<Shield size={20} />} label="Perfis e Acessos" />
           )}
 
           {hasPermission('Auditoria', 'Visualizar') && (
