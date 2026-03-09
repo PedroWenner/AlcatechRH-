@@ -31,7 +31,8 @@ public class DadosBancariosController : ControllerBase
             DigitoAgencia = db.DigitoAgencia,
             Conta = db.Conta,
             DigitoConta = db.DigitoConta,
-            Operacao = db.Operacao
+            Operacao = db.Operacao,
+            Ativo = db.Ativo
         });
 
         return Ok(dtos);
@@ -83,6 +84,17 @@ public class DadosBancariosController : ControllerBase
             return NotFound();
 
         await _service.RemoverAsync(id);
+        return NoContent();
+    }
+
+    [HttpPut("{id}/ativar")]
+    public async Task<IActionResult> AtivarInativar(Guid colaboradorId, Guid id, [FromQuery] bool ativo)
+    {
+        var dado = await _service.ObterPorIdAsync(id);
+        if (dado == null || dado.ColaboradorId != colaboradorId)
+            return NotFound();
+
+        await _service.AlternarStatusAsync(id, ativo);
         return NoContent();
     }
 }

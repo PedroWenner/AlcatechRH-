@@ -9,4 +9,5 @@ public interface IDadoBancarioService
     Task<DadoBancario> AdicionarAsync(DadoBancario dadoBancario);
     Task AtualizarAsync(DadoBancario dadoBancario);
     Task RemoverAsync(Guid id);
+    Task AlternarStatusAsync(Guid id, bool ativo);
 }

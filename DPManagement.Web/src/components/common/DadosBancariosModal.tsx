@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Plus, Edit, Trash2 } from 'lucide-react';
+import { Plus, Edit, Trash2, Power } from 'lucide-react';
 import api from '../../services/api';
 import { FormInput } from './FormInput';
 import { alertSuccess, alertError, alertDeleteConfirm, showLoading, closeLoading } from '../../services/alertService';
@@ -18,6 +18,7 @@ interface DadoBancario {
   conta: string;
   digitoConta: string;
   operacao: string;
+  ativo: boolean;
 }
 
 interface DadosBancariosModalProps {
@@ -97,6 +98,22 @@ export function DadosBancariosModal({ isOpen, onClose, colaboradorId, colaborado
     }
   };
 
+  const handleToggleStatus = async (dado: DadoBancario) => {
+    if (!colaboradorId) return;
+    const novoStatus = !dado.ativo;
+    showLoading(novoStatus ? 'Ativando...' : 'Inativando...');
+    try {
+      await api.put(`/colaboradores/${colaboradorId}/dados-bancarios/${dado.id}/ativar?ativo=${novoStatus}`);
+      alertSuccess(novoStatus ? 'Conta ativada' : 'Conta inativada');
+      fetchDados();
+    } catch (error) {
+      console.error('Erro ao alterar status', error);
+      alertError('Erro ao alterar status');
+    } finally {
+      closeLoading();
+    }
+  };
+
   const handleEdit = (dado: DadoBancario) => {
     setEditingDado(dado);
     setFormData({
@@ -125,12 +142,27 @@ export function DadosBancariosModal({ isOpen, onClose, colaboradorId, colaborado
       render: (d) => `${d.conta}-${d.digitoConta} (OP: ${d.operacao})`
     },
     {
+      header: 'Status',
+      render: (d) => (
+        <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${d.ativo ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+          {d.ativo ? 'Ativo' : 'Inativo'}
+        </span>
+      )
+    },
+    {
       header: 'Ações',
       align: 'right',
       render: (d) => (
-        <div className="space-x-4 flex justify-end">
+        <div className="space-x-4 flex justify-end items-center">
           <button title="Editar" onClick={() => handleEdit(d)} className="text-indigo-600 hover:text-indigo-900">
             <Edit size={18} />
+          </button>
+          <button 
+            title={d.ativo ? "Inativar" : "Ativar"} 
+            onClick={() => handleToggleStatus(d)} 
+            className={d.ativo ? "text-orange-500 hover:text-orange-700" : "text-green-600 hover:text-green-800"}
+          >
+            <Power size={18} />
           </button>
           <button title="Excluir" onClick={() => handleDelete(d.id)} className="text-red-600 hover:text-red-900">
             <Trash2 size={18} />

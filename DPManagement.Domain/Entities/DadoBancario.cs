@@ -19,5 +19,6 @@ public class DadoBancario : ISoftDelete
     public Guid? BancoId { get; set; }
     public Banco? Banco { get; set; }
 
+    public bool Ativo { get; set; } = true;
     public bool IsDeleted { get; set; } = false;
 }

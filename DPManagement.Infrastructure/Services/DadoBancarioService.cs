@@ -50,4 +50,14 @@ public class DadoBancarioService : IDadoBancarioService
             await _context.SaveChangesAsync();
         }
     }
+
+    public async Task AlternarStatusAsync(Guid id, bool ativo)
+    {
+        var dado = await ObterPorIdAsync(id);
+        if (dado != null)
+        {
+            dado.Ativo = ativo;
+            await _context.SaveChangesAsync();
+        }
+    }
 }
