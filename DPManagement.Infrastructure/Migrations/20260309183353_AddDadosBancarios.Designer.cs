@@ -3,6 +3,7 @@ using System;
 using DPManagement.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace DPManagement.Infrastructure.Migrations
 {
     [DbContext(typeof(DPManagementDbContext))]
-    partial class DPManagementDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260309183353_AddDadosBancarios")]
+    partial class AddDadosBancarios
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

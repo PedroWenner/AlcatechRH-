@@ -22,6 +22,7 @@ public static class DependencyInjection
         services.AddHttpClient<IViaCepService, ViaCepService>();
         services.AddScoped<DPManagement.Application.Interfaces.IPerfilService, Services.PerfilService>();
         services.AddScoped<DPManagement.Application.Interfaces.IPermissaoService, Services.PermissaoService>();
+        services.AddScoped<DPManagement.Application.Interfaces.IDadoBancarioService, Services.DadoBancarioService>();
         
         return services;
     }

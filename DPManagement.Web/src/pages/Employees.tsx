@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Plus, Edit, Trash2 } from 'lucide-react';
+import { Plus, Edit, Trash2, Landmark } from 'lucide-react';
 import api from '../services/api';
 import { maskCPF, maskPhone, maskCell, maskCEP } from '../utils/masks';
 import { FormInput } from '../components/common/FormInput';
@@ -7,6 +7,7 @@ import { alertSuccess, alertError, alertDeleteConfirm, showLoading, closeLoading
 import { Table, type TableColumn } from '../components/common/Table';
 import { FilterBar } from '../components/common/FilterBar';
 import { Modal } from '../components/common/Modal';
+import { DadosBancariosModal } from '../components/common/DadosBancariosModal';
 import { DatePicker } from '../components/common/DatePicker';
 import { parseISO, format } from 'date-fns';
 import { useAuth } from '../hooks/useAuth';
@@ -60,6 +61,9 @@ export default function Employees() {
     estado: '', cargoId: ''
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
+  
+  const [isBankModalOpen, setIsBankModalOpen] = useState(false);
+  const [selectedBankEmployee, setSelectedBankEmployee] = useState<{ id: string, nome: string } | null>(null);
 
   useEffect(() => {
     fetchEmployees();
@@ -249,7 +253,19 @@ export default function Employees() {
       header: 'Ações',
       align: 'right',
       render: (emp) => (
-        <div className="space-x-4">
+        <div className="space-x-4 flex justify-end">
+          {hasPermission('Colaboradores', 'Editar') && (
+            <button
+               title="Dados Bancários"
+               onClick={() => {
+                 setSelectedBankEmployee({ id: emp.id, nome: emp.nome });
+                 setIsBankModalOpen(true);
+               }}
+               className="text-amber-600 hover:text-amber-900"
+            >
+              <Landmark size={18} />
+            </button>
+          )}
           {hasPermission('Colaboradores', 'Editar') && (
             <button onClick={() => handleEdit(emp)} className="text-indigo-600 hover:text-indigo-900">
               <Edit size={18} />
@@ -505,6 +521,13 @@ export default function Employees() {
           </div>
         </form>
       </Modal>
+
+      <DadosBancariosModal
+        isOpen={isBankModalOpen}
+        onClose={() => setIsBankModalOpen(false)}
+        colaboradorId={selectedBankEmployee?.id || null}
+        colaboradorNome={selectedBankEmployee?.nome || null}
+      />
     </div>
   );
 }

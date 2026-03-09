@@ -23,4 +23,6 @@ public class Colaborador : ISoftDelete
     public Guid CargoId { get; set; }
     public Cargo Cargo { get; set; } = null!;
     public bool IsDeleted { get; set; } = false;
+
+    public ICollection<DadoBancario> DadosBancarios { get; set; } = new List<DadoBancario>();
 }
