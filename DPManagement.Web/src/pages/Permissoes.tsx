@@ -90,7 +90,7 @@ export default function Permissoes() {
     const handleToggleStatus = async (permissao: Permissao) => {
         showLoading(permissao.ativo ? 'Inativando...' : 'Ativando...');
         try {
-            await api.patch(`/permissoes/${permissao.id}/ativar?ativo=${!permissao.ativo}`, {});
+            await api.put(`/permissoes/${permissao.id}/ativar?ativo=${!permissao.ativo}`);
             alertSuccess(`Permissão ${permissao.ativo ? 'inativada' : 'ativada'} com sucesso`);
             fetchPermissoes();
         } catch (error) {

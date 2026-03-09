@@ -82,7 +82,7 @@ public class PermissoesController : ControllerBase
         return NoContent();
     }
 
-    [HttpPatch("{id}/ativar")]
+    [HttpPut("{id}/ativar")]
     public async Task<IActionResult> AtivarInativar(Guid id, [FromQuery] bool ativo)
     {
         await _permissaoService.AtivarInativarAsync(id, ativo);

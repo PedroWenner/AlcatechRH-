@@ -57,7 +57,7 @@ public class PerfisController : ControllerBase
         return NoContent();
     }
 
-    [HttpPatch("{id}/ativar")]
+    [HttpPut("{id}/ativar")]
     public async Task<IActionResult> AtivarInativar(Guid id, [FromQuery] bool ativo)
     {
         await _perfilService.AtivarInativarAsync(id, ativo);

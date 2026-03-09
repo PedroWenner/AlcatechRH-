@@ -154,7 +154,7 @@ export default function Perfis() {
     const handleToggleStatusPerfil = async (perfil: Perfil) => {
         showLoading(perfil.ativo ? 'Inativando...' : 'Ativando...');
         try {
-            await api.patch(`/perfis/${perfil.id}/ativar?ativo=${!perfil.ativo}`, {});
+            await api.put(`/perfis/${perfil.id}/ativar?ativo=${!perfil.ativo}`);
             alertSuccess(`Perfil ${perfil.ativo ? 'inativado' : 'ativado'} com sucesso`);
             fetchPerfis();
         } catch (error) {
@@ -249,7 +249,7 @@ export default function Perfis() {
     const handleToggleStatusPermissao = async (permissao: Permissao) => {
         showLoading(permissao.ativo ? 'Inativando...' : 'Ativando...');
         try {
-            await api.patch(`/permissoes/${permissao.id}/ativar?ativo=${!permissao.ativo}`, {});
+            await api.put(`/permissoes/${permissao.id}/ativar?ativo=${!permissao.ativo}`);
             alertSuccess(`Permissão ${permissao.ativo ? 'inativada' : 'ativada'} com sucesso`);
             fetchPermissoes();
             fetchMatriz();
