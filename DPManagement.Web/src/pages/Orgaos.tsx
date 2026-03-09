@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Edit, Trash2, Power, Building2 } from 'lucide-react';
+import { Plus, Edit, Trash2, CheckCircle, XCircle, Building2 } from 'lucide-react';
 import api from '../services/api';
 import { FormInput } from '../components/common/FormInput';
 import { Table, type TableColumn } from '../components/common/Table';
@@ -198,9 +198,9 @@ export default function Orgaos() {
                 <button 
                   title={o.ativo ? "Inativar" : "Ativar"} 
                   onClick={() => handleToggleStatus(o)} 
-                  className={o.ativo ? "text-orange-500 hover:text-orange-700" : "text-green-600 hover:text-green-800"}
+                  className={o.ativo ? "text-red-500 hover:text-red-700" : "text-green-500 hover:text-green-700"}
                 >
-                  <Power size={18} />
+                  {o.ativo ? <XCircle size={18} /> : <CheckCircle size={18} />}
                 </button>
              </>
           )}
