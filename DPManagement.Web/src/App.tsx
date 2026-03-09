@@ -10,10 +10,12 @@ import AuditLogs from './pages/AuditLogs';
 import Perfis from './pages/Perfis';
 import Users from './pages/Users';
 import CentroCustos from './pages/CentroCustos';
+import { Toaster } from 'react-hot-toast';
 
 function App() {
   return (
     <AuthProvider>
+      <Toaster position="top-right" />
       <BrowserRouter>
         <Routes>
           <Route path="/login" element={<Login />} />

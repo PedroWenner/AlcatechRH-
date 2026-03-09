@@ -204,16 +204,14 @@ Swal.fire({
 })
 Toast Notifications (Optional)
 
-Para notificações rápidas.
+Para notificações rápidas de sucesso ou erro leve, o sistema foi atualizado para utilizar o `react-hot-toast` ao invés do `SweetAlert2` (embora o SweetAlert ainda seja utilizado para modais de confirmação e warnings pesados).
 
-Swal.fire({
-  toast: true,
-  position: 'top-end',
-  icon: 'success',
-  title: 'Salvo com sucesso',
-  showConfirmButton: false,
-  timer: 3000
-})
+```typescript
+import toast from 'react-hot-toast';
+
+toast.success('Salvo com sucesso');
+toast.error('Erro de gravação');
+```
 UX Rules
 
 Alertas devem:
