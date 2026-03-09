@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Plus, CheckCircle, XCircle, FolderTree, Shield } from 'lucide-react';
+import { Plus, CheckCircle, XCircle, FolderTree, Shield, Edit } from 'lucide-react';
 import api from '../services/api';
 import { FilterBar } from '../components/common/FilterBar';
 import { FormInput } from '../components/common/FormInput';
@@ -143,14 +143,16 @@ export default function CentroCustos() {
     },
     {
       header: 'Ações',
+      align: 'right',
       render: (centro: CentroCusto) => (
-        <div className="flex space-x-2">
+        <div className="flex space-x-4 justify-end">
           {checkPerm('Editar') && (
             <button
               onClick={() => openEditModal(centro)}
-              className="text-indigo-600 hover:text-indigo-900 font-medium text-sm"
+              className="text-indigo-600 hover:text-indigo-900"
+              title="Editar"
             >
-              Editar
+              <Edit size={18} />
             </button>
           )}
           {checkPerm('Editar') && (
@@ -159,7 +161,7 @@ export default function CentroCustos() {
               className={`${centro.ativo ? 'text-red-600 hover:text-red-900' : 'text-green-600 hover:text-green-900'}`}
               title={centro.ativo ? 'Inativar' : 'Ativar'}
             >
-              {centro.ativo ? <XCircle size={20} /> : <CheckCircle size={20} />}
+              {centro.ativo ? <XCircle size={18} /> : <CheckCircle size={18} />}
             </button>
           )}
         </div>
@@ -236,7 +238,7 @@ export default function CentroCustos() {
             <Autocomplete
               label=""
               onSearch={async (term: string) => {
-                  return orgaos.filter(o => 
+                  return orgaos.filter((o: Orgao) => 
                     o.nome.toLowerCase().includes(term.toLowerCase()) || 
                     o.abreviatura.toLowerCase().includes(term.toLowerCase())
                   );

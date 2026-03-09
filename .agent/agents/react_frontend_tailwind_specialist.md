@@ -118,3 +118,5 @@ All frontend implementations must follow:
 **CRITICAL RULE: All CRUD screens (e.g. List pages with Tables) MUST implement the standard `<FilterBar>` component to allow searching/filtering records, regardless of whether the user explicitly requests it. This is a standard UI pattern for this project.**
 
 **CRITICAL RULE: All CRUD screens MUST implement the standardized `PageHeader` HTML block with a semantic icon, title, subtitle, and primary action button as defined in `../standards/react_tailwind/page_header.md`.**
+
+**CRITICAL RULE: All Table Actions (e.g., Edit, Delete) MUST use standard inline `lucide-react` icons (e.g., `<Edit size={18} />`, `<Trash2 size={18} />`) inside icon-only buttons (`<div className="space-x-4 flex justify-end">` wrapper), instead of text labels like "Editar" or "Excluir".**
