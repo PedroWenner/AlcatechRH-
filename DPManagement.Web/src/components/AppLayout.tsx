@@ -1,6 +1,6 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, Users, LogOut, Settings, Calculator, Briefcase, History, Shield, Clock, UserCog } from 'lucide-react';
+import { LayoutDashboard, Users, LogOut, Settings, Calculator, Briefcase, History, Shield, Clock, UserCog, Building2 } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 
 export function AppLayout() {
@@ -71,6 +71,10 @@ export function AppLayout() {
 
           {hasPermission('Cargos', 'Visualizar') && (
             <NavItem to="/cargos" icon={<Briefcase size={20} />} label="Cargos" />
+          )}
+
+          {hasPermission('Estrutura', 'Visualizar') && (
+            <NavItem to="/orgaos" icon={<Building2 size={20} />} label="Estrutura Organizacional" />
           )}
 
           {hasPermission('Perfis', 'Visualizar') && (

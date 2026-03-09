@@ -5,6 +5,7 @@ import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import Employees from './pages/Employees';
 import Cargos from './pages/Cargos';
+import Orgaos from './pages/Orgaos';
 import AuditLogs from './pages/AuditLogs';
 import Perfis from './pages/Perfis';
 import Users from './pages/Users';
@@ -21,6 +22,7 @@ function App() {
             <Route index element={<Dashboard />} />
             <Route path="employees" element={<Employees />} />
             <Route path="cargos" element={<Cargos />} />
+            <Route path="orgaos" element={<Orgaos />} />
             <Route path="perfis" element={<Perfis />} />
             <Route path="users" element={<Users />} />
             <Route path="audit" element={<AuditLogs />} />

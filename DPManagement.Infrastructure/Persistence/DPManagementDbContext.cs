@@ -25,6 +25,7 @@ public class DPManagementDbContext : DbContext
     public DbSet<Banco> Bancos { get; set; } = null!;
     public DbSet<AuditLog> AuditLogs { get; set; } = null!;
     public DbSet<DadoBancario> DadosBancarios { get; set; } = null!;
+    public DbSet<Orgao> Orgaos { get; set; } = null!;
 
     public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
