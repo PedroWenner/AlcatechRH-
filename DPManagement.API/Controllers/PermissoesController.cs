@@ -22,6 +22,7 @@ public class PermissoesController : ControllerBase
         {
             Id = p.Id,
             Modulo = p.Modulo,
+            ModuloPai = p.ModuloPai,
             Acao = p.Acao,
             Descricao = p.Descricao,
             Ativo = p.Ativo
@@ -37,18 +38,26 @@ public class PermissoesController : ControllerBase
         
         var matriz = permissoes
             .Where(p => p.Ativo && !p.IsDeleted) // Safely ensure we only show active ones
-            .GroupBy(p => p.Modulo)
-            .Select(g => new
+            .GroupBy(p => p.ModuloPai ?? string.Empty) // Group first by Parent Module (fallback to Empty)
+            .OrderBy(gp => string.IsNullOrEmpty(gp.Key) ? 1 : 0).ThenBy(gp => gp.Key) // Sort empty parents to bottom
+            .Select(gp => new
             {
-                Modulo = g.Key,
-                Permissoes = g.Select(p => new PermissaoDto
-                {
-                    Id = p.Id,
-                    Modulo = p.Modulo,
-                    Acao = p.Acao,
-                    Descricao = p.Descricao,
-                    Ativo = p.Ativo
-                }).ToList()
+                ModuloPai = string.IsNullOrEmpty(gp.Key) ? null : gp.Key,
+                ModulosFilhos = gp.GroupBy(p => p.Modulo)
+                    .OrderBy(gm => gm.Key)
+                    .Select(gm => new 
+                    {
+                        Modulo = gm.Key,
+                        Permissoes = gm.Select(p => new PermissaoDto
+                        {
+                            Id = p.Id,
+                            Modulo = p.Modulo,
+                            ModuloPai = p.ModuloPai,
+                            Acao = p.Acao,
+                            Descricao = p.Descricao,
+                            Ativo = p.Ativo
+                        }).ToList()
+                    }).ToList()
             }).ToList();
 
         return Ok(matriz);
@@ -60,6 +69,7 @@ public class PermissoesController : ControllerBase
         var permissao = new DPManagement.Domain.Entities.Permissao
         {
             Modulo = request.Modulo,
+            ModuloPai = string.IsNullOrWhiteSpace(request.ModuloPai) ? null : request.ModuloPai,
             Acao = request.Acao,
             Descricao = request.Descricao
         };
@@ -75,6 +85,7 @@ public class PermissoesController : ControllerBase
         if (permissao == null) return NotFound();
 
         permissao.Modulo = request.Modulo;
+        permissao.ModuloPai = string.IsNullOrWhiteSpace(request.ModuloPai) ? null : request.ModuloPai;
         permissao.Acao = request.Acao;
         permissao.Descricao = request.Descricao;
 
@@ -101,6 +112,7 @@ public class PermissaoDto
 {
     public Guid Id { get; set; }
     public string Modulo { get; set; } = string.Empty;
+    public string? ModuloPai { get; set; }
     public string Acao { get; set; } = string.Empty;
     public string? Descricao { get; set; }
     public bool Ativo { get; set; }
@@ -109,6 +121,7 @@ public class PermissaoDto
 public class PermissaoRequestDto
 {
     public string Modulo { get; set; } = string.Empty;
+    public string? ModuloPai { get; set; }
     public string Acao { get; set; } = string.Empty;
     public string? Descricao { get; set; }
 }

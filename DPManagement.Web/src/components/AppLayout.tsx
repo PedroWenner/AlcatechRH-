@@ -1,12 +1,21 @@
 import { useEffect, useState, type ReactNode } from 'react';
-import { NavLink, Outlet, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, Users, LogOut, Settings, Calculator, Briefcase, History, Shield, Clock, UserCog, Building2 } from 'lucide-react';
+import { NavLink, Outlet, useNavigate, useLocation } from 'react-router-dom';
+import { LayoutDashboard, Users, LogOut, Settings, Calculator, Briefcase, History, Shield, Clock, UserCog, Building2, ChevronDown, ChevronRight, FolderTree } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 
 export function AppLayout() {
   const { user, token, tokenExp, logout, hasPermission } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const [timeLeft, setTimeLeft] = useState<number | null>(null);
+
+  const hasAnyCadastroPermission = hasPermission('Usuarios', 'Visualizar') || 
+                                   hasPermission('Colaboradores', 'Visualizar') || 
+                                   hasPermission('Cargos', 'Visualizar') || 
+                                   hasPermission('Estrutura', 'Visualizar') || 
+                                   hasPermission('Perfis', 'Visualizar');
+  
+  const isCadastrosActive = ['/users', '/employees', '/cargos', '/orgaos', '/perfis'].some(path => location.pathname.startsWith(path));
 
   useEffect(() => {
     if (!token) {
@@ -61,24 +70,28 @@ export function AppLayout() {
             <NavItem to="/" icon={<LayoutDashboard size={20} />} label="Dashboard" />
           )}
 
-          {hasPermission('Usuarios', 'Visualizar') && (
-            <NavItem to="/users" icon={<UserCog size={20} />} label="Usuários" />
-          )}
+          {hasAnyCadastroPermission && (
+            <NavGroup icon={<FolderTree size={20} />} label="Cadastros" isActive={isCadastrosActive}>
+              {hasPermission('Estrutura', 'Visualizar') && (
+                <NavItem to="/orgaos" icon={<Building2 size={20} />} label="Estrutura Organizacional" />
+              )}
 
-          {hasPermission('Colaboradores', 'Visualizar') && (
-            <NavItem to="/employees" icon={<Users size={20} />} label="Colaboradores" />
-          )}
+              {hasPermission('Cargos', 'Visualizar') && (
+                <NavItem to="/cargos" icon={<Briefcase size={20} />} label="Cargos" />
+              )}
 
-          {hasPermission('Cargos', 'Visualizar') && (
-            <NavItem to="/cargos" icon={<Briefcase size={20} />} label="Cargos" />
-          )}
+              {hasPermission('Colaboradores', 'Visualizar') && (
+                <NavItem to="/employees" icon={<Users size={20} />} label="Colaboradores" />
+              )}
 
-          {hasPermission('Estrutura', 'Visualizar') && (
-            <NavItem to="/orgaos" icon={<Building2 size={20} />} label="Estrutura Organizacional" />
-          )}
+              {hasPermission('Usuarios', 'Visualizar') && (
+                <NavItem to="/users" icon={<UserCog size={20} />} label="Usuários" />
+              )}
 
-          {hasPermission('Perfis', 'Visualizar') && (
-            <NavItem to="/perfis" icon={<Shield size={20} />} label="Perfis e Acessos" />
+              {hasPermission('Perfis', 'Visualizar') && (
+                <NavItem to="/perfis" icon={<Shield size={20} />} label="Perfis e Acessos" />
+              )}
+            </NavGroup>
           )}
 
           {hasPermission('Auditoria', 'Visualizar') && (
@@ -143,5 +156,35 @@ function NavItem({ to, icon, label }: { to: string; icon: ReactNode; label: stri
       <span className="mr-3">{icon}</span>
       <span className="font-medium">{label}</span>
     </NavLink>
+  );
+}
+
+function NavGroup({ icon, label, children, isActive }: { icon: ReactNode; label: string; children: ReactNode; isActive: boolean }) {
+  const [isOpen, setIsOpen] = useState(isActive);
+
+  useEffect(() => {
+    if (isActive) setIsOpen(true);
+  }, [isActive]);
+
+  return (
+    <div className="space-y-1">
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className={`w-full flex items-center justify-between px-4 py-3 rounded-md transition-colors focus:outline-none ${
+          isActive || isOpen ? 'bg-indigo-800 text-white' : 'text-indigo-100 hover:bg-indigo-800 hover:text-white'
+        }`}
+      >
+        <div className="flex items-center">
+          <span className="mr-3">{icon}</span>
+          <span className="font-medium">{label}</span>
+        </div>
+        {isOpen ? <ChevronDown size={18} /> : <ChevronRight size={18} />}
+      </button>
+      {isOpen && (
+        <div className="pl-4 space-y-1 mt-1 border-l border-indigo-700 ml-4 py-1">
+          {children}
+        </div>
+      )}
+    </div>
   );
 }

@@ -6,6 +6,7 @@ public class Permissao : ISoftDelete
 {
     public Guid Id { get; set; } = Guid.NewGuid();
     public string Modulo { get; set; } = string.Empty; // ex: Folha, Funcionario
+    public string? ModuloPai { get; set; } // ex: Cadastros
     public string Acao { get; set; } = string.Empty;   // ex: Ler, Calcular, Editar
     public string? Descricao { get; set; }
 

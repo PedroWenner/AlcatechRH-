@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Plus, Trash2, Edit, CheckCircle, XCircle, Shield } from 'lucide-react';
 import api from '../services/api';
 import { FormInput } from '../components/common/FormInput';
@@ -16,18 +16,22 @@ interface Perfil {
 }
 
 interface PermissaoMatriz {
-    modulo: string;
-    permissoes: {
-        id: string;
-        acao: string;
-        descricao: string;
-        ativo: boolean;
+    moduloPai: string | null;
+    modulosFilhos: {
+        modulo: string;
+        permissoes: {
+            id: string;
+            acao: string;
+            descricao: string;
+            ativo: boolean;
+        }[];
     }[];
 }
 
 interface Permissao {
     id: string;
     modulo: string;
+    moduloPai?: string;
     acao: string;
     descricao?: string;
     ativo: boolean;
@@ -51,10 +55,10 @@ export default function Perfis() {
 
     // === PERMISSOES STATE ===
     const [permissoesList, setPermissoesList] = useState<Permissao[]>([]);
-    const [permFilters, setPermFilters] = useState({ modulo: '', acao: '' });
+    const [permFilters, setPermFilters] = useState({ modulo: '', moduloPai: '', acao: '' });
     const [isPermModalOpen, setIsPermModalOpen] = useState(false);
     const [editingPermissao, setEditingPermissao] = useState<Permissao | null>(null);
-    const [permFormData, setPermFormData] = useState({ modulo: '', acao: '', descricao: '' });
+    const [permFormData, setPermFormData] = useState({ modulo: '', moduloPai: '', acao: '', descricao: '' });
 
     useEffect(() => {
         fetchPerfis();
@@ -97,6 +101,9 @@ export default function Perfis() {
             if (permFilters.modulo) {
                 data = data.filter((p: Permissao) => p.modulo.toLowerCase().includes(permFilters.modulo.toLowerCase()));
             }
+            if (permFilters.moduloPai) {
+                data = data.filter((p: Permissao) => (p.moduloPai || '').toLowerCase().includes(permFilters.moduloPai.toLowerCase()));
+            }
             if (permFilters.acao) {
                 data = data.filter((p: Permissao) => p.acao.toLowerCase().includes(permFilters.acao.toLowerCase()));
             }
@@ -116,7 +123,7 @@ export default function Perfis() {
             setFilters({ nome: '' });
             setTimeout(() => fetchPerfis(), 0);
         } else {
-            setPermFilters({ modulo: '', acao: '' });
+            setPermFilters({ modulo: '', moduloPai: '', acao: '' });
             setTimeout(() => fetchPermissoes(), 0);
         }
     };
@@ -229,7 +236,7 @@ export default function Perfis() {
             }
             setIsPermModalOpen(false);
             setEditingPermissao(null);
-            setPermFormData({ modulo: '', acao: '', descricao: '' });
+            setPermFormData({ modulo: '', moduloPai: '', acao: '', descricao: '' });
             fetchPermissoes();
             fetchMatriz(); // Refresh matrix dynamically after a generic permissão add/edit
         } catch (error) {
@@ -242,7 +249,7 @@ export default function Perfis() {
 
     const handleEditPermissao = (permissao: Permissao) => {
         setEditingPermissao(permissao);
-        setPermFormData({ modulo: permissao.modulo, acao: permissao.acao, descricao: permissao.descricao || '' });
+        setPermFormData({ modulo: permissao.modulo, moduloPai: permissao.moduloPai || '', acao: permissao.acao, descricao: permissao.descricao || '' });
         setIsPermModalOpen(true);
     };
 
@@ -323,6 +330,7 @@ export default function Perfis() {
     ];
 
     const columnsPermissoes: TableColumn<Permissao>[] = [
+        { header: 'Módulo Pai', render: (p) => p.moduloPai || '-' },
         { header: 'Módulo', accessor: 'modulo' },
         { header: 'Ação', accessor: 'acao' },
         { header: 'Descrição', accessor: 'descricao' },
@@ -387,7 +395,7 @@ export default function Perfis() {
                     </button>
                 ) : (
                     <button
-                        onClick={() => { setEditingPermissao(null); setPermFormData({ modulo: '', acao: '', descricao: '' }); setIsPermModalOpen(true); }}
+                        onClick={() => { setEditingPermissao(null); setPermFormData({ modulo: '', moduloPai: '', acao: '', descricao: '' }); setIsPermModalOpen(true); }}
                         className="flex items-center px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors shadow-sm"
                     >
                         <Plus size={20} className="mr-2" />
@@ -435,6 +443,12 @@ export default function Perfis() {
             {activeTab === 'permissoes' && (
                 <div className="space-y-6">
                     <FilterBar onFilter={applyFilters} onClear={clearFilters}>
+                        <FormInput
+                            label="Módulo Pai"
+                            value={permFilters.moduloPai}
+                            onChange={e => setPermFilters({ ...permFilters, moduloPai: e.target.value })}
+                            placeholder="Buscar por módulo pai..."
+                        />
                         <FormInput
                             label="Módulo"
                             value={permFilters.modulo}
@@ -532,27 +546,38 @@ export default function Perfis() {
                             </tr>
                         </thead>
                         <tbody className="bg-white divide-y divide-gray-200">
-                            {permissoesMatriz.map((item) => (
-                                <tr key={item.modulo}>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                                        {item.modulo}
-                                    </td>
-                                    <td className="px-6 py-4 text-sm text-gray-500">
-                                        <div className="flex flex-wrap gap-4">
-                                            {getOrderedActions(item.permissoes).map(p => (
-                                                <label key={p.id} className="flex items-center space-x-2 cursor-pointer">
-                                                    <input
-                                                        type="checkbox"
-                                                        checked={selectedPermissoesIds.has(p.id)}
-                                                        onChange={() => handleTogglePermission(p.id)}
-                                                        className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
-                                                    />
-                                                    <span>{p.acao}</span>
-                                                </label>
-                                            ))}
-                                        </div>
-                                    </td>
-                                </tr>
+                            {permissoesMatriz.map((grupoPai) => (
+                                <React.Fragment key={grupoPai.moduloPai || 'outros'}>
+                                    {grupoPai.moduloPai && (
+                                        <tr className="bg-gray-50 border-t border-b border-gray-200">
+                                            <td colSpan={2} className="px-6 py-2 text-xs font-bold text-gray-700 uppercase tracking-wider bg-gray-100">
+                                                {grupoPai.moduloPai}
+                                            </td>
+                                        </tr>
+                                    )}
+                                    {grupoPai.modulosFilhos.map((item) => (
+                                        <tr key={item.modulo}>
+                                            <td className={`px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 ${grupoPai.moduloPai ? 'pl-10 border-l-[3px] border-indigo-200' : ''}`}>
+                                                {item.modulo}
+                                            </td>
+                                            <td className="px-6 py-4 text-sm text-gray-500">
+                                                <div className="flex flex-wrap gap-4">
+                                                    {getOrderedActions(item.permissoes).map(p => (
+                                                        <label key={p.id} className="flex items-center space-x-2 cursor-pointer">
+                                                            <input
+                                                                type="checkbox"
+                                                                checked={selectedPermissoesIds.has(p.id)}
+                                                                onChange={() => handleTogglePermission(p.id)}
+                                                                className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded focus:ring-offset-0"
+                                                            />
+                                                            <span className="select-none">{p.acao}</span>
+                                                        </label>
+                                                    ))}
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </React.Fragment>
                             ))}
                             {permissoesMatriz.length === 0 && (
                                 <tr>
@@ -592,6 +617,12 @@ export default function Perfis() {
                 )}
             >
                 <form id="permissao-form" onSubmit={handleSubmitPermissao} className="space-y-4">
+                    <FormInput
+                        label="Módulo Pai (Opcional)"
+                        value={permFormData.moduloPai}
+                        onChange={(e) => setPermFormData({ ...permFormData, moduloPai: e.target.value })}
+                        placeholder="Ex: Cadastros, Relatórios..."
+                    />
                     <FormInput
                         label="Módulo"
                         required
