@@ -13,9 +13,10 @@ export function AppLayout() {
                                    hasPermission('Colaboradores', 'Visualizar') || 
                                    hasPermission('Cargos', 'Visualizar') || 
                                    hasPermission('Estrutura', 'Visualizar') || 
+                                   hasPermission('CentroCustos', 'Visualizar') || 
                                    hasPermission('Perfis', 'Visualizar');
   
-  const isCadastrosActive = ['/users', '/employees', '/cargos', '/orgaos', '/perfis'].some(path => location.pathname.startsWith(path));
+  const isCadastrosActive = ['/users', '/employees', '/cargos', '/orgaos', '/centro-custos', '/perfis'].some(path => location.pathname.startsWith(path));
 
   useEffect(() => {
     if (!token) {
@@ -74,6 +75,10 @@ export function AppLayout() {
             <NavGroup icon={<FolderTree size={20} />} label="Cadastros" isActive={isCadastrosActive}>
               {hasPermission('Estrutura', 'Visualizar') && (
                 <NavItem to="/orgaos" icon={<Building2 size={20} />} label="Estrutura Organizacional" />
+              )}
+
+              {hasPermission('CentroCustos', 'Visualizar') && (
+                <NavItem to="/centro-custos" icon={<FolderTree size={20} />} label="Centros de Custos" />
               )}
 
               {hasPermission('Cargos', 'Visualizar') && (

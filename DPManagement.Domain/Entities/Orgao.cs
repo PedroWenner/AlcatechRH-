@@ -13,6 +13,7 @@ public class Orgao : ISoftDelete
     public Orgao? OrgaoPai { get; set; }
     
     public ICollection<Orgao> SubOrgaos { get; set; } = new List<Orgao>();
+    public ICollection<CentroCusto> CentrosCustos { get; set; } = new List<CentroCusto>();
 
     public bool IsDeleted { get; set; } = false;
     public bool Ativo { get; set; } = true;

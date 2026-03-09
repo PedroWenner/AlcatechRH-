@@ -25,6 +25,7 @@ public static class DependencyInjection
         services.AddScoped<DPManagement.Application.Interfaces.IDadoBancarioService, Services.DadoBancarioService>();
         services.AddScoped<DPManagement.Application.Interfaces.IBancoService, Services.BancoService>();
         services.AddScoped<DPManagement.Application.Interfaces.IOrgaoService, Services.OrgaoService>();
+        services.AddScoped<DPManagement.Application.Interfaces.ICentroCustoService, Services.CentroCustoService>();
         
         return services;
     }
