@@ -110,6 +110,7 @@ All frontend implementations must follow:
 - ../standards/react_tailwind/alerts.md
 - ../standards/react_tailwind/validation_form.md
 - ../standards/react_tailwind/buttons.md
+- ../standards/react_tailwind/status_toggle_buttons.md
 - ../standards/react_tailwind/datepicker.md
 - ../standards/react_tailwind/filters.md
 - ../standards/react_tailwind/page_header.md
