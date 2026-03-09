@@ -206,7 +206,7 @@ export default function Perfis() {
             await api.post(`/perfis/${selectedPerfil.id}/permissoes`, Array.from(selectedPermissoesIds));
             alertSuccess('Permissões atualizadas com sucesso');
             setIsMatrixOpen(false);
-            fetchPerfis(); 
+            fetchPerfis();
         } catch (error) {
             console.error('Erro ao salvar permissões', error);
             alertError('Erro ao atualizar permissões');

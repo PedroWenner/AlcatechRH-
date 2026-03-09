@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Plus, Edit, Trash2, Power } from 'lucide-react';
+import { Plus, Edit, Trash2, CheckCircle, XCircle } from 'lucide-react';
 import api from '../../services/api';
 import { FormInput } from './FormInput';
 import { alertSuccess, alertError, alertDeleteConfirm, showLoading, closeLoading } from '../../services/alertService';
@@ -157,12 +157,12 @@ export function DadosBancariosModal({ isOpen, onClose, colaboradorId, colaborado
           <button title="Editar" onClick={() => handleEdit(d)} className="text-indigo-600 hover:text-indigo-900">
             <Edit size={18} />
           </button>
-          <button 
-            title={d.ativo ? "Inativar" : "Ativar"} 
-            onClick={() => handleToggleStatus(d)} 
-            className={d.ativo ? "text-orange-500 hover:text-orange-700" : "text-green-600 hover:text-green-800"}
+          <button
+            title={d.ativo ? "Inativar" : "Ativar"}
+            onClick={() => handleToggleStatus(d)}
+            className={d.ativo ? "text-red-500 hover:text-red-700" : "text-green-500 hover:text-green-700"}
           >
-            <Power size={18} />
+            {d.ativo ? <XCircle size={18} /> : <CheckCircle size={18} />}
           </button>
           <button title="Excluir" onClick={() => handleDelete(d.id)} className="text-red-600 hover:text-red-900">
             <Trash2 size={18} />
