@@ -17,6 +17,7 @@ public class DadoBancarioService : IDadoBancarioService
     public async Task<IEnumerable<DadoBancario>> ListarPorColaboradorIdAsync(Guid colaboradorId)
     {
         return await _context.DadosBancarios
+            .Include(db => db.Banco)
             .Where(db => db.ColaboradorId == colaboradorId)
             .OrderBy(db => db.CodigoBanco)
             .ToListAsync();

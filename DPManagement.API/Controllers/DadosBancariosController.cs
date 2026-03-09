@@ -24,6 +24,8 @@ public class DadosBancariosController : ControllerBase
         {
             Id = db.Id,
             ColaboradorId = db.ColaboradorId,
+            BancoId = db.BancoId,
+            NomeBanco = db.Banco?.Nome ?? string.Empty,
             CodigoBanco = db.CodigoBanco,
             Agencia = db.Agencia,
             DigitoAgencia = db.DigitoAgencia,
@@ -41,6 +43,7 @@ public class DadosBancariosController : ControllerBase
         var entidade = new DadoBancario
         {
             ColaboradorId = colaboradorId, // Enforce route param
+            BancoId = request.BancoId,
             CodigoBanco = request.CodigoBanco,
             Agencia = request.Agencia,
             DigitoAgencia = request.DigitoAgencia,
@@ -60,6 +63,7 @@ public class DadosBancariosController : ControllerBase
         if (dado == null || dado.ColaboradorId != colaboradorId) 
             return NotFound();
 
+        dado.BancoId = request.BancoId;
         dado.CodigoBanco = request.CodigoBanco;
         dado.Agencia = request.Agencia;
         dado.DigitoAgencia = request.DigitoAgencia;

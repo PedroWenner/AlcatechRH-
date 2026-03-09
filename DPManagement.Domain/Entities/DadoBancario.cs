@@ -16,5 +16,8 @@ public class DadoBancario : ISoftDelete
     public Guid ColaboradorId { get; set; }
     public Colaborador Colaborador { get; set; } = null!;
 
+    public Guid? BancoId { get; set; }
+    public Banco? Banco { get; set; }
+
     public bool IsDeleted { get; set; } = false;
 }

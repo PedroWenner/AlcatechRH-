@@ -10,7 +10,9 @@ import { Autocomplete } from './Autocomplete';
 interface DadoBancario {
   id: string;
   colaboradorId: string;
+  bancoId?: string;
   codigoBanco: string;
+  nomeBanco: string;
   agencia: string;
   digitoAgencia: string;
   conta: string;
@@ -30,7 +32,7 @@ export function DadosBancariosModal({ isOpen, onClose, colaboradorId, colaborado
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingDado, setEditingDado] = useState<DadoBancario | null>(null);
   const [formData, setFormData] = useState({
-    codigoBanco: '', agencia: '', digitoAgencia: '', conta: '', digitoConta: '', operacao: ''
+    bancoId: '', codigoBanco: '', agencia: '', digitoAgencia: '', conta: '', digitoConta: '', operacao: ''
   });
 
   useEffect(() => {
@@ -98,6 +100,7 @@ export function DadosBancariosModal({ isOpen, onClose, colaboradorId, colaborado
   const handleEdit = (dado: DadoBancario) => {
     setEditingDado(dado);
     setFormData({
+      bancoId: dado.bancoId || '',
       codigoBanco: dado.codigoBanco,
       agencia: dado.agencia,
       digitoAgencia: dado.digitoAgencia,
@@ -109,14 +112,17 @@ export function DadosBancariosModal({ isOpen, onClose, colaboradorId, colaborado
   };
 
   const columns: TableColumn<DadoBancario>[] = [
-    { header: 'Banco', accessor: 'codigoBanco' },
-    { 
-      header: 'Agência', 
-      render: (d) => `${d.agencia}-${d.digitoAgencia}` 
+    {
+      header: 'Banco',
+      render: (d) => `${d.codigoBanco} - ${d.nomeBanco}`
     },
-    { 
-      header: 'Conta / OP', 
-      render: (d) => `${d.conta}-${d.digitoConta} (OP: ${d.operacao})` 
+    {
+      header: 'Agência',
+      render: (d) => `${d.agencia}-${d.digitoAgencia}`
+    },
+    {
+      header: 'Conta / OP',
+      render: (d) => `${d.conta}-${d.digitoConta} (OP: ${d.operacao})`
     },
     {
       header: 'Ações',
@@ -156,7 +162,7 @@ export function DadosBancariosModal({ isOpen, onClose, colaboradorId, colaborado
             <button
               onClick={() => {
                 setEditingDado(null);
-                setFormData({ codigoBanco: '', agencia: '', digitoAgencia: '', conta: '', digitoConta: '', operacao: '' });
+                setFormData({ bancoId: '', codigoBanco: '', agencia: '', digitoAgencia: '', conta: '', digitoConta: '', operacao: '' });
                 setIsFormOpen(true);
               }}
               className="flex items-center px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors"
@@ -165,7 +171,7 @@ export function DadosBancariosModal({ isOpen, onClose, colaboradorId, colaborado
               Adicionar Conta
             </button>
           </div>
-          
+
           <Table data={dados} columns={columns} />
         </div>
       </Modal>
@@ -173,28 +179,28 @@ export function DadosBancariosModal({ isOpen, onClose, colaboradorId, colaborado
       {/* Nested Modal for Form */}
       {isFormOpen && (
         <Modal
-            isOpen={isFormOpen}
-            onClose={() => setIsFormOpen(false)}
-            title={editingDado ? 'Editar Conta' : 'Nova Conta Bancária'}
-            size="md"
-            footer={(
-                <>
-                    <button
-                        type="submit"
-                        form="banco-form"
-                        className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none sm:ml-3 sm:w-auto sm:text-sm"
-                    >
-                        Salvar
-                    </button>
-                    <button
-                        type="button"
-                        onClick={() => setIsFormOpen(false)}
-                        className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
-                    >
-                        Cancelar
-                    </button>
-                </>
-            )}
+          isOpen={isFormOpen}
+          onClose={() => setIsFormOpen(false)}
+          title={editingDado ? 'Editar Conta' : 'Nova Conta Bancária'}
+          size="md"
+          footer={(
+            <>
+              <button
+                type="submit"
+                form="banco-form"
+                className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none sm:ml-3 sm:w-auto sm:text-sm"
+              >
+                Salvar
+              </button>
+              <button
+                type="button"
+                onClick={() => setIsFormOpen(false)}
+                className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
+              >
+                Cancelar
+              </button>
+            </>
+          )}
         >
           <form id="banco-form" onSubmit={handleSubmit} className="p-1">
             <div className="grid grid-cols-1 gap-y-4">
@@ -209,9 +215,9 @@ export function DadosBancariosModal({ isOpen, onClose, colaboradorId, colaborado
                 }}
                 onSelect={(item) => {
                   if (item) {
-                    setFormData({ ...formData, codigoBanco: item.codigo });
+                    setFormData({ ...formData, bancoId: item.id, codigoBanco: item.codigo });
                   } else {
-                    setFormData({ ...formData, codigoBanco: '' });
+                    setFormData({ ...formData, bancoId: '', codigoBanco: '' });
                   }
                 }}
                 displayValue={(item) => `${item.codigo} - ${item.titulo}`}
