@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { FileText, User as UserIcon, Info } from 'lucide-react';
+import { FileText, User as UserIcon, Info, History } from 'lucide-react';
 import api from '../services/api';
 import { showLoading, closeLoading, alertError } from '../utils/swal';
 import { FilterBar } from '../components/common/FilterBar';
@@ -161,8 +161,14 @@ export default function AuditLogs() {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-semibold text-gray-900">Logs de Auditoria</h1>
+      <div className="flex justify-between items-center bg-white p-6 rounded-lg shadow-sm border border-gray-200 mb-6">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
+            <History className="text-indigo-600" />
+            Logs de Auditoria
+          </h1>
+          <p className="text-gray-500 mt-1">Acompanhe o histórico de alterações no sistema.</p>
+        </div>
       </div>
 
       <FilterBar onFilter={applyFilters} onClear={clearFilters}>

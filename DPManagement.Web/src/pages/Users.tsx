@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Plus, Trash2, Edit } from 'lucide-react';
+import { Plus, Trash2, Edit, UserCog } from 'lucide-react';
 import api from '../services/api';
 import { FormInput } from '../components/common/FormInput';
 import { alertSuccess, alertError, alertDeleteConfirm, showLoading, closeLoading } from '../services/alertService';
@@ -186,14 +186,20 @@ export default function Users() {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-semibold text-gray-900">Gestão de Usuários</h1>
+      <div className="flex justify-between items-center bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
+            <UserCog className="text-indigo-600" />
+            Gestão de Usuários
+          </h1>
+          <p className="text-gray-500 mt-1">Gerencie as contas de acesso ao sistema e os perfis vinculados.</p>
+        </div>
         {hasPermission('Usuarios', 'Criar') && (
           <button
             onClick={() => { setEditingUser(null); setFormData({ nome: '', email: '', senha: '', perfilId: '' }); setIsModalOpen(true); }}
-            className="flex items-center px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors"
+            className="flex items-center px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors shadow-sm"
           >
-            <Plus size={18} className="mr-2" />
+            <Plus size={20} className="mr-2" />
             Novo Usuário
           </button>
         )}
