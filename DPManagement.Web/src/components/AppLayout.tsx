@@ -1,6 +1,6 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, Users, LogOut, Settings, Calculator, Briefcase, History, Shield, Clock } from 'lucide-react';
+import { LayoutDashboard, Users, LogOut, Settings, Calculator, Briefcase, History, Shield, Clock, UserCog } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 
 export function AppLayout() {
@@ -59,6 +59,10 @@ export function AppLayout() {
         <nav className="flex-1 px-4 py-6 space-y-2">
           {hasPermission('Dashboard', 'Visualizar') && (
             <NavItem to="/" icon={<LayoutDashboard size={20} />} label="Dashboard" />
+          )}
+
+          {hasPermission('Usuarios', 'Visualizar') && (
+            <NavItem to="/users" icon={<UserCog size={20} />} label="Usuários" />
           )}
 
           {hasPermission('Colaboradores', 'Visualizar') && (
