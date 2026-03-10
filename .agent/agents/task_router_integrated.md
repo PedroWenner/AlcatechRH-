@@ -6,25 +6,28 @@ Orquestrar **todas as tarefas do workspace**, incluindo solicitações de usuár
 
 Responsibilities:
 
-- Receber solicitações do usuário  
-- Classificar tipo de solicitação:
+- **1. Receber solicitações do usuário**  
+- **2. Classificar tipo de solicitação**:
   - **Feature** → nova funcionalidade  
   - **Bugfix** → correção de bug  
   - **Hotfix** → correção urgente  
-- Documentar automaticamente em pastas corretas:
+- **3. Documentar automaticamente em pastas corretas**:
   - `docs/features/`  
   - `docs/bugfixes/`  
   - `docs/hotfixes/`  
-- Criar branch Git padronizada:
+- **4. Criar branch Git padronizada**:
   - `feature/issue-XX-descricao-curta`  
   - `bugfix/issue-XX-descricao-curta`  
   - `hotfix/issue-XX-descricao-curta`  
-- Encaminhar para o especialista correspondente:
-  - **Dev Specialist** → implementação e testes  
-  - **QA Specialist** → validação de padrões, testes, segurança e documentação  
-  - **Product Owner** → valida homologação e aprova merge para produção  
-- Monitorar todo fluxo de commits, PR, merge e deploy  
-- Gerar alertas caso alguma etapa falhe ou fique pendente
+- **5. Solicitar Aprovação do Projeto**:
+  - *Obrigatório*: O agente deve pausar a execução e pedir a aprovação do usuário sobre a documentação/projeto gerado antes de avançar.
+- **6. Encaminhar para os Especialistas Correspondentes** (após aprovação prévia):
+  - **Dev Specialist** → implementação e execuções  
+- **7. Validação e Homologação**:
+  - **QA Specialist** e **Product Owner** avaliam, testam e homologam o código.
+- **8. Aprovação Final para Produção**:
+  - O agente deve aguardar permissão explícita. O merge para a master/produção **SÓ PODE E DEVE** ser feito caso o usuário digite EXATAMENTE a frase: `"Faça o merge"`.
+- Monitorar todo fluxo e gerar alertas caso alguma etapa fique pendente.
 
 ---
 
