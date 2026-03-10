@@ -224,6 +224,7 @@ export default function CentroCustos() {
         footer={(<>
           <button
             type="submit"
+            form="centro-custos-form"
             className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none sm:ml-3 sm:w-auto sm:text-sm"
           >
             Salvar
@@ -238,7 +239,7 @@ export default function CentroCustos() {
         </>
         )}
       >
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form id="centro-custos-form" onSubmit={handleSubmit} className="space-y-4">
           <FormInput
             label="Descrição"
             required
