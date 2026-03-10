@@ -1,6 +1,8 @@
+using DPManagement.Domain.Interfaces;
+
 namespace DPManagement.Domain.Entities;
 
-public class Usuario
+public class Usuario : ISoftDelete
 {
     public Guid Id { get; set; } = Guid.NewGuid();
     public string Nome { get; set; } = string.Empty;
@@ -9,4 +11,5 @@ public class Usuario
     public DateTime DataCriacao { get; set; } = DateTime.UtcNow;
     public Guid PerfilId { get; set; }
     public Perfil Perfil { get; set; } = null!;
+    public bool IsDeleted { get; set; }
 }

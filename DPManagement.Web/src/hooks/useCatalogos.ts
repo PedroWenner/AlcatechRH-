@@ -9,6 +9,7 @@ export interface CatalogoItem {
 export function useCatalogos() {
   const [regimesJuridicos, setRegimesJuridicos] = useState<CatalogoItem[]>([]);
   const [formasIngresso, setFormasIngresso] = useState<CatalogoItem[]>([]);
+  const [tiposRubrica, setTiposRubrica] = useState<CatalogoItem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [hasError, setHasError] = useState(false);
 
@@ -16,13 +17,15 @@ export function useCatalogos() {
     setIsLoading(true);
     setHasError(false);
     try {
-      const [resRegimes, resFormas] = await Promise.all([
+      const [resRegimes, resFormas, resTipos] = await Promise.all([
         api.get<CatalogoItem[]>('/catalogos/regimes-juridicos'),
-        api.get<CatalogoItem[]>('/catalogos/formas-ingresso')
+        api.get<CatalogoItem[]>('/catalogos/formas-ingresso'),
+        api.get<CatalogoItem[]>('/catalogos/tipos-rubrica')
       ]);
 
       setRegimesJuridicos(resRegimes.data);
       setFormasIngresso(resFormas.data);
+      setTiposRubrica(resTipos.data);
     } catch (err) {
       setHasError(true);
       console.error('Erro ao carregar catálogos do servidor:', err);
@@ -38,6 +41,7 @@ export function useCatalogos() {
   return {
     regimesJuridicos,
     formasIngresso,
+    tiposRubrica,
     isLoading,
     hasError,
     refetch: fetchCatalogos

@@ -35,4 +35,18 @@ public class CatalogosController : ControllerBase
 
         return Ok(formas);
     }
+
+    [HttpGet("tipos-rubrica")]
+    public IActionResult GetTiposRubrica()
+    {
+        var tipos = Enum.GetValues(typeof(TipoRubrica))
+            .Cast<TipoRubrica>()
+            .Select(e => new
+            {
+                Id = (int)e,
+                Nome = e.GetDescription()
+            });
+
+        return Ok(tipos);
+    }
 }

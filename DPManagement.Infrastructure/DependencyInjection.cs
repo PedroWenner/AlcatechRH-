@@ -27,6 +27,7 @@ public static class DependencyInjection
         services.AddScoped<DPManagement.Application.Interfaces.IOrgaoService, Services.OrgaoService>();
         services.AddScoped<DPManagement.Application.Interfaces.ICentroCustoService, Services.CentroCustoService>();
         services.AddScoped<DPManagement.Application.Interfaces.IVinculoService, Services.VinculoService>();
+        services.AddScoped<DPManagement.Application.Interfaces.IRubricaService, Services.RubricaService>();
         
         return services;
     }

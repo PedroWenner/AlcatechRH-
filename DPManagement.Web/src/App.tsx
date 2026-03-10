@@ -11,6 +11,7 @@ import Perfis from './pages/Perfis';
 import Users from './pages/Users';
 import CentroCustos from './pages/CentroCustos';
 import Vinculos from './pages/Vinculos';
+import Rubricas from './pages/Rubricas';
 import { Toaster } from 'react-hot-toast';
 
 function App() {
@@ -29,6 +30,7 @@ function App() {
             <Route path="orgaos" element={<Orgaos />} />
             <Route path="centro-custos" element={<CentroCustos />} />
             <Route path="vinculos" element={<Vinculos />} />
+            <Route path="rubricas" element={<Rubricas />} />
             <Route path="perfis" element={<Perfis />} />
             <Route path="users" element={<Users />} />
             <Route path="audit" element={<AuditLogs />} />

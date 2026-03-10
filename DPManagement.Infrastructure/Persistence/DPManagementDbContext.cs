@@ -28,6 +28,7 @@ public class DPManagementDbContext : DbContext
     public DbSet<DadoBancario> DadosBancarios { get; set; } = null!;
     public DbSet<Orgao> Orgaos { get; set; } = null!;
     public DbSet<Vinculo> Vinculos { get; set; } = null!;
+    public DbSet<Rubrica> Rubricas { get; set; } = null!;
 
     public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
@@ -139,6 +140,14 @@ public class DPManagementDbContext : DbContext
         modelBuilder.Entity<Vinculo>()
             .Property(v => v.FormaIngressoId)
             .HasConversion<int>();
+
+        modelBuilder.Entity<Rubrica>()
+            .Property(v => v.Tipo)
+            .HasConversion<int>();
+
+        modelBuilder.Entity<Rubrica>()
+            .HasIndex(r => r.Codigo)
+            .IsUnique();
 
         foreach (var entityType in modelBuilder.Model.GetEntityTypes())
         {

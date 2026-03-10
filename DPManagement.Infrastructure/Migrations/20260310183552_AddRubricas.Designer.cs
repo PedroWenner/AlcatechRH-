@@ -3,6 +3,7 @@ using System;
 using DPManagement.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace DPManagement.Infrastructure.Migrations
 {
     [DbContext(typeof(DPManagementDbContext))]
-    partial class DPManagementDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260310183552_AddRubricas")]
+    partial class AddRubricas
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -632,9 +635,6 @@ namespace DPManagement.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("Codigo")
-                        .IsUnique();
-
                     b.ToTable("Rubricas");
                 });
 
@@ -651,9 +651,6 @@ namespace DPManagement.Infrastructure.Migrations
                         .IsRequired()
                         .HasMaxLength(150)
                         .HasColumnType("character varying(150)");
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("boolean");
 
                     b.Property<string>("Nome")
                         .IsRequired()
@@ -682,7 +679,6 @@ namespace DPManagement.Infrastructure.Migrations
                             Id = new Guid("00000000-0000-0000-0000-000000000001"),
                             DataCriacao = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             Email = "admin@dpmanagement.com",
-                            IsDeleted = false,
                             Nome = "Administrador Geral",
                             PerfilId = new Guid("11111111-1111-1111-1111-111111111111"),
                             SenhaHash = "$2a$10$D/j9H67A9/9J6L8.Qh0t8O8jQ.X2xZ0kH0.x0.x0.x0.x0.x0.x0"

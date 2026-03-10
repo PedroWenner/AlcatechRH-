@@ -18,9 +18,9 @@ export function AppLayout() {
 
   const isCadastrosActive = ['/users', '/employees', '/cargos', '/orgaos', '/centro-custos', '/perfis'].some(path => location.pathname.startsWith(path));
 
-  const hasAnyFolhaPermission = hasPermission('Vinculos', 'Visualizar') || hasPermission('Vinculos', 'Criar');
+  const hasAnyFolhaPermission = hasPermission('Vinculos', 'Visualizar') || hasPermission('Vinculos', 'Criar') || hasPermission('Rubricas', 'Visualizar');
 
-  const isFolhaActive = ['/vinculos'].some(path => location.pathname.startsWith(path));
+  const isFolhaActive = ['/vinculos', '/rubricas'].some(path => location.pathname.startsWith(path));
 
   useEffect(() => {
     if (!token) {
@@ -107,6 +107,9 @@ export function AppLayout() {
             <NavGroup icon={<BadgeDollarSign size={20} />} label="Folha" isActive={isFolhaActive}>
               {hasPermission('Vinculos', 'Visualizar') && (
                 <NavItem to="/vinculos" icon={<Briefcase size={20} />} label="Vínculos Funcionais" />
+              )}
+              {hasPermission('Rubricas', 'Visualizar') && (
+                <NavItem to="/rubricas" icon={<BadgeDollarSign size={20} />} label="Rubricas / Eventos" />
               )}
             </NavGroup>
           )}

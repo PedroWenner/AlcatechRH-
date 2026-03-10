@@ -183,13 +183,6 @@ export default function Vinculos() {
               <button title="Editar" onClick={() => handleEdit(v)} className="text-indigo-600 hover:text-indigo-900">
                 <Edit size={18} />
               </button>
-              <button
-                title={v.ativo ? "Inativar" : "Ativar"}
-                onClick={() => handleToggleStatus(v)}
-                className={v.ativo ? "text-red-500 hover:text-red-700" : "text-green-500 hover:text-green-700"}
-              >
-                {v.ativo ? <XCircle size={18} /> : <CheckCircle size={18} />}
-              </button>
             </>
           )}
           {canDelete && (
