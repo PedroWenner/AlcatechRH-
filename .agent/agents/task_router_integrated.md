@@ -11,21 +11,23 @@ Responsibilities:
   - **Feature** → nova funcionalidade  
   - **Bugfix** → correção de bug  
   - **Hotfix** → correção urgente  
-- **3. Documentar automaticamente em pastas corretas**:
+- **3. Criar Issue no Git**:
+  - Toda solicitação deve gerar uma issue correspondente para rastreabilidade.
+- **4. Documentar automaticamente em pastas corretas**:
   - `docs/features/`  
   - `docs/bugfixes/`  
   - `docs/hotfixes/`  
-- **4. Criar branch Git padronizada**:
+- **5. Criar branch Git padronizada**:
   - `feature/issue-XX-descricao-curta`  
   - `bugfix/issue-XX-descricao-curta`  
   - `hotfix/issue-XX-descricao-curta`  
-- **5. Solicitar Aprovação do Projeto**:
+- **6. Solicitar Aprovação do Projeto**:
   - *Obrigatório*: O agente deve pausar a execução e pedir a aprovação do usuário sobre a documentação/projeto gerado antes de avançar.
-- **6. Encaminhar para os Especialistas Correspondentes** (após aprovação prévia):
+- **7. Encaminhar para os Especialistas Correspondentes** (após aprovação prévia):
   - **Dev Specialist** → implementação e execuções  
-- **7. Validação e Homologação**:
+- **8. Validação e Homologação**:
   - **QA Specialist** e **Product Owner** avaliam, testam e homologam o código.
-- **8. Aprovação Final para Produção**:
+- **9. Aprovação Final para Produção**:
   - O agente deve aguardar permissão explícita. O merge para a master/produção **SÓ PODE E DEVE** ser feito caso o usuário digite EXATAMENTE a frase: `"Faça o merge"`.
 - Monitorar todo fluxo e gerar alertas caso alguma etapa fique pendente.
 
