@@ -1,24 +1,12 @@
 import Swal from 'sweetalert2';
+import toast from 'react-hot-toast';
 
 export const alertSuccess = (title: string, text?: string) => {
-  Swal.fire({
-    icon: 'success',
-    title,
-    text,
-    timer: 3000,
-    timerProgressBar: true,
-    showConfirmButton: false,
-    toast: true,
-    position: 'top-end',
-  });
+  toast.success(text ? `${title}: ${text}` : title);
 };
 
 export const alertError = (title: string, text?: string) => {
-  Swal.fire({
-    icon: 'error',
-    title,
-    text: text || 'Ocorreu um erro ao realizar a operação.',
-  });
+  toast.error(text ? `${title}: ${text}` : title);
 };
 
 export const alertWarning = (title: string, text?: string) => {

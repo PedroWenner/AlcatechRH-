@@ -1,0 +1,8 @@
+namespace DPManagement.Application.DTOs;
+
+public class BancoDto
+{
+    public Guid Id { get; set; }
+    public string Codigo { get; set; } = string.Empty;
+    public string Titulo { get; set; } = string.Empty;
+}

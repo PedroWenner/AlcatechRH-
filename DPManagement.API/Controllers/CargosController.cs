@@ -2,8 +2,11 @@ using DPManagement.Application.DTOs;
 using DPManagement.Application.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
+using Microsoft.AspNetCore.Authorization;
+
 namespace DPManagement.API.Controllers;
 
+[Authorize]
 [ApiController]
 [Route("api/[controller]")]
 public class CargosController : ControllerBase
@@ -16,8 +19,12 @@ public class CargosController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<IActionResult> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 10) 
-        => Ok(await _cargoAppService.GetPagedAsync(page, pageSize));
+    public async Task<IActionResult> GetAll(
+        [FromQuery] int page = 1, 
+        [FromQuery] int pageSize = 10,
+        [FromQuery] string? nome = null,
+        [FromQuery] string? cbo = null) 
+        => Ok(await _cargoAppService.GetPagedAsync(page, pageSize, nome, cbo));
 
     [HttpGet("all")]
     public async Task<IActionResult> GetAllOld() => Ok(await _cargoAppService.GetAllAsync());

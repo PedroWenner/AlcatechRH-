@@ -1,10 +1,13 @@
 import { useState, useEffect } from 'react';
-import { createPortal } from 'react-dom';
-import { Plus, Trash2, Edit } from 'lucide-react';
+import { Plus, Trash2, Edit, Briefcase } from 'lucide-react';
 import api from '../services/api';
 import { FormInput } from '../components/common/FormInput';
 import { alertSuccess, alertError, alertDeleteConfirm, showLoading, closeLoading } from '../services/alertService';
-import { Pagination } from '../components/common/Pagination';
+import { Table, type TableColumn } from '../components/common/Table';
+import { FilterBar } from '../components/common/FilterBar';
+import { Autocomplete } from '../components/common/Autocomplete';
+import { Modal } from '../components/common/Modal';
+import { useAuth } from '../hooks/useAuth';
 
 interface Cargo {
   id: string;
@@ -20,6 +23,11 @@ export default function Cargos() {
     totalCount: 0,
     pageSize: 10
   });
+  const { hasPermission } = useAuth();
+  const [filters, setFilters] = useState({
+    nome: '',
+    cbo: ''
+  });
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingCargo, setEditingCargo] = useState<Cargo | null>(null);
   const [formData, setFormData] = useState({ nome: '', cbo: '' });
@@ -28,10 +36,17 @@ export default function Cargos() {
     fetchCargos();
   }, []);
 
-  const fetchCargos = async (page = 1) => {
+  const fetchCargos = async (page = 1, f = filters) => {
     try {
       showLoading('Carregando...');
-      const response = await api.get(`/cargos?page=${page}&pageSize=${pagination.pageSize}`);
+      const params: any = {
+        page,
+        pageSize: pagination.pageSize
+      };
+      if (f.nome) params.nome = f.nome;
+      if (f.cbo) params.cbo = f.cbo;
+
+      const response = await api.get('/cargos', { params });
       setCargos(response.data.items);
       setPagination(prev => ({
         ...prev,
@@ -46,6 +61,15 @@ export default function Cargos() {
       closeLoading();
     }
   };
+
+  const applyFilters = () => fetchCargos(1);
+  const clearFilters = () => {
+    const newFilters = { nome: '', cbo: '' };
+    setFilters(newFilters);
+    fetchCargos(1, newFilters);
+  };
+
+
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -93,103 +117,131 @@ export default function Cargos() {
     }
   };
 
+  const columns: TableColumn<Cargo>[] = [
+    { header: 'Nome', accessor: 'nome' },
+    { header: 'CBO', accessor: 'cbo' },
+    {
+      header: 'Ações',
+      align: 'right',
+      render: (cargo) => (
+        <div className="space-x-4">
+          {hasPermission('Cargos', 'Editar') && (
+            <button onClick={() => handleEdit(cargo)} className="text-indigo-600 hover:text-indigo-900">
+              <Edit size={18} />
+            </button>
+          )}
+          {hasPermission('Cargos', 'Excluir') && (
+            <button onClick={() => handleDelete(cargo.id)} className="text-red-600 hover:text-red-900">
+              <Trash2 size={18} />
+            </button>
+          )}
+        </div>
+      ),
+    },
+  ];
+
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-semibold text-gray-900">Gestão de Cargos</h1>
-        <button
-          onClick={() => { setEditingCargo(null); setFormData({ nome: '', cbo: '' }); setIsModalOpen(true); }}
-          className="flex items-center px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors"
-        >
-          <Plus size={18} className="mr-2" />
-          Novo Cargo
-        </button>
+      <div className="flex justify-between items-center bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
+            <Briefcase className="text-indigo-600" />
+            Gestão de Cargos
+          </h1>
+          <p className="text-gray-500 mt-1">Gerencie os cargos e CBOs da empresa.</p>
+        </div>
+        {hasPermission('Cargos', 'Criar') && (
+          <button
+            onClick={() => { setEditingCargo(null); setFormData({ nome: '', cbo: '' }); setIsModalOpen(true); }}
+            className="flex items-center px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors shadow-sm"
+          >
+            <Plus size={20} className="mr-2" />
+            Novo Cargo
+          </button>
+        )}
       </div>
 
-      <div className="bg-white shadow overflow-hidden border-b border-gray-200 sm:rounded-lg">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nome</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">CBO</th>
-              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Ações</th>
-            </tr>
-          </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
-            {cargos.map((cargo) => (
-              <tr key={cargo.id}>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{cargo.nome}</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{cargo.cbo}</td>
-                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                  <button onClick={() => handleEdit(cargo)} className="text-indigo-600 hover:text-indigo-900 mr-4">
-                    <Edit size={18} />
-                  </button>
-                  <button onClick={() => handleDelete(cargo.id)} className="text-red-600 hover:text-red-900">
-                    <Trash2 size={18} />
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-        <Pagination
-          currentPage={pagination.currentPage}
-          totalPages={pagination.totalPages}
-          onPageChange={(page) => fetchCargos(page)}
-          totalCount={pagination.totalCount}
-          pageSize={pagination.pageSize}
+      <FilterBar onFilter={applyFilters} onClear={clearFilters}>
+        <FormInput
+          label="Nome"
+          value={filters.nome}
+          onChange={e => setFilters({ ...filters, nome: e.target.value })}
+          placeholder="Buscar por nome..."
         />
-      </div>
+        <FormInput
+          label="CBO"
+          value={filters.cbo}
+          onChange={e => setFilters({ ...filters, cbo: e.target.value })}
+          placeholder="Buscar por CBO..."
+        />
+      </FilterBar>
 
-      {isModalOpen && typeof document !== 'undefined' && createPortal(
-        <div className="fixed z-[1000] inset-0 overflow-y-auto">
-          <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-            <div className="fixed inset-0 transition-opacity" aria-hidden="true" onClick={() => setIsModalOpen(false)}>
-              <div className="absolute inset-0 bg-gray-500 opacity-75"></div>
-            </div>
-            <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
-            <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full relative z-[1001]">
-              <form onSubmit={handleSubmit}>
-                <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
-                  <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">
-                    {editingCargo ? 'Editar Cargo' : 'Novo Cargo'}
-                  </h3>
-                  <div className="space-y-4">
-                    <FormInput
-                      label="Nome"
-                      required
-                      value={formData.nome}
-                      onChange={(e) => setFormData({ ...formData, nome: e.target.value })}
-                    />
-                    <FormInput
-                      label="CBO"
-                      required
-                      value={formData.cbo}
-                      onChange={(e) => setFormData({ ...formData, cbo: e.target.value })}
-                    />
-                  </div>
-                </div>
-                <div className="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
-                  <button
-                    type="submit"
-                    className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none sm:ml-3 sm:w-auto sm:text-sm"
-                  >
-                    Salvar
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setIsModalOpen(false)}
-                    className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
-                  >
-                    Cancelar
-                  </button>
-                </div>
-              </form>
-            </div>
+      <Table
+        data={cargos}
+        columns={columns}
+        pagination={{
+          currentPage: pagination.currentPage,
+          totalPages: pagination.totalPages,
+          totalCount: pagination.totalCount,
+          pageSize: pagination.pageSize,
+          onPageChange: (page) => fetchCargos(page),
+        }}
+      />
+
+      <Modal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        title={editingCargo ? 'Editar Cargo' : 'Novo Cargo'}
+        size="lg"
+        footer={(
+          <>
+            <button
+              type="submit"
+              form="cargo-form"
+              className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none sm:ml-3 sm:w-auto sm:text-sm"
+            >
+              Salvar
+            </button>
+            <button
+              type="button"
+              onClick={() => setIsModalOpen(false)}
+              className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
+            >
+              Cancelar
+            </button>
+          </>
+        )}
+      >
+        <form id="cargo-form" onSubmit={handleSubmit}>
+          <div className="space-y-4">
+            <FormInput
+              label="Nome"
+              required
+              value={formData.nome}
+              onChange={(e) => setFormData({ ...formData, nome: e.target.value })}
+            />
+            <Autocomplete
+              label="CBO"
+              required
+              placeholder="Busque por código ou título..."
+              defaultValue={formData.cbo}
+              onSearch={async (term) => {
+                const response = await api.get(`/cbos?term=${encodeURIComponent(term)}`);
+                return response.data;
+              }}
+              onSelect={(item) => {
+                if (item) {
+                  setFormData({ ...formData, cbo: item.codigo });
+                } else {
+                  setFormData({ ...formData, cbo: '' });
+                }
+              }}
+              displayValue={(item) => `${item.codigo} - ${item.titulo}`}
+              keyValue={(item) => item.codigo}
+            />
           </div>
-        </div>,
-        document.body
-      )}
+        </form>
+      </Modal>
     </div>
   );
 }

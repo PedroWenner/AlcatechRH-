@@ -22,6 +22,72 @@ namespace DPManagement.Infrastructure.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("DPManagement.Domain.Entities.AuditLog", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Action")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("ChangedColumns")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("EntityId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("NewValues")
+                        .HasColumnType("text");
+
+                    b.Property<string>("OldValues")
+                        .HasColumnType("text");
+
+                    b.Property<string>("TableName")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("UserName")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("AuditLogs");
+                });
+
+            modelBuilder.Entity("DPManagement.Domain.Entities.Banco", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("CodigoBanco")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Nome")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("NomeCurto")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Bancos");
+                });
+
             modelBuilder.Entity("DPManagement.Domain.Entities.Cargo", b =>
                 {
                     b.Property<Guid>("Id")
@@ -33,6 +99,9 @@ namespace DPManagement.Infrastructure.Migrations
                         .HasMaxLength(10)
                         .HasColumnType("character varying(10)");
 
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
+
                     b.Property<string>("Nome")
                         .IsRequired()
                         .HasMaxLength(150)
@@ -41,6 +110,51 @@ namespace DPManagement.Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Cargos");
+                });
+
+            modelBuilder.Entity("DPManagement.Domain.Entities.Cbo", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Codigo")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Titulo")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Cbos");
+                });
+
+            modelBuilder.Entity("DPManagement.Domain.Entities.CentroCusto", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<bool>("Ativo")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Descricao")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
+
+                    b.Property<Guid>("OrgaoId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OrgaoId");
+
+                    b.ToTable("CentroCustos");
                 });
 
             modelBuilder.Entity("DPManagement.Domain.Entities.Colaborador", b =>
@@ -88,6 +202,9 @@ namespace DPManagement.Infrastructure.Migrations
                         .HasMaxLength(2)
                         .HasColumnType("character varying(2)");
 
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
+
                     b.Property<string>("Logradouro")
                         .IsRequired()
                         .HasMaxLength(200)
@@ -122,15 +239,105 @@ namespace DPManagement.Infrastructure.Migrations
                     b.ToTable("Colaboradores");
                 });
 
+            modelBuilder.Entity("DPManagement.Domain.Entities.DadoBancario", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Agencia")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<bool>("Ativo")
+                        .HasColumnType("boolean");
+
+                    b.Property<Guid?>("BancoId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("CodigoBanco")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<Guid>("ColaboradorId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Conta")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("DigitoAgencia")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("DigitoConta")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Operacao")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BancoId");
+
+                    b.HasIndex("ColaboradorId");
+
+                    b.ToTable("DadosBancarios");
+                });
+
+            modelBuilder.Entity("DPManagement.Domain.Entities.Orgao", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Abreviatura")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<bool>("Ativo")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
+
+                    b.Property<int>("Nivel")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Nome")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<Guid?>("OrgaoPaiId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OrgaoPaiId");
+
+                    b.ToTable("Orgaos");
+                });
+
             modelBuilder.Entity("DPManagement.Domain.Entities.Perfil", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+                    b.Property<bool>("Ativo")
+                        .HasColumnType("boolean");
+
                     b.Property<string>("Descricao")
                         .HasMaxLength(250)
                         .HasColumnType("character varying(250)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
 
                     b.Property<string>("Nome")
                         .IsRequired()
@@ -148,19 +355,25 @@ namespace DPManagement.Infrastructure.Migrations
                         new
                         {
                             Id = new Guid("11111111-1111-1111-1111-111111111111"),
+                            Ativo = true,
                             Descricao = "Acesso total ao sistema",
+                            IsDeleted = false,
                             Nome = "Admin"
                         },
                         new
                         {
                             Id = new Guid("22222222-2222-2222-2222-222222222222"),
+                            Ativo = true,
                             Descricao = "Gestão de pessoas e folha",
+                            IsDeleted = false,
                             Nome = "RH"
                         },
                         new
                         {
                             Id = new Guid("33333333-3333-3333-3333-333333333333"),
+                            Ativo = true,
                             Descricao = "Acesso básico",
+                            IsDeleted = false,
                             Nome = "Funcionario"
                         });
                 });
@@ -208,13 +421,22 @@ namespace DPManagement.Infrastructure.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)");
 
+                    b.Property<bool>("Ativo")
+                        .HasColumnType("boolean");
+
                     b.Property<string>("Descricao")
                         .HasColumnType("text");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
 
                     b.Property<string>("Modulo")
                         .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)");
+
+                    b.Property<string>("ModuloPai")
+                        .HasColumnType("text");
 
                     b.HasKey("Id");
 
@@ -226,31 +448,156 @@ namespace DPManagement.Infrastructure.Migrations
                     b.HasData(
                         new
                         {
-                            Id = new Guid("a1111111-1111-1111-1111-111111111111"),
-                            Acao = "Acessar",
-                            Descricao = "Visualizar módulo de folha",
-                            Modulo = "Folha"
+                            Id = new Guid("c1111111-1111-1111-1111-111111111111"),
+                            Acao = "Visualizar",
+                            Ativo = true,
+                            Descricao = "Listar e ver detalhes de cargos",
+                            IsDeleted = false,
+                            Modulo = "Cargos"
                         },
                         new
                         {
-                            Id = new Guid("a1111111-1111-1111-1111-111111111112"),
-                            Acao = "Calcular",
-                            Descricao = "Realizar cálculo da folha",
-                            Modulo = "Folha"
+                            Id = new Guid("c1111111-1111-1111-1111-111111111112"),
+                            Acao = "Criar",
+                            Ativo = true,
+                            Descricao = "Criar novos cargos",
+                            IsDeleted = false,
+                            Modulo = "Cargos"
                         },
                         new
                         {
-                            Id = new Guid("b2222222-2222-2222-2222-222222222221"),
-                            Acao = "Listar",
-                            Descricao = "Ver lista de funcionários",
-                            Modulo = "Funcionario"
-                        },
-                        new
-                        {
-                            Id = new Guid("b2222222-2222-2222-2222-222222222222"),
+                            Id = new Guid("c1111111-1111-1111-1111-111111111113"),
                             Acao = "Editar",
-                            Descricao = "Editar dados de funcionários",
-                            Modulo = "Funcionario"
+                            Ativo = true,
+                            Descricao = "Editar cargos existentes",
+                            IsDeleted = false,
+                            Modulo = "Cargos"
+                        },
+                        new
+                        {
+                            Id = new Guid("c1111111-1111-1111-1111-111111111114"),
+                            Acao = "Excluir",
+                            Ativo = true,
+                            Descricao = "Excluir cargos",
+                            IsDeleted = false,
+                            Modulo = "Cargos"
+                        },
+                        new
+                        {
+                            Id = new Guid("c2222222-2222-2222-2222-222222222221"),
+                            Acao = "Visualizar",
+                            Ativo = true,
+                            Descricao = "Listar e ver detalhes de colaboradores",
+                            IsDeleted = false,
+                            Modulo = "Colaboradores"
+                        },
+                        new
+                        {
+                            Id = new Guid("c2222222-2222-2222-2222-222222222222"),
+                            Acao = "Criar",
+                            Ativo = true,
+                            Descricao = "Criar novos colaboradores",
+                            IsDeleted = false,
+                            Modulo = "Colaboradores"
+                        },
+                        new
+                        {
+                            Id = new Guid("c2222222-2222-2222-2222-222222222223"),
+                            Acao = "Editar",
+                            Ativo = true,
+                            Descricao = "Editar colaboradores existentes",
+                            IsDeleted = false,
+                            Modulo = "Colaboradores"
+                        },
+                        new
+                        {
+                            Id = new Guid("c2222222-2222-2222-2222-222222222224"),
+                            Acao = "Excluir",
+                            Ativo = true,
+                            Descricao = "Excluir colaboradores",
+                            IsDeleted = false,
+                            Modulo = "Colaboradores"
+                        },
+                        new
+                        {
+                            Id = new Guid("c3333333-3333-3333-3333-333333333331"),
+                            Acao = "Visualizar",
+                            Ativo = true,
+                            Descricao = "Visualizar fechamentos de folha",
+                            IsDeleted = false,
+                            Modulo = "Folha"
+                        },
+                        new
+                        {
+                            Id = new Guid("c3333333-3333-3333-3333-333333333332"),
+                            Acao = "Criar",
+                            Ativo = true,
+                            Descricao = "Gerar nova folha",
+                            IsDeleted = false,
+                            Modulo = "Folha"
+                        },
+                        new
+                        {
+                            Id = new Guid("c3333333-3333-3333-3333-333333333333"),
+                            Acao = "Editar",
+                            Ativo = true,
+                            Descricao = "Ajustar valores da folha",
+                            IsDeleted = false,
+                            Modulo = "Folha"
+                        },
+                        new
+                        {
+                            Id = new Guid("c3333333-3333-3333-3333-333333333334"),
+                            Acao = "Excluir",
+                            Ativo = true,
+                            Descricao = "Excluir ou cancelar folha",
+                            IsDeleted = false,
+                            Modulo = "Folha"
+                        },
+                        new
+                        {
+                            Id = new Guid("c4444444-4444-4444-4444-444444444441"),
+                            Acao = "Visualizar",
+                            Ativo = true,
+                            Descricao = "Listar e ver detalhes de perfis",
+                            IsDeleted = false,
+                            Modulo = "Perfis"
+                        },
+                        new
+                        {
+                            Id = new Guid("c4444444-4444-4444-4444-444444444442"),
+                            Acao = "Criar",
+                            Ativo = true,
+                            Descricao = "Criar novos perfis",
+                            IsDeleted = false,
+                            Modulo = "Perfis"
+                        },
+                        new
+                        {
+                            Id = new Guid("c4444444-4444-4444-4444-444444444443"),
+                            Acao = "Editar",
+                            Ativo = true,
+                            Descricao = "Editar perfis e acessos",
+                            IsDeleted = false,
+                            Modulo = "Perfis"
+                        },
+                        new
+                        {
+                            Id = new Guid("c4444444-4444-4444-4444-444444444444"),
+                            Acao = "Excluir",
+                            Ativo = true,
+                            Descricao = "Excluir perfis",
+                            IsDeleted = false,
+                            Modulo = "Perfis"
+                        },
+                        new
+                        {
+                            Id = new Guid("c5555555-5555-5555-5555-555555555551"),
+                            Acao = "Visualizar",
+                            Ativo = true,
+                            Descricao = "Visualizar logs de auditoria",
+                            IsDeleted = false,
+                            Modulo = "Auditoria"
                         });
                 });
 
@@ -301,6 +648,17 @@ namespace DPManagement.Infrastructure.Migrations
                         });
                 });
 
+            modelBuilder.Entity("DPManagement.Domain.Entities.CentroCusto", b =>
+                {
+                    b.HasOne("DPManagement.Domain.Entities.Orgao", "Orgao")
+                        .WithMany("CentrosCustos")
+                        .HasForeignKey("OrgaoId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Orgao");
+                });
+
             modelBuilder.Entity("DPManagement.Domain.Entities.Colaborador", b =>
                 {
                     b.HasOne("DPManagement.Domain.Entities.Cargo", "Cargo")
@@ -310,6 +668,32 @@ namespace DPManagement.Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("Cargo");
+                });
+
+            modelBuilder.Entity("DPManagement.Domain.Entities.DadoBancario", b =>
+                {
+                    b.HasOne("DPManagement.Domain.Entities.Banco", "Banco")
+                        .WithMany()
+                        .HasForeignKey("BancoId");
+
+                    b.HasOne("DPManagement.Domain.Entities.Colaborador", "Colaborador")
+                        .WithMany("DadosBancarios")
+                        .HasForeignKey("ColaboradorId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Banco");
+
+                    b.Navigation("Colaborador");
+                });
+
+            modelBuilder.Entity("DPManagement.Domain.Entities.Orgao", b =>
+                {
+                    b.HasOne("DPManagement.Domain.Entities.Orgao", "OrgaoPai")
+                        .WithMany("SubOrgaos")
+                        .HasForeignKey("OrgaoPaiId");
+
+                    b.Navigation("OrgaoPai");
                 });
 
             modelBuilder.Entity("DPManagement.Domain.Entities.PerfilPermissao", b =>
@@ -345,6 +729,18 @@ namespace DPManagement.Infrastructure.Migrations
             modelBuilder.Entity("DPManagement.Domain.Entities.Cargo", b =>
                 {
                     b.Navigation("Colaboradores");
+                });
+
+            modelBuilder.Entity("DPManagement.Domain.Entities.Colaborador", b =>
+                {
+                    b.Navigation("DadosBancarios");
+                });
+
+            modelBuilder.Entity("DPManagement.Domain.Entities.Orgao", b =>
+                {
+                    b.Navigation("CentrosCustos");
+
+                    b.Navigation("SubOrgaos");
                 });
 
             modelBuilder.Entity("DPManagement.Domain.Entities.Perfil", b =>

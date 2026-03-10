@@ -43,8 +43,8 @@ public class AuthService : IAuthService
         {
             new Claim(JwtRegisteredClaimNames.Sub, usuario.Id.ToString()),
             new Claim(JwtRegisteredClaimNames.Email, usuario.Email),
-            new Claim(ClaimTypes.Name, usuario.Nome),
-            new Claim(ClaimTypes.Role, usuario.Perfil?.Nome ?? "Funcionario")
+            new Claim(JwtRegisteredClaimNames.Name, usuario.Nome),
+            new Claim("role", usuario.Perfil?.Nome ?? "Funcionario")
         };
 
         // Adicionar permissões como claims
@@ -56,11 +56,18 @@ public class AuthService : IAuthService
             }
         }
 
+        var expireMinutesString = _configuration["Jwt:ExpireMinutes"];
+        var expireMinutes = 120;
+        if (int.TryParse(expireMinutesString, out var parsedMinutes))
+        {
+            expireMinutes = parsedMinutes;
+        }
+
         var token = new JwtSecurityToken(
             issuer: _configuration["Jwt:Issuer"],
             audience: _configuration["Jwt:Audience"],
             claims: claims,
-            expires: DateTime.UtcNow.AddHours(2),
+            expires: DateTime.UtcNow.AddMinutes(expireMinutes),
             signingCredentials: credentials);
 
         return new JwtSecurityTokenHandler().WriteToken(token);

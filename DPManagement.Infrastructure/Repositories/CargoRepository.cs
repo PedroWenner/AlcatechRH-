@@ -18,10 +18,18 @@ public class CargoRepository : ICargoRepository
 
     public async Task<IEnumerable<Cargo>> GetAllAsync() => await _context.Cargos.ToListAsync();
 
-    public async Task<(IEnumerable<Cargo> Items, int TotalCount)> GetPagedAsync(int page, int pageSize)
+    public async Task<(IEnumerable<Cargo> Items, int TotalCount)> GetPagedAsync(int page, int pageSize, string? nome = null, string? cbo = null)
     {
-        var totalCount = await _context.Cargos.CountAsync();
-        var items = await _context.Cargos
+        var query = _context.Cargos.AsQueryable();
+
+        if (!string.IsNullOrWhiteSpace(nome))
+            query = query.Where(c => c.Nome.ToLower().Contains(nome.ToLower()));
+
+        if (!string.IsNullOrWhiteSpace(cbo))
+            query = query.Where(c => c.CBO.ToLower().Contains(cbo.ToLower()));
+
+        var totalCount = await query.CountAsync();
+        var items = await query
             .OrderBy(c => c.Nome)
             .Skip((page - 1) * pageSize)
             .Take(pageSize)

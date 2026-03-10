@@ -17,8 +17,15 @@ public static class DependencyInjection
 
         services.AddScoped<IColaboradorRepository, ColaboradorRepository>();
         services.AddScoped<ICargoRepository, CargoRepository>();
+        services.AddScoped<ICboRepository, CboRepository>();
+        services.AddScoped<IAuditLogRepository, AuditLogRepository>();
         services.AddHttpClient<IViaCepService, ViaCepService>();
         services.AddScoped<DPManagement.Application.Interfaces.IPerfilService, Services.PerfilService>();
+        services.AddScoped<DPManagement.Application.Interfaces.IPermissaoService, Services.PermissaoService>();
+        services.AddScoped<DPManagement.Application.Interfaces.IDadoBancarioService, Services.DadoBancarioService>();
+        services.AddScoped<DPManagement.Application.Interfaces.IBancoService, Services.BancoService>();
+        services.AddScoped<DPManagement.Application.Interfaces.IOrgaoService, Services.OrgaoService>();
+        services.AddScoped<DPManagement.Application.Interfaces.ICentroCustoService, Services.CentroCustoService>();
         
         return services;
     }

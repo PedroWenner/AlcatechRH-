@@ -12,10 +12,10 @@ interface User {
 interface AuthContextType {
   user: User | null;
   token: string | null;
+  tokenExp: number | null;
   login: (token: string, userData: any) => void;
   logout: () => void;
   hasPermission: (modulo: string, acao: string) => boolean;
-  isAuthorized: (modulo: string) => boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -23,37 +23,64 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(localStorage.getItem('token'));
+  const [tokenExp, setTokenExp] = useState<number | null>(null);
 
   useEffect(() => {
     if (token) {
       try {
         const decoded: any = jwtDecode(token);
-        const permissions = Array.isArray(decoded.Permission) 
-          ? decoded.Permission 
+        const permissions = Array.isArray(decoded.Permission)
+          ? decoded.Permission
           : decoded.Permission ? [decoded.Permission] : [];
-        
+
+        if (decoded.exp) {
+          setTokenExp(decoded.exp * 1000);
+        }
+
         // Simulação básica de dados do usuário vindos do token ou storage
         const storedUser = localStorage.getItem('user');
         if (storedUser) {
-            const parsed = JSON.parse(storedUser);
-            setUser({ ...parsed, permissions });
+          const parsed = JSON.parse(storedUser);
+          setUser({ ...parsed, permissions });
         }
       } catch (error) {
         logout();
       }
+    } else {
+      setTokenExp(null);
     }
   }, [token]);
+
+  useEffect(() => {
+    if (!tokenExp) return;
+
+    const checkExpiration = () => {
+      // Usamos uma margem de segurança caso precise (ex: - 5000) mas aqui faremos logout exato
+      if (Date.now() >= tokenExp) {
+        logout();
+      }
+    };
+
+    const interval = setInterval(checkExpiration, 1000);
+    checkExpiration();
+
+    return () => clearInterval(interval);
+  }, [tokenExp]);
 
   const login = (newToken: string, userData: any) => {
     localStorage.setItem('token', newToken);
     localStorage.setItem('user', JSON.stringify(userData));
     setToken(newToken);
-    
+
     const decoded: any = jwtDecode(newToken);
-    const permissions = Array.isArray(decoded.Permission) 
-      ? decoded.Permission 
+    const permissions = Array.isArray(decoded.Permission)
+      ? decoded.Permission
       : decoded.Permission ? [decoded.Permission] : [];
-      
+
+    if (decoded.exp) {
+      setTokenExp(decoded.exp * 1000);
+    }
+
     setUser({ ...userData, permissions });
   };
 
@@ -61,6 +88,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     setToken(null);
+    setTokenExp(null);
     setUser(null);
   };
 
@@ -69,13 +97,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return user?.permissions.includes(`${modulo}:${acao}`) ?? false;
   };
 
-  const isAuthorized = (modulo: string) => {
-    if (user?.perfil === 'Admin') return true;
-    return user?.permissions.some(p => p.startsWith(`${modulo}:`)) ?? false;
-  };
-
   return (
-    <AuthContext.Provider value={{ user, token, login, logout, hasPermission, isAuthorized }}>
+    <AuthContext.Provider value={{ user, token, tokenExp, login, logout, hasPermission }}>
       {children}
     </AuthContext.Provider>
   );

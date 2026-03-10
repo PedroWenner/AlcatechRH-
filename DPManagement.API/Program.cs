@@ -14,18 +14,39 @@ builder.Services.AddApiCors();
 builder.Services.AddApiDocumentation();
 
 builder.Services.AddControllers();
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<DPManagement.Application.Interfaces.IUserContext, DPManagement.API.Services.UserContextService>();
+
 
 var app = builder.Build();
+
+// Run Seeds
+using (var scope = app.Services.CreateScope())
+{
+    var context = scope.ServiceProvider.GetRequiredService<DPManagement.Infrastructure.Persistence.DPManagementDbContext>();
+    var env = scope.ServiceProvider.GetRequiredService<IWebHostEnvironment>();
+    var csvPath = Path.Combine(env.ContentRootPath, "Data", "Seed", "cbo2002.csv");
+    await DPManagement.API.Data.Seed.CboIngestion.SeedCbosAsync(context, csvPath);
+
+    var sqlPath = Path.Combine(env.ContentRootPath, "..", "DPManagement.Web", "public", "banco", "bancos.sql");
+    await DPManagement.API.Data.Seed.BancoIngestion.SeedBancosAsync(context, sqlPath);
+}
 
 // Configure the HTTP request pipeline.
 app.UseApiDocumentation(app.Environment);
 
-app.UseHttpsRedirection();
-
 app.UseCors("AllowFrontend");
+
+if (app.Environment.IsDevelopment())
+{
+    app.UseDeveloperExceptionPage();
+}
+
+app.UseHttpsRedirection();
 
 app.UseAuthentication();
 app.UseAuthorization();
+
 
 app.MapControllers();
 
