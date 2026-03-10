@@ -3,6 +3,7 @@ using DPManagement.Application.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
 using Microsoft.AspNetCore.Authorization;
+using DPManagement.Application.Common;
 
 namespace DPManagement.API.Controllers;
 
@@ -24,37 +25,45 @@ public class CargosController : ControllerBase
         [FromQuery] int pageSize = 10,
         [FromQuery] string? nome = null,
         [FromQuery] string? cbo = null) 
-        => Ok(await _cargoAppService.GetPagedAsync(page, pageSize, nome, cbo));
+    {
+        var result = await _cargoAppService.GetPagedAsync(page, pageSize, nome, cbo);
+        return result.Success ? Ok(result) : BadRequest(result);
+    }
 
     [HttpGet("all")]
-    public async Task<IActionResult> GetAllOld() => Ok(await _cargoAppService.GetAllAsync());
+    public async Task<IActionResult> GetAllOld() 
+    {
+        var result = await _cargoAppService.GetAllAsync();
+        return result.Success ? Ok(result) : BadRequest(result);
+    }
 
     [HttpGet("{id}")]
     public async Task<IActionResult> GetById(Guid id)
     {
-        var cargo = await _cargoAppService.GetByIdAsync(id);
-        return cargo == null ? NotFound() : Ok(cargo);
+        var result = await _cargoAppService.GetByIdAsync(id);
+        if (!result.Success) return NotFound(result);
+        return Ok(result);
     }
 
     [HttpPost]
     public async Task<IActionResult> Create(CreateCargoDto dto)
     {
-        await _cargoAppService.AddAsync(dto);
-        return Ok();
+        var result = await _cargoAppService.AddAsync(dto);
+        return result.Success ? Ok(result) : BadRequest(result);
     }
 
     [HttpPut("{id}")]
     public async Task<IActionResult> Update(Guid id, UpdateCargoDto dto)
     {
-        if (id != dto.Id) return BadRequest();
-        await _cargoAppService.UpdateAsync(dto);
-        return Ok();
+        if (id != dto.Id) return BadRequest(OperationResult.Failure("ID do cargo não confere."));
+        var result = await _cargoAppService.UpdateAsync(dto);
+        return result.Success ? Ok(result) : BadRequest(result);
     }
 
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(Guid id)
     {
-        await _cargoAppService.DeleteAsync(id);
-        return Ok();
+        var result = await _cargoAppService.DeleteAsync(id);
+        return result.Success ? Ok(result) : BadRequest(result);
     }
 }

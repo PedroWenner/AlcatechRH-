@@ -1,4 +1,5 @@
 using DPManagement.Application.DTOs;
+using DPManagement.Application.Common;
 using DPManagement.Application.Interfaces;
 using DPManagement.Domain.Entities;
 using Microsoft.AspNetCore.Mvc;
@@ -19,8 +20,10 @@ public class OrgaosController : ControllerBase
     [HttpGet]
     public async Task<IActionResult> GetAll([FromQuery] string? nome, [FromQuery] string? abreviatura)
     {
-        var orgaos = await _service.ObterTodosAsync(nome, abreviatura);
-        var dtos = orgaos.Select(o => new OrgaoDto
+        var result = await _service.ObterTodosAsync(nome, abreviatura);
+        if (!result.Success) return BadRequest(result);
+
+        var dtos = result.Data.Select(o => new OrgaoDto
         {
             Id = o.Id,
             Nome = o.Nome,
@@ -31,21 +34,31 @@ public class OrgaosController : ControllerBase
             Ativo = o.Ativo
         });
 
-        return Ok(dtos);
+        return Ok(OperationResult<IEnumerable<OrgaoDto>>.Ok(dtos));
     }
 
     [HttpGet("nivel/{nivel}")]
     public async Task<IActionResult> GetByLevel(int nivel)
     {
-        var orgaos = await _service.ObterPorNivelAsync(nivel);
-        var dtos = orgaos.Select(o => new OrgaoDto
+        var result = await _service.ObterPorNivelAsync(nivel);
+        if (!result.Success) return BadRequest(result);
+
+        var dtos = result.Data.Select(o => new OrgaoDto
         {
              Id = o.Id,
              Nome = o.Nome,
              Abreviatura = o.Abreviatura,
              Nivel = o.Nivel
         });
-        return Ok(dtos);
+        return Ok(OperationResult<IEnumerable<OrgaoDto>>.Ok(dtos));
+    }
+
+    [HttpGet("{id}")]
+    public async Task<IActionResult> GetById(Guid id)
+    {
+        var result = await _service.ObterPorIdAsync(id);
+        if (!result.Success) return NotFound(result);
+        return Ok(result);
     }
 
     [HttpPost]
@@ -59,40 +72,43 @@ public class OrgaosController : ControllerBase
             OrgaoPaiId = request.OrgaoPaiId
         };
 
-        var created = await _service.AdicionarAsync(entidade);
-        return CreatedAtAction(nameof(GetAll), new { id = created.Id }, created);
+        var result = await _service.AdicionarAsync(entidade);
+        if (!result.Success) return BadRequest(result);
+        return CreatedAtAction(nameof(GetById), new { id = result.Data.Id }, result);
     }
 
     [HttpPut("{id}")]
     public async Task<IActionResult> Update(Guid id, [FromBody] OrgaoRequestDto request)
     {
-        var orgao = await _service.ObterPorIdAsync(id);
-        if (orgao == null) return NotFound();
+        var orgaoResult = await _service.ObterPorIdAsync(id);
+        if (!orgaoResult.Success) return NotFound(orgaoResult);
 
-        // Evitar ciclo infinito: Se a requisição tentar botar o próprio ID como pai
+        var orgao = orgaoResult.Data;
+
+        // Evitar ciclo infinito
         if (request.OrgaoPaiId == id)
-            return BadRequest("Um órgão não pode ser pai dele mesmo.");
+            return BadRequest(OperationResult.Failure("Um órgão não pode ser pai dele mesmo."));
 
         orgao.Nome = request.Nome;
         orgao.Abreviatura = request.Abreviatura;
         orgao.Nivel = request.Nivel;
         orgao.OrgaoPaiId = request.OrgaoPaiId;
 
-        await _service.AtualizarAsync(orgao);
-        return NoContent();
+        var result = await _service.AtualizarAsync(orgao);
+        return result.Success ? Ok(result) : BadRequest(result);
     }
 
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(Guid id)
     {
-        await _service.RemoverAsync(id);
-        return NoContent();
+        var result = await _service.RemoverAsync(id);
+        return result.Success ? Ok(result) : BadRequest(result);
     }
 
-    [HttpPut("{id}/ativar")]
-    public async Task<IActionResult> ToggleActive(Guid id, [FromQuery] bool ativo)
+    [HttpPatch("{id}/status")]
+    public async Task<IActionResult> ToggleStatus(Guid id, [FromBody] bool ativo)
     {
-        await _service.AlternarStatusAsync(id, ativo);
-        return NoContent();
+        var result = await _service.AlternarStatusAsync(id, ativo);
+        return result.Success ? Ok(result) : BadRequest(result);
     }
 }

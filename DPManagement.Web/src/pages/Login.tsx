@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { LogIn, Eye, EyeOff } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import api from '../services/api';
 import { useAuth } from '../hooks/useAuth';
 
 export default function Login() {
@@ -25,22 +26,18 @@ export default function Login() {
     setLoading(true);
 
     try {
-      const response = await fetch('http://localhost:5286/api/autenticacao/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, senha: password }),
-      });
+      const response = await api.post('/autenticacao/login', { email, senha: password });
+      const resData = response.data;
 
-      const data = await response.json();
-
-      if (response.ok) {
-        login(data.token, data.usuario);
+      if (resData.success) {
+        login(resData.data.token, resData.data.usuario);
         navigate('/');
       } else {
-        setError(data.Erro || 'Falha na autenticação');
+        setError(resData.message || 'Falha na autenticação');
       }
-    } catch (err) {
-      setError('Erro ao conectar com o servidor');
+    } catch (err: any) {
+      const apiError = err.response?.data;
+      setError(apiError?.message || 'Erro ao conectar com o servidor');
     } finally {
       setLoading(false);
     }

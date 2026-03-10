@@ -59,13 +59,18 @@ export default function AuditLogs() {
       if (f.action) params.action = f.action;
 
       const response = await api.get('/audit-logs', { params });
-      setLogs(response.data.items);
-      setPagination(prev => ({
-        ...prev,
-        currentPage: response.data.page,
-        totalPages: response.data.totalPages,
-        totalCount: response.data.totalCount
-      }));
+      const resData = response.data;
+      if (resData.success) {
+        setLogs(resData.data.items);
+        setPagination(prev => ({
+          ...prev,
+          currentPage: resData.data.page,
+          totalPages: resData.data.totalPages,
+          totalCount: resData.data.totalCount
+        }));
+      } else {
+        alertError(resData.message || 'Erro ao carregar logs de auditoria');
+      }
     } catch (error) {
       console.error('Erro ao buscar logs', error);
       alertError('Erro ao carregar logs de auditoria');

@@ -1,10 +1,11 @@
+using DPManagement.Application.Common;
 using DPManagement.Application.DTOs;
 
 namespace DPManagement.Application.Interfaces;
 
 public interface IAuditLogAppService
 {
-    Task<PagedResultDto<AuditLogDto>> GetPagedAsync(
+    Task<OperationResult<PagedResultDto<AuditLogDto>>> GetPagedAsync(
         int page, 
         int pageSize, 
         DateTime? dataInicio = null, 

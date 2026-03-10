@@ -45,7 +45,12 @@ export default function CentroCustos() {
       if (filters.descricao) params.append('descricao', filters.descricao);
 
       const response = await api.get('/centro-custos', { params });
-      setCentros(response.data);
+      const resData = response.data;
+      if (resData.success) {
+        setCentros(resData.data);
+      } else {
+        alertError(resData.message || 'Erro ao carregar Centros de Custos');
+      }
     } catch (error) {
       alertError('Erro ao carregar Centros de Custos');
     } finally {
@@ -56,7 +61,13 @@ export default function CentroCustos() {
   const fetchOrgaos = async () => {
     try {
       const response = await api.get('/orgaos');
-      setOrgaos(response.data);
+      const resData = response.data;
+      if (resData.success) {
+        setOrgaos(resData.data);
+      } else {
+        // Fallback for safety if it returns the raw array
+        setOrgaos(Array.isArray(resData) ? resData : []);
+      }
     } catch (error) {
       alertError('Erro ao carregar órgãos para o select');
     }
@@ -83,26 +94,41 @@ export default function CentroCustos() {
       return;
     }
     try {
+      let response;
       if (editingCentro) {
-        await api.put(`/centro-custos/${editingCentro.id}`, formData);
-        alertSuccess('Centro de Custo atualizado com sucesso');
+        response = await api.put(`/centro-custos/${editingCentro.id}`, formData);
       } else {
-        await api.post('/centro-custos', formData);
-        alertSuccess('Centro de Custo criado com sucesso');
+        response = await api.post('/centro-custos', formData);
       }
-      setIsModalOpen(false);
-      resetForm();
-      fetchCentros();
-    } catch (error) {
-      alertError('Erro ao salvar Centro de Custo');
+
+      const resData = response.data;
+      if (resData.success) {
+        alertSuccess(resData.message || (editingCentro ? 'Centro de Custo atualizado com sucesso' : 'Centro de Custo criado com sucesso'));
+        setIsModalOpen(false);
+        resetForm();
+        fetchCentros();
+      } else {
+        alertError(resData.message || 'Erro ao salvar Centro de Custo', resData.errors?.join('\n'));
+      }
+    } catch (error: any) {
+      console.error('Erro ao salvar Centro de Custo:', error);
+      const apiError = error.response?.data;
+      alertError(apiError?.message || 'Erro ao salvar Centro de Custo', apiError?.errors?.join('\n'));
     }
   };
 
   const handleToggleStatus = async (id: string, currentStatus: boolean) => {
     try {
-      await api.put(`/centro-custos/${id}/ativar?ativo=${!currentStatus}`);
-      alertSuccess(`Centro de custo ${currentStatus ? 'inativado' : 'ativado'} com sucesso`);
-      fetchCentros();
+      const response = await api.patch(`/centro-custos/${id}/status`, !currentStatus, {
+        headers: { 'Content-Type': 'application/json' }
+      });
+      const resData = response.data;
+      if (resData.success) {
+        alertSuccess(resData.message || `Centro de custo ${currentStatus ? 'inativado' : 'ativado'} com sucesso`);
+        fetchCentros();
+      } else {
+        alertError(resData.message || `Erro ao ${currentStatus ? 'inativar' : 'ativar'} centro de custo`);
+      }
     } catch (error) {
       alertError(`Erro ao ${currentStatus ? 'inativar' : 'ativar'} centro de custo`);
     }

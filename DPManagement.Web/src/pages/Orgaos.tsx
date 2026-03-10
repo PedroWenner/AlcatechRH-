@@ -52,7 +52,12 @@ export default function Orgaos() {
       if (f.abreviatura) params.abreviatura = f.abreviatura;
 
       const response = await api.get('/orgaos', { params });
-      setData(response.data);
+      const resData = response.data;
+      if (resData.success) {
+        setData(resData.data);
+      } else {
+        alertError(resData.message || 'Não foi possível carregar as estruturas');
+      }
     } catch (error) {
       console.error('Erro ao buscar estruturas:', error);
       alertError('Não foi possível carregar as estruturas');
@@ -85,18 +90,25 @@ export default function Orgaos() {
         orgaoPaiId: formData.nivel === 1 ? null : formData.orgaoPaiId
       };
 
+      let response;
       if (editingItem) {
-        await api.put(`/orgaos/${editingItem.id}`, payload);
-        alertSuccess('Estrutura atualizada com sucesso');
+        response = await api.put(`/orgaos/${editingItem.id}`, payload);
       } else {
-        await api.post('/orgaos', payload);
-        alertSuccess('Estrutura criada com sucesso');
+        response = await api.post('/orgaos', payload);
       }
-      setIsModalOpen(false);
-      fetchData();
+
+      const resData = response.data;
+      if (resData.success) {
+        alertSuccess(resData.message || (editingItem ? 'Estrutura atualizada com sucesso' : 'Estrutura criada com sucesso'));
+        setIsModalOpen(false);
+        fetchData();
+      } else {
+        alertError(resData.message || 'Erro ao salvar a estrutura', resData.errors?.join('\n'));
+      }
     } catch (error: any) {
       console.error('Erro ao salvar estrutura:', error);
-      alertError(error.response?.data || 'Erro ao salvar a estrutura');
+      const apiError = error.response?.data;
+      alertError(apiError?.message || 'Erro ao salvar a estrutura', apiError?.errors?.join('\n'));
     } finally {
       closeLoading();
     }
@@ -118,9 +130,14 @@ export default function Orgaos() {
     if (confirmed) {
       showLoading('Excluindo...');
       try {
-        await api.delete(`/orgaos/${id}`);
-        alertSuccess('Estrutura excluída');
-        fetchData();
+        const response = await api.delete(`/orgaos/${id}`);
+        const resData = response.data;
+        if (resData.success) {
+          alertSuccess(resData.message || 'Estrutura excluída');
+          fetchData();
+        } else {
+          alertError(resData.message || 'Erro ao excluir estrutura');
+        }
       } catch (error) {
         console.error('Erro ao excluir estrutura:', error);
         alertError('Erro ao excluir estrutura');
@@ -134,9 +151,16 @@ export default function Orgaos() {
     const novoStatus = !item.ativo;
     showLoading(novoStatus ? 'Ativando...' : 'Inativando...');
     try {
-      await api.put(`/orgaos/${item.id}/ativar?ativo=${novoStatus}`);
-      alertSuccess(novoStatus ? 'Estrutura ativada' : 'Estrutura inativada');
-      fetchData();
+      const response = await api.patch(`/orgaos/${item.id}/status`, novoStatus, {
+        headers: { 'Content-Type': 'application/json' }
+      });
+      const resData = response.data;
+      if (resData.success) {
+        alertSuccess(resData.message || (novoStatus ? 'Estrutura ativada' : 'Estrutura inativada'));
+        fetchData();
+      } else {
+        alertError(resData.message || 'Erro ao alterar status');
+      }
     } catch (error) {
       console.error('Erro ao alterar status:', error);
       alertError('Erro ao alterar status');
@@ -313,7 +337,8 @@ export default function Orgaos() {
                   const endpoint = getParentSearchEndpoint();
                   if (!endpoint) return [];
                   const res = await api.get(endpoint);
-                  return res.data.filter((o: Orgao) => o.nome.toLowerCase().includes(term.toLowerCase()) || o.abreviatura.toLowerCase().includes(term.toLowerCase()));
+                  const items = res.data.success ? res.data.data : res.data; // Fallback for safety
+                  return items.filter((o: Orgao) => o.nome.toLowerCase().includes(term.toLowerCase()) || o.abreviatura.toLowerCase().includes(term.toLowerCase()));
                 }}
                 placeholder={`Buscar e selecionar ${formData.nivel === 2 ? 'órgão' : 'secretaria'}...`}
                 onSelect={(item) => {

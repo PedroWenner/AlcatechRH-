@@ -1,4 +1,6 @@
+using DPManagement.Application.Common;
 using DPManagement.Application.Interfaces;
+using DPManagement.Domain.Entities;
 using Microsoft.AspNetCore.Mvc;
 
 namespace DPManagement.API.Controllers;
@@ -7,39 +9,41 @@ namespace DPManagement.API.Controllers;
 [Route("api/permissoes")]
 public class PermissoesController : ControllerBase
 {
-    private readonly IPermissaoService _permissaoService;
+    private readonly IPermissaoService _service;
 
-    public PermissoesController(IPermissaoService permissaoService)
+    public PermissoesController(IPermissaoService service)
     {
-        _permissaoService = permissaoService;
+        _service = service;
     }
 
     [HttpGet]
     public async Task<IActionResult> Listar()
     {
-        var permissoes = await _permissaoService.ListarTodasAsync();
-        var dtos = permissoes.Select(p => new PermissaoDto
-        {
-            Id = p.Id,
-            Modulo = p.Modulo,
-            ModuloPai = p.ModuloPai,
-            Acao = p.Acao,
-            Descricao = p.Descricao,
-            Ativo = p.Ativo
-        });
+        var result = await _service.ListarTodasAsync();
+        return result.Success ? Ok(result) : BadRequest(result);
+    }
 
-        return Ok(dtos);
+    [HttpGet("{id}")]
+    public async Task<IActionResult> ObterPorId(Guid id)
+    {
+        var result = await _service.ObterPorIdAsync(id);
+        if (!result.Success) return NotFound(result);
+        return Ok(result);
     }
 
     [HttpGet("matriz")]
-    public async Task<IActionResult> ObterMatriz()
+    public async Task<IActionResult> GetMatriz()
     {
-        var permissoes = await _permissaoService.ListarTodasAsync();
-        
+        var result = await _service.ListarTodasAsync();
+        if (!result.Success) return BadRequest(result);
+
+        var permissoes = result.Data;
+        if (permissoes == null) return Ok(OperationResult<IEnumerable<object>>.Ok(new List<object>()));
+
         var matriz = permissoes
-            .Where(p => p.Ativo && !p.IsDeleted) // Safely ensure we only show active ones
-            .GroupBy(p => p.ModuloPai ?? string.Empty) // Group first by Parent Module (fallback to Empty)
-            .OrderBy(gp => string.IsNullOrEmpty(gp.Key) ? 1 : 0).ThenBy(gp => gp.Key) // Sort empty parents to bottom
+            .Where(p => p.Ativo && !p.IsDeleted)
+            .GroupBy(p => p.ModuloPai ?? string.Empty)
+            .OrderBy(gp => string.IsNullOrEmpty(gp.Key) ? 1 : 0).ThenBy(gp => gp.Key)
             .Select(gp => new
             {
                 ModuloPai = string.IsNullOrEmpty(gp.Key) ? null : gp.Key,
@@ -48,63 +52,49 @@ public class PermissoesController : ControllerBase
                     .Select(gm => new 
                     {
                         Modulo = gm.Key,
-                        Permissoes = gm.Select(p => new PermissaoDto
+                        Permissoes = gm.Select(p => new
                         {
-                            Id = p.Id,
-                            Modulo = p.Modulo,
-                            ModuloPai = p.ModuloPai,
-                            Acao = p.Acao,
-                            Descricao = p.Descricao,
-                            Ativo = p.Ativo
+                            p.Id,
+                            p.Modulo,
+                            p.ModuloPai,
+                            p.Acao,
+                            p.Descricao,
+                            p.Ativo
                         }).ToList()
                     }).ToList()
             }).ToList();
 
-        return Ok(matriz);
+        return Ok(OperationResult<object>.Ok(matriz));
     }
 
     [HttpPost]
-    public async Task<IActionResult> Criar([FromBody] PermissaoRequestDto request)
+    public async Task<IActionResult> Adicionar([FromBody] Permissao permissao)
     {
-        var permissao = new DPManagement.Domain.Entities.Permissao
-        {
-            Modulo = request.Modulo,
-            ModuloPai = string.IsNullOrWhiteSpace(request.ModuloPai) ? null : request.ModuloPai,
-            Acao = request.Acao,
-            Descricao = request.Descricao
-        };
-
-        await _permissaoService.AdicionarAsync(permissao);
-        return CreatedAtAction(nameof(Listar), new { id = permissao.Id }, permissao);
+        var result = await _service.AdicionarAsync(permissao);
+        if (!result.Success) return BadRequest(result);
+        return CreatedAtAction(nameof(ObterPorId), new { id = result.Data?.Id }, result);
     }
 
     [HttpPut("{id}")]
-    public async Task<IActionResult> Atualizar(Guid id, [FromBody] PermissaoRequestDto request)
+    public async Task<IActionResult> Atualizar(Guid id, [FromBody] Permissao permissao)
     {
-        var permissao = await _permissaoService.ObterPorIdAsync(id);
-        if (permissao == null) return NotFound();
-
-        permissao.Modulo = request.Modulo;
-        permissao.ModuloPai = string.IsNullOrWhiteSpace(request.ModuloPai) ? null : request.ModuloPai;
-        permissao.Acao = request.Acao;
-        permissao.Descricao = request.Descricao;
-
-        await _permissaoService.AtualizarAsync(permissao);
-        return NoContent();
+        if (id != permissao.Id) return BadRequest(OperationResult.Failure("ID da permissão não confere."));
+        var result = await _service.AtualizarAsync(permissao);
+        return result.Success ? Ok(result) : BadRequest(result);
     }
 
-    [HttpPut("{id}/ativar")]
-    public async Task<IActionResult> AtivarInativar(Guid id, [FromQuery] bool ativo)
+    [HttpPatch("{id}/status")]
+    public async Task<IActionResult> AlternarStatus(Guid id, [FromBody] bool ativo)
     {
-        await _permissaoService.AtivarInativarAsync(id, ativo);
-        return NoContent();
+        var result = await _service.AtivarInativarAsync(id, ativo);
+        return result.Success ? Ok(result) : BadRequest(result);
     }
 
     [HttpDelete("{id}")]
     public async Task<IActionResult> Remover(Guid id)
     {
-        await _permissaoService.RemoverAsync(id);
-        return NoContent();
+        var result = await _service.RemoverAsync(id);
+        return result.Success ? Ok(result) : BadRequest(result);
     }
 }
 

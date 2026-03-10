@@ -47,13 +47,18 @@ export default function Cargos() {
       if (f.cbo) params.cbo = f.cbo;
 
       const response = await api.get('/cargos', { params });
-      setCargos(response.data.items);
-      setPagination(prev => ({
-        ...prev,
-        currentPage: response.data.page,
-        totalPages: response.data.totalPages,
-        totalCount: response.data.totalCount
-      }));
+      const resData = response.data;
+      if (resData.success) {
+        setCargos(resData.data.items);
+        setPagination(prev => ({
+          ...prev,
+          currentPage: resData.data.page,
+          totalPages: resData.data.totalPages,
+          totalCount: resData.data.totalCount
+        }));
+      } else {
+        alertError(resData.message || 'Erro ao carregar cargos');
+      }
     } catch (error) {
       console.error('Erro ao buscar cargos', error);
       alertError('Erro ao carregar cargos');
@@ -75,20 +80,27 @@ export default function Cargos() {
     e.preventDefault();
     showLoading('Salvando cargo...');
     try {
+      let response;
       if (editingCargo) {
-        await api.put(`/cargos/${editingCargo.id}`, { ...formData, id: editingCargo.id });
-        alertSuccess('Cargo atualizado');
+        response = await api.put(`/cargos/${editingCargo.id}`, { ...formData, id: editingCargo.id });
       } else {
-        await api.post('/cargos', formData);
-        alertSuccess('Cargo cadastrado');
+        response = await api.post('/cargos', formData);
       }
-      setIsModalOpen(false);
-      setEditingCargo(null);
-      setFormData({ nome: '', cbo: '' });
-      fetchCargos();
-    } catch (error) {
+
+      const resData = response.data;
+      if (resData.success) {
+        alertSuccess(resData.message || (editingCargo ? 'Cargo atualizado' : 'Cargo cadastrado'));
+        setIsModalOpen(false);
+        setEditingCargo(null);
+        setFormData({ nome: '', cbo: '' });
+        fetchCargos();
+      } else {
+        alertError(resData.message || 'Erro ao salvar cargo', resData.errors?.join('\n'));
+      }
+    } catch (error: any) {
       console.error('Erro ao salvar cargo', error);
-      alertError('Erro ao salvar cargo');
+      const apiError = error.response?.data;
+      alertError(apiError?.message || 'Erro ao salvar cargo', apiError?.errors?.join('\n'));
     } finally {
       closeLoading();
     }
@@ -105,9 +117,14 @@ export default function Cargos() {
     if (confirmed) {
       showLoading('Excluindo...');
       try {
-        await api.delete(`/cargos/${id}`);
-        alertSuccess('Cargo excluído');
-        fetchCargos();
+        const response = await api.delete(`/cargos/${id}`);
+        const resData = response.data;
+        if (resData.success) {
+          alertSuccess(resData.message || 'Cargo excluído');
+          fetchCargos();
+        } else {
+          alertError(resData.message || 'Erro ao excluir cargo');
+        }
       } catch (error) {
         console.error('Erro ao excluir cargo', error);
         alertError('Erro ao excluir cargo');

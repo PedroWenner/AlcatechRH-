@@ -1,13 +1,14 @@
+using DPManagement.Application.Common;
 using DPManagement.Domain.Entities;
 
 namespace DPManagement.Application.Interfaces;
 
 public interface IPermissaoService
 {
-    Task<IEnumerable<Permissao>> ListarTodasAsync();
-    Task<Permissao?> ObterPorIdAsync(Guid id);
-    Task<Permissao> AdicionarAsync(Permissao permissao);
-    Task AtualizarAsync(Permissao permissao);
-    Task AtivarInativarAsync(Guid id, bool ativo);
-    Task RemoverAsync(Guid id);
+    Task<OperationResult<IEnumerable<Permissao>>> ListarTodasAsync();
+    Task<OperationResult<Permissao?>> ObterPorIdAsync(Guid id);
+    Task<OperationResult<Permissao>> AdicionarAsync(Permissao permissao);
+    Task<OperationResult> AtualizarAsync(Permissao permissao);
+    Task<OperationResult> AtivarInativarAsync(Guid id, bool ativo);
+    Task<OperationResult> RemoverAsync(Guid id);
 }

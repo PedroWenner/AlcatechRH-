@@ -75,8 +75,18 @@ export default function Vinculos() {
       if (f.nomeColaborador) params.nomeColaborador = f.nomeColaborador;
 
       const response = await api.get('/vinculos', { params });
-      setVinculos(response.data.items);
-      setPagination(prev => ({ ...prev, currentPage: response.data.page, totalPages: response.data.totalPages, totalCount: response.data.totalCount }));
+      const resData = response.data;
+      if (resData.success) {
+        setVinculos(resData.data.items);
+        setPagination(prev => ({
+          ...prev,
+          currentPage: resData.data.page,
+          totalPages: resData.data.totalPages,
+          totalCount: resData.data.totalCount
+        }));
+      } else {
+        alertError(resData.message || 'Erro ao carregar vínculos');
+      }
     } catch (error) {
       alertError('Erro ao carregar vínculos');
     } finally {
@@ -104,17 +114,24 @@ export default function Vinculos() {
     e.preventDefault();
     try {
       showLoading('Salvando vínculo...');
+      let response;
       if (editingVinculo) {
-        await api.put(`/vinculos/${editingVinculo.id}`, formData);
-        alertSuccess('Sucesso', 'Vínculo atualizado com sucesso.');
+        response = await api.put(`/vinculos/${editingVinculo.id}`, formData);
       } else {
-        await api.post('/vinculos', formData);
-        alertSuccess('Sucesso', 'Vínculo criado com sucesso.');
+        response = await api.post('/vinculos', formData);
       }
-      setIsModalOpen(false);
-      fetchVinculos(pagination.currentPage);
+
+      const resData = response.data;
+      if (resData.success) {
+        alertSuccess('Sucesso', resData.message || 'Operação realizada com sucesso.');
+        setIsModalOpen(false);
+        fetchVinculos(pagination.currentPage);
+      } else {
+        alertError(resData.message || 'Erro ao salvar vínculo', resData.errors?.join('\n'));
+      }
     } catch (error: any) {
-      alertError('Atenção', error.response?.data?.message || 'Erro ao salvar vínculo.');
+      const apiError = error.response?.data;
+      alertError(apiError?.message || 'Erro ao salvar vínculo', apiError?.errors?.join('\n'));
     } finally {
       closeLoading();
     }
@@ -139,9 +156,14 @@ export default function Vinculos() {
     const confirmed = await alertDeleteConfirm('Tem certeza que deseja excluir este vínculo?');
     if (confirmed) {
       try {
-        await api.delete(`/vinculos/${id}`);
-        alertSuccess('Sucesso', 'Vínculo excluído com sucesso.');
-        fetchVinculos(pagination.currentPage);
+        const response = await api.delete(`/vinculos/${id}`);
+        const resData = response.data;
+        if (resData.success) {
+          alertSuccess('Sucesso', resData.message || 'Vínculo excluído com sucesso.');
+          fetchVinculos(pagination.currentPage);
+        } else {
+          alertError(resData.message || 'Erro ao excluir o vínculo.');
+        }
       } catch (error) {
         alertError('Erro ao excluir o vínculo.');
       }
@@ -150,11 +172,16 @@ export default function Vinculos() {
 
   const handleToggleStatus = async (v: Vinculo) => {
     try {
-      await api.put(`/vinculos/${v.id}/toggle-status`);
-      alertSuccess('Sucesso', v.ativo ? 'Vínculo inativado.' : 'Vínculo ativado com sucesso.');
-      fetchVinculos(pagination.currentPage);
+      const response = await api.put(`/vinculos/${v.id}/toggle-status`);
+      const resData = response.data;
+      if (resData.success) {
+        alertSuccess('Sucesso', resData.message);
+        fetchVinculos(pagination.currentPage);
+      } else {
+        alertError(resData.message);
+      }
     } catch (error) {
-      alertError('Erro ao alterar o status do vínculo.');
+      alertError('Erro ao alterar status');
     }
   };
 
@@ -180,6 +207,13 @@ export default function Vinculos() {
         <div className="flex justify-end space-x-3 items-center">
           {canEdit && (
             <>
+              <button
+                title={v.ativo ? 'Inativar' : 'Ativar'}
+                onClick={() => handleToggleStatus(v)}
+                className={`${v.ativo ? 'text-amber-600 hover:text-amber-900' : 'text-green-600 hover:text-green-900'}`}
+              >
+                {v.ativo ? <XCircle size={18} /> : <CheckCircle size={18} />}
+              </button>
               <button title="Editar" onClick={() => handleEdit(v)} className="text-indigo-600 hover:text-indigo-900">
                 <Edit size={18} />
               </button>

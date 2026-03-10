@@ -1,3 +1,4 @@
+using DPManagement.Application.Common;
 using DPManagement.Application.Interfaces;
 using DPManagement.Domain.Entities;
 using DPManagement.Infrastructure.Persistence;
@@ -14,50 +15,59 @@ public class DadoBancarioService : IDadoBancarioService
         _context = context;
     }
 
-    public async Task<IEnumerable<DadoBancario>> ListarPorColaboradorIdAsync(Guid colaboradorId)
+    public async Task<OperationResult<IEnumerable<DadoBancario>>> ListarPorColaboradorIdAsync(Guid colaboradorId)
     {
-        return await _context.DadosBancarios
+        var result = await _context.DadosBancarios
             .Include(db => db.Banco)
             .Where(db => db.ColaboradorId == colaboradorId)
             .OrderBy(db => db.CodigoBanco)
             .ToListAsync();
+        
+        return OperationResult<IEnumerable<DadoBancario>>.Ok(result);
     }
 
-    public async Task<DadoBancario?> ObterPorIdAsync(Guid id)
+    public async Task<OperationResult<DadoBancario>> ObterPorIdAsync(Guid id)
     {
-        return await _context.DadosBancarios.FindAsync(id);
+        var result = await _context.DadosBancarios.FindAsync(id);
+        if (result == null) return OperationResult<DadoBancario>.Failure("Dado bancário não encontrado.");
+        return OperationResult<DadoBancario>.Ok(result);
     }
 
-    public async Task<DadoBancario> AdicionarAsync(DadoBancario dadoBancario)
+    public async Task<OperationResult<DadoBancario>> AdicionarAsync(DadoBancario dadoBancario)
     {
         _context.DadosBancarios.Add(dadoBancario);
         await _context.SaveChangesAsync();
-        return dadoBancario;
+        return OperationResult<DadoBancario>.Ok(dadoBancario, "Dado bancário adicionado com sucesso.");
     }
 
-    public async Task AtualizarAsync(DadoBancario dadoBancario)
+    public async Task<OperationResult> AtualizarAsync(DadoBancario dadoBancario)
     {
         _context.Entry(dadoBancario).State = EntityState.Modified;
         await _context.SaveChangesAsync();
+        return OperationResult.Ok("Dado bancário atualizado com sucesso.");
     }
 
-    public async Task RemoverAsync(Guid id)
+    public async Task<OperationResult> RemoverAsync(Guid id)
     {
-        var dadoBancario = await ObterPorIdAsync(id);
-        if (dadoBancario != null)
+        var result = await ObterPorIdAsync(id);
+        if (result.Success)
         {
-            dadoBancario.IsDeleted = true;
+            result.Data!.IsDeleted = true;
             await _context.SaveChangesAsync();
+            return OperationResult.Ok("Dado bancário removido com sucesso.");
         }
+        return OperationResult.Failure("Dado bancário não encontrado.");
     }
 
-    public async Task AlternarStatusAsync(Guid id, bool ativo)
+    public async Task<OperationResult> AlternarStatusAsync(Guid id, bool ativo)
     {
-        var dado = await ObterPorIdAsync(id);
-        if (dado != null)
+        var result = await ObterPorIdAsync(id);
+        if (result.Success)
         {
-            dado.Ativo = ativo;
+            result.Data!.Ativo = ativo;
             await _context.SaveChangesAsync();
+            return OperationResult.Ok($"Dado bancário {(ativo ? "ativado" : "inativado")} com sucesso.");
         }
+        return OperationResult.Failure("Dado bancário não encontrado.");
     }
 }

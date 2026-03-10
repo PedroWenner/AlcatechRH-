@@ -81,15 +81,19 @@ export default function Employees() {
       if (f.cpf) params.cpf = f.cpf;
       if (f.cargoId) params.cargoId = f.cargoId;
 
-      console.log(params);
       const response = await api.get('/colaboradores', { params });
-      setEmployees(response.data.items);
-      setPagination(prev => ({
-        ...prev,
-        currentPage: response.data.page,
-        totalPages: response.data.totalPages,
-        totalCount: response.data.totalCount
-      }));
+      const resData = response.data;
+      if (resData.success) {
+        setEmployees(resData.data.items);
+        setPagination(prev => ({
+          ...prev,
+          currentPage: resData.data.page,
+          totalPages: resData.data.totalPages,
+          totalCount: resData.data.totalCount
+        }));
+      } else {
+        alertError(resData.message || 'Erro ao carregar colaboradores');
+      }
     } catch (error) {
       console.error('Erro ao buscar colaboradores', error);
       alertError('Erro ao carregar colaboradores');
@@ -109,7 +113,12 @@ export default function Employees() {
   const fetchCargos = async () => {
     try {
       const response = await api.get('/cargos/all');
-      setCargos(response.data);
+      const resData = response.data;
+      if (resData.success) {
+        setCargos(resData.data);
+      } else {
+        alertError(resData.message || 'Erro ao carregar cargos');
+      }
     } catch (error) {
       console.error('Erro ao buscar cargos', error);
       alertError('Erro ao carregar cargos');
@@ -174,19 +183,25 @@ export default function Employees() {
 
     showLoading('Salvando...');
     try {
+      let response;
       if (editingEmployee) {
-        await api.put(`/colaboradores/${editingEmployee.id}`, { ...formData, id: editingEmployee.id });
-        alertSuccess('Colaborador atualizado');
+        response = await api.put(`/colaboradores/${editingEmployee.id}`, { ...formData, id: editingEmployee.id });
       } else {
-        await api.post('/colaboradores', formData);
-        alertSuccess('Colaborador cadastrado');
+        response = await api.post('/colaboradores', formData);
       }
-      setIsModalOpen(false);
-      fetchEmployees();
+
+      const resData = response.data;
+      if (resData.success) {
+        alertSuccess(resData.message || (editingEmployee ? 'Colaborador atualizado' : 'Colaborador cadastrado'));
+        setIsModalOpen(false);
+        fetchEmployees();
+      } else {
+        alertError(resData.message || 'Erro ao salvar colaborador', resData.errors?.join('\n'));
+      }
     } catch (error: any) {
       console.error('Erro ao salvar colaborador', error);
-      const msg = error.response?.data?.message || 'Verifique os dados (ex: CPF válido).';
-      alertError('Erro ao salvar', msg);
+      const apiError = error.response?.data;
+      alertError(apiError?.message || 'Erro ao salvar colaborador', apiError?.errors?.join('\n'));
     } finally {
       closeLoading();
     }
@@ -197,9 +212,14 @@ export default function Employees() {
     if (confirmed) {
       showLoading('Excluindo...');
       try {
-        await api.delete(`/colaboradores/${id}`);
-        alertSuccess('Colaborador excluído');
-        fetchEmployees();
+        const response = await api.delete(`/colaboradores/${id}`);
+        const resData = response.data;
+        if (resData.success) {
+          alertSuccess(resData.message || 'Colaborador excluído');
+          fetchEmployees();
+        } else {
+          alertError(resData.message || 'Erro ao excluir colaborador');
+        }
       } catch (error) {
         console.error('Erro ao excluir colaborador', error);
         alertError('Erro ao excluir colaborador');

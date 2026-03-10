@@ -1,3 +1,4 @@
+using DPManagement.Application.Common;
 using DPManagement.Application.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -27,6 +28,6 @@ public class AuditLogsController : ControllerBase
         [FromQuery] string? action = null)
     {
         var result = await _auditLogAppService.GetPagedAsync(page, pageSize, dataInicio, dataFim, userId, tableName, action);
-        return Ok(result);
+        return result.Success ? Ok(result) : BadRequest(result);
     }
 }

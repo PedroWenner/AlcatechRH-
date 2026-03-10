@@ -16,6 +16,8 @@ builder.Services.AddApiDocumentation();
 builder.Services.AddControllers();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<DPManagement.Application.Interfaces.IUserContext, DPManagement.API.Services.UserContextService>();
+builder.Services.AddExceptionHandler<DPManagement.API.Middleware.GlobalExceptionHandler>();
+builder.Services.AddProblemDetails();
 
 
 var app = builder.Build();
@@ -36,6 +38,8 @@ using (var scope = app.Services.CreateScope())
 app.UseApiDocumentation(app.Environment);
 
 app.UseCors("AllowFrontend");
+
+app.UseExceptionHandler();
 
 if (app.Environment.IsDevelopment())
 {

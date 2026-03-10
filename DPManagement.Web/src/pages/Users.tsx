@@ -57,23 +57,27 @@ export default function Users() {
   const fetchUsuarios = async () => {
     try {
       showLoading('Carregando usuários...');
-
       const response = await api.get('/usuarios');
+      const resData = response.data;
 
-      let filtered = response.data;
-      if (filters.nome) {
-        filtered = filtered.filter((u: Usuario) => u.nome.toLowerCase().includes(filters.nome.toLowerCase()));
-      }
-      if (filters.email) {
-        filtered = filtered.filter((u: Usuario) => u.email.toLowerCase().includes(filters.email.toLowerCase()));
-      }
+      if (resData.success) {
+        let filtered = resData.data;
+        if (filters.nome) {
+          filtered = filtered.filter((u: Usuario) => u.nome.toLowerCase().includes(filters.nome.toLowerCase()));
+        }
+        if (filters.email) {
+          filtered = filtered.filter((u: Usuario) => u.email.toLowerCase().includes(filters.email.toLowerCase()));
+        }
 
-      setUsuarios(filtered);
-      setPagination(prev => ({
-        ...prev,
-        totalCount: filtered.length,
-        totalPages: Math.ceil(filtered.length / prev.pageSize)
-      }));
+        setUsuarios(filtered);
+        setPagination(prev => ({
+          ...prev,
+          totalCount: filtered.length,
+          totalPages: Math.ceil(filtered.length / prev.pageSize)
+        }));
+      } else {
+        alertError(resData.message || 'Erro ao carregar usuários');
+      }
     } catch (error) {
       console.error('Erro ao buscar usuários', error);
       alertError('Erro ao carregar usuários');
@@ -85,7 +89,10 @@ export default function Users() {
   const fetchPerfis = async () => {
     try {
       const response = await api.get('/perfis');
-      setPerfis(response.data);
+      const resData = response.data;
+      if (resData.success) {
+        setPerfis(resData.data);
+      }
     } catch (error) {
       console.error('Erro ao buscar perfis', error);
       alertError('Erro ao carregar perfis');
@@ -95,38 +102,39 @@ export default function Users() {
   const applyFilters = () => fetchUsuarios();
 
   const clearFilters = () => {
-    const newFilters = { nome: '', email: '' };
-    setFilters(newFilters);
-    setTimeout(() => {
-      const resetFilters = { nome: '', email: '' };
-      setFilters(resetFilters);
-      api.get('/usuarios').then(res => setUsuarios(res.data));
-    }, 0);
+    setFilters({ nome: '', email: '' });
+    setTimeout(() => fetchUsuarios(), 0);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     showLoading('Salvando usuário...');
     try {
+      let response;
       if (editingUser) {
         const payload = { ...formData, id: editingUser.id };
         if (!payload.senha) {
           delete (payload as any).senha;
         }
-        await api.put(`/usuarios/${editingUser.id}`, payload);
-        alertSuccess('Usuário atualizado com sucesso');
+        response = await api.put(`/usuarios/${editingUser.id}`, payload);
       } else {
-        await api.post('/usuarios', formData);
-        alertSuccess('Usuário cadastrado com sucesso');
+        response = await api.post('/usuarios', formData);
       }
-      setIsModalOpen(false);
-      setEditingUser(null);
-      setFormData({ nome: '', email: '', senha: '', perfilId: '' });
-      fetchUsuarios();
+
+      const resData = response.data;
+      if (resData.success) {
+        alertSuccess(resData.message || (editingUser ? 'Usuário atualizado com sucesso' : 'Usuário cadastrado com sucesso'));
+        setIsModalOpen(false);
+        setEditingUser(null);
+        setFormData({ nome: '', email: '', senha: '', perfilId: '' });
+        fetchUsuarios();
+      } else {
+        alertError(resData.message || 'Erro ao salvar usuário', resData.errors?.join('\n'));
+      }
     } catch (error: any) {
       console.error('Erro ao salvar usuário', error);
-      const msg = error.response?.data?.mensagem || 'Erro ao salvar usuário. Verifique os dados.';
-      alertError('Ops', msg);
+      const apiError = error.response?.data;
+      alertError(apiError?.message || 'Erro ao salvar usuário', apiError?.errors?.join('\n'));
     } finally {
       closeLoading();
     }
@@ -148,9 +156,14 @@ export default function Users() {
     if (confirmed) {
       showLoading('Excluindo...');
       try {
-        await api.delete(`/usuarios/${id}`);
-        alertSuccess('Usuário excluído');
-        fetchUsuarios();
+        const response = await api.delete(`/usuarios/${id}`);
+        const resData = response.data;
+        if (resData.success) {
+          alertSuccess(resData.message || 'Usuário excluído');
+          fetchUsuarios();
+        } else {
+          alertError(resData.message || 'Erro ao excluir usuário');
+        }
       } catch (error) {
         console.error('Erro ao excluir usuário', error);
         alertError('Erro ao excluir usuário');

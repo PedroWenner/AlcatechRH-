@@ -1,3 +1,4 @@
+using DPManagement.Application.Common;
 using DPManagement.Application.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
@@ -19,16 +20,17 @@ public class BancosController : ControllerBase
     {
         if (string.IsNullOrWhiteSpace(term))
         {
-            return BadRequest("O termo de busca (term) é obrigatório.");
+            return BadRequest(OperationResult.Failure("O termo de busca (term) é obrigatório."));
         }
 
-        return Ok(await _bancoService.SearchAsync(term));
+        var result = await _bancoService.SearchAsync(term);
+        return result.Success ? Ok(result) : BadRequest(result);
     }
 
     [HttpGet("{codigo}")]
     public async Task<IActionResult> GetByCodigo(string codigo)
     {
-        var banco = await _bancoService.GetByCodigoAsync(codigo);
-        return banco == null ? NotFound() : Ok(banco);
+        var result = await _bancoService.GetByCodigoAsync(codigo);
+        return result.Success ? Ok(result) : NotFound(result);
     }
 }

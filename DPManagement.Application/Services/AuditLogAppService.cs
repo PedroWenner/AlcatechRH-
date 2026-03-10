@@ -1,3 +1,7 @@
+using DPManagement.Application.Common;
+using DPManagement.Application.DTOs;
+using DPManagement.Application.Interfaces;
+using DPManagement.Application.Common;
 using DPManagement.Application.DTOs;
 using DPManagement.Application.Interfaces;
 using DPManagement.Domain.Repositories;
@@ -13,7 +17,7 @@ public class AuditLogAppService : IAuditLogAppService
         _auditLogRepository = auditLogRepository;
     }
 
-    public async Task<PagedResultDto<AuditLogDto>> GetPagedAsync(
+    public async Task<OperationResult<PagedResultDto<AuditLogDto>>> GetPagedAsync(
         int page, 
         int pageSize, 
         DateTime? dataInicio = null, 
@@ -38,6 +42,7 @@ public class AuditLogAppService : IAuditLogAppService
             CreatedAt = x.CreatedAt
         }).ToList();
 
-        return new PagedResultDto<AuditLogDto>(dtos, totalCount, page, pageSize);
+        var result = new PagedResultDto<AuditLogDto>(dtos, totalCount, page, pageSize);
+        return OperationResult<PagedResultDto<AuditLogDto>>.Ok(result);
     }
 }

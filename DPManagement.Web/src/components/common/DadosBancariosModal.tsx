@@ -48,7 +48,12 @@ export function DadosBancariosModal({ isOpen, onClose, colaboradorId, colaborado
     try {
       showLoading('Carregando dados bancários...');
       const response = await api.get(`/colaboradores/${colaboradorId}/dados-bancarios`);
-      setDados(response.data);
+      const resData = response.data;
+      if (resData.success) {
+        setDados(resData.data);
+      } else {
+        alertError(resData.message || 'Erro ao carregar dados bancários');
+      }
     } catch (error) {
       console.error('Erro ao buscar dados bancários', error);
       alertError('Erro ao carregar dados bancários');
@@ -63,18 +68,25 @@ export function DadosBancariosModal({ isOpen, onClose, colaboradorId, colaborado
 
     showLoading('Salvando...');
     try {
+      let response;
       if (editingDado) {
-        await api.put(`/colaboradores/${colaboradorId}/dados-bancarios/${editingDado.id}`, formData);
-        alertSuccess('Dado bancário atualizado');
+        response = await api.put(`/colaboradores/${colaboradorId}/dados-bancarios/${editingDado.id}`, formData);
       } else {
-        await api.post(`/colaboradores/${colaboradorId}/dados-bancarios`, formData);
-        alertSuccess('Dado bancário cadastrado');
+        response = await api.post(`/colaboradores/${colaboradorId}/dados-bancarios`, formData);
       }
-      setIsFormOpen(false);
-      fetchDados();
-    } catch (error) {
+
+      const resData = response.data;
+      if (resData.success) {
+        alertSuccess(resData.message || (editingDado ? 'Dado bancário atualizado' : 'Dado bancário cadastrado'));
+        setIsFormOpen(false);
+        fetchDados();
+      } else {
+        alertError(resData.message || 'Erro ao salvar dado bancário', resData.errors?.join('\n'));
+      }
+    } catch (error: any) {
       console.error('Erro ao salvar dado bancário', error);
-      alertError('Erro ao salvar dado bancário');
+      const apiError = error.response?.data;
+      alertError(apiError?.message || 'Erro ao salvar dado bancário', apiError?.errors?.join('\n'));
     } finally {
       closeLoading();
     }
@@ -86,9 +98,14 @@ export function DadosBancariosModal({ isOpen, onClose, colaboradorId, colaborado
     if (confirmed) {
       showLoading('Excluindo...');
       try {
-        await api.delete(`/colaboradores/${colaboradorId}/dados-bancarios/${id}`);
-        alertSuccess('Registro excluído');
-        fetchDados();
+        const response = await api.delete(`/colaboradores/${colaboradorId}/dados-bancarios/${id}`);
+        const resData = response.data;
+        if (resData.success) {
+          alertSuccess(resData.message || 'Registro excluído');
+          fetchDados();
+        } else {
+          alertError(resData.message || 'Erro ao excluir conta');
+        }
       } catch (error) {
         console.error('Erro ao excluir conta', error);
         alertError('Erro ao excluir conta');
@@ -103,9 +120,16 @@ export function DadosBancariosModal({ isOpen, onClose, colaboradorId, colaborado
     const novoStatus = !dado.ativo;
     showLoading(novoStatus ? 'Ativando...' : 'Inativando...');
     try {
-      await api.put(`/colaboradores/${colaboradorId}/dados-bancarios/${dado.id}/ativar?ativo=${novoStatus}`);
-      alertSuccess(novoStatus ? 'Conta ativada' : 'Conta inativada');
-      fetchDados();
+      const response = await api.patch(`/colaboradores/${colaboradorId}/dados-bancarios/${dado.id}/status`, novoStatus, {
+        headers: { 'Content-Type': 'application/json' }
+      });
+      const resData = response.data;
+      if (resData.success) {
+        alertSuccess(resData.message || (novoStatus ? 'Conta ativada' : 'Conta inativada'));
+        fetchDados();
+      } else {
+        alertError(resData.message || 'Erro ao alterar status');
+      }
     } catch (error) {
       console.error('Erro ao alterar status', error);
       alertError('Erro ao alterar status');
@@ -243,7 +267,7 @@ export function DadosBancariosModal({ isOpen, onClose, colaboradorId, colaborado
                 defaultValue={formData.codigoBanco}
                 onSearch={async (term) => {
                   const response = await api.get(`/bancos?term=${encodeURIComponent(term)}`);
-                  return response.data;
+                  return response.data.success ? response.data.data : [];
                 }}
                 onSelect={(item) => {
                   if (item) {

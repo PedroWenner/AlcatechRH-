@@ -1,3 +1,4 @@
+using DPManagement.Application.Common;
 using DPManagement.Application.DTOs;
 using DPManagement.Application.Interfaces;
 using DPManagement.Domain.Entities;
@@ -19,8 +20,10 @@ public class DadosBancariosController : ControllerBase
     [HttpGet]
     public async Task<IActionResult> Listar(Guid colaboradorId)
     {
-        var dados = await _service.ListarPorColaboradorIdAsync(colaboradorId);
-        var dtos = dados.Select(db => new DadoBancarioDto
+        var result = await _service.ListarPorColaboradorIdAsync(colaboradorId);
+        if (!result.Success) return BadRequest(result);
+
+        var dtos = result.Data.Select(db => new DadoBancarioDto
         {
             Id = db.Id,
             ColaboradorId = db.ColaboradorId,
@@ -35,7 +38,7 @@ public class DadosBancariosController : ControllerBase
             Ativo = db.Ativo
         });
 
-        return Ok(dtos);
+        return Ok(OperationResult<IEnumerable<DadoBancarioDto>>.Ok(dtos));
     }
 
     [HttpPost]
@@ -43,7 +46,7 @@ public class DadosBancariosController : ControllerBase
     {
         var entidade = new DadoBancario
         {
-            ColaboradorId = colaboradorId, // Enforce route param
+            ColaboradorId = colaboradorId, 
             BancoId = request.BancoId,
             CodigoBanco = request.CodigoBanco,
             Agencia = request.Agencia,
@@ -53,17 +56,19 @@ public class DadosBancariosController : ControllerBase
             Operacao = request.Operacao
         };
 
-        await _service.AdicionarAsync(entidade);
-        return CreatedAtAction(nameof(Listar), new { colaboradorId = colaboradorId }, entidade);
+        var result = await _service.AdicionarAsync(entidade);
+        if (!result.Success) return BadRequest(result);
+        return CreatedAtAction(nameof(Listar), new { colaboradorId = colaboradorId }, result);
     }
 
     [HttpPut("{id}")]
     public async Task<IActionResult> Atualizar(Guid colaboradorId, Guid id, [FromBody] DadoBancarioRequestDto request)
     {
-        var dado = await _service.ObterPorIdAsync(id);
-        if (dado == null || dado.ColaboradorId != colaboradorId) 
-            return NotFound();
+        var getResult = await _service.ObterPorIdAsync(id);
+        if (!getResult.Success || getResult.Data?.ColaboradorId != colaboradorId) 
+            return NotFound(OperationResult.Failure("Dado bancário não encontrado."));
 
+        var dado = getResult.Data!;
         dado.BancoId = request.BancoId;
         dado.CodigoBanco = request.CodigoBanco;
         dado.Agencia = request.Agencia;
@@ -72,29 +77,21 @@ public class DadosBancariosController : ControllerBase
         dado.DigitoConta = request.DigitoConta;
         dado.Operacao = request.Operacao;
 
-        await _service.AtualizarAsync(dado);
-        return NoContent();
+        var result = await _service.AtualizarAsync(dado);
+        return result.Success ? Ok(result) : BadRequest(result);
     }
 
     [HttpDelete("{id}")]
     public async Task<IActionResult> Remover(Guid colaboradorId, Guid id)
     {
-        var dado = await _service.ObterPorIdAsync(id);
-        if (dado == null || dado.ColaboradorId != colaboradorId)
-            return NotFound();
-
-        await _service.RemoverAsync(id);
-        return NoContent();
+        var result = await _service.RemoverAsync(id);
+        return result.Success ? Ok(result) : BadRequest(result);
     }
 
-    [HttpPut("{id}/ativar")]
-    public async Task<IActionResult> AtivarInativar(Guid colaboradorId, Guid id, [FromQuery] bool ativo)
+    [HttpPatch("{id}/status")]
+    public async Task<IActionResult> AlternarStatus(Guid colaboradorId, Guid id, [FromBody] bool ativo)
     {
-        var dado = await _service.ObterPorIdAsync(id);
-        if (dado == null || dado.ColaboradorId != colaboradorId)
-            return NotFound();
-
-        await _service.AlternarStatusAsync(id, ativo);
-        return NoContent();
+        var result = await _service.AlternarStatusAsync(id, ativo);
+        return result.Success ? Ok(result) : BadRequest(result);
     }
 }

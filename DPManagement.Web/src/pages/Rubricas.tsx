@@ -50,13 +50,19 @@ export default function Rubricas() {
       const response = await api.get('/rubricas', {
         params: { page, pageSize: pagination.pageSize, filtro: f }
       });
-      setRubricas(response.data.items);
-      setPagination(prev => ({
-        ...prev,
-        currentPage: response.data.page,
-        totalPages: response.data.totalPages,
-        totalCount: response.data.totalCount
-      }));
+      
+      const resData = response.data;
+      if (resData.success) {
+        setRubricas(resData.data.items);
+        setPagination(prev => ({
+          ...prev,
+          currentPage: resData.data.page,
+          totalPages: resData.data.totalPages,
+          totalCount: resData.data.totalCount
+        }));
+      } else {
+        alertError(resData.message || 'Erro ao carregar rubricas');
+      }
     } catch (error) {
       alertError('Erro ao carregar rubricas');
     } finally {
@@ -93,17 +99,24 @@ export default function Rubricas() {
     e.preventDefault();
     try {
       showLoading('Salvando rubrica...');
+      let response;
       if (editingRubrica) {
-        await api.put(`/rubricas/${editingRubrica.id}`, formData);
-        alertSuccess('Sucesso', 'Rubrica atualizada com sucesso.');
+        response = await api.put(`/rubricas/${editingRubrica.id}`, formData);
       } else {
-        await api.post('/rubricas', formData);
-        alertSuccess('Sucesso', 'Rubrica criada com sucesso.');
+        response = await api.post('/rubricas', formData);
       }
-      setIsModalOpen(false);
-      fetchRubricas(pagination.currentPage);
+
+      const resData = response.data;
+      if (resData.success) {
+        alertSuccess('Sucesso', resData.message || 'Operação realizada com sucesso.');
+        setIsModalOpen(false);
+        fetchRubricas(pagination.currentPage);
+      } else {
+        alertError(resData.message || 'Erro ao salvar rubrica', resData.errors?.join('\n'));
+      }
     } catch (error: any) {
-      alertError('Erro ao salvar rubrica', error.response?.data?.message);
+      const apiError = error.response?.data;
+      alertError(apiError?.message || 'Erro ao salvar rubrica', apiError?.errors?.join('\n'));
     } finally {
       closeLoading();
     }
@@ -113,9 +126,14 @@ export default function Rubricas() {
     const confirmed = await alertDeleteConfirm('Deseja excluir esta rubrica?');
     if (confirmed) {
       try {
-        await api.delete(`/rubricas/${id}`);
-        alertSuccess('Sucesso', 'Rubrica excluída.');
-        fetchRubricas(pagination.currentPage);
+        const response = await api.delete(`/rubricas/${id}`);
+        const resData = response.data;
+        if (resData.success) {
+          alertSuccess('Sucesso', resData.message || 'Rubrica excluída.');
+          fetchRubricas(pagination.currentPage);
+        } else {
+          alertError(resData.message || 'Erro ao excluir rubrica');
+        }
       } catch (error) {
         alertError('Erro ao excluir rubrica');
       }
@@ -124,9 +142,14 @@ export default function Rubricas() {
 
   const handleToggleStatus = async (r: Rubrica) => {
     try {
-      await api.put(`/rubricas/${r.id}/toggle-status`);
-      alertSuccess('Sucesso', r.ativo ? 'Rubrica inativada.' : 'Rubrica ativada.');
-      fetchRubricas(pagination.currentPage);
+      const response = await api.put(`/rubricas/${r.id}/toggle-status`);
+      const resData = response.data;
+      if (resData.success) {
+        alertSuccess('Sucesso', resData.message);
+        fetchRubricas(pagination.currentPage);
+      } else {
+        alertError(resData.message);
+      }
     } catch (error) {
       alertError('Erro ao alterar status');
     }

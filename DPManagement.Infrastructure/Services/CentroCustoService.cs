@@ -1,3 +1,4 @@
+using DPManagement.Application.Common;
 using DPManagement.Application.Interfaces;
 using DPManagement.Domain.Entities;
 using DPManagement.Infrastructure.Persistence;
@@ -14,7 +15,7 @@ public class CentroCustoService : ICentroCustoService
         _context = context;
     }
 
-    public async Task<IEnumerable<CentroCusto>> ObterTodosAsync(string? descricao = null, Guid? orgaoId = null)
+    public async Task<OperationResult<IEnumerable<CentroCusto>>> ObterTodosAsync(string? descricao = null, Guid? orgaoId = null)
     {
         var query = _context.CentroCustos
             .Include(c => c.Orgao)
@@ -27,46 +28,57 @@ public class CentroCustoService : ICentroCustoService
         if (orgaoId.HasValue && orgaoId.Value != Guid.Empty)
             query = query.Where(c => c.OrgaoId == orgaoId.Value);
 
-        return await query.OrderBy(c => c.Descricao).ToListAsync();
+        var items = await query.OrderBy(c => c.Descricao).ToListAsync();
+        return OperationResult<IEnumerable<CentroCusto>>.Ok(items);
     }
 
-    public async Task<CentroCusto?> ObterPorIdAsync(Guid id)
+    public async Task<OperationResult<CentroCusto?>> ObterPorIdAsync(Guid id)
     {
-        return await _context.CentroCustos
+        var item = await _context.CentroCustos
             .Include(c => c.Orgao)
             .FirstOrDefaultAsync(c => c.Id == id && !c.IsDeleted);
+        
+        if (item == null) return OperationResult<CentroCusto?>.Failure("Centro de custo não encontrado.");
+        return OperationResult<CentroCusto?>.Ok(item);
     }
 
-    public async Task<CentroCusto> AdicionarAsync(CentroCusto centroCusto)
+    public async Task<OperationResult<CentroCusto>> AdicionarAsync(CentroCusto centroCusto)
     {
         _context.CentroCustos.Add(centroCusto);
         await _context.SaveChangesAsync();
-        return centroCusto;
+        return OperationResult<CentroCusto>.Ok(centroCusto, "Centro de custo criado com sucesso.");
     }
 
-    public async Task AtualizarAsync(CentroCusto centroCusto)
+    public async Task<OperationResult> AtualizarAsync(CentroCusto centroCusto)
     {
         _context.Entry(centroCusto).State = EntityState.Modified;
         await _context.SaveChangesAsync();
+        return OperationResult.Ok("Centro de custo atualizado com sucesso.");
     }
 
-    public async Task AtivarInativarAsync(Guid id, bool ativo)
+    public async Task<OperationResult> AtivarInativarAsync(Guid id, bool ativo)
     {
-        var centro = await ObterPorIdAsync(id);
+        var result = await ObterPorIdAsync(id);
+        var centro = result.Data;
         if (centro != null)
         {
             centro.Ativo = ativo;
             await _context.SaveChangesAsync();
+            return OperationResult.Ok(ativo ? "Centro de custo ativado com sucesso." : "Centro de custo inativado com sucesso.");
         }
+        return OperationResult.Failure("Centro de custo não encontrado.");
     }
 
-    public async Task RemoverAsync(Guid id)
+    public async Task<OperationResult> RemoverAsync(Guid id)
     {
-        var centro = await ObterPorIdAsync(id);
+        var result = await ObterPorIdAsync(id);
+        var centro = result.Data;
         if (centro != null)
         {
             centro.IsDeleted = true;
             await _context.SaveChangesAsync();
+            return OperationResult.Ok("Centro de custo excluído com sucesso.");
         }
+        return OperationResult.Failure("Centro de custo não encontrado.");
     }
 }

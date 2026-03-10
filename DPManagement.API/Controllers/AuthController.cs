@@ -1,3 +1,4 @@
+using DPManagement.Application.Common;
 using FluentValidation;
 using FluentValidation.Results;
 using DPManagement.Application.DTOs;
@@ -36,7 +37,8 @@ public class AuthController : ControllerBase
         ValidationResult validationResult = await _loginValidator.ValidateAsync(loginDto);
         if (!validationResult.IsValid)
         {
-            return BadRequest(validationResult.Errors.Select(e => new { Campo = e.PropertyName, Erro = e.ErrorMessage }));
+            var errors = validationResult.Errors.Select(e => e.ErrorMessage).ToList();
+            return BadRequest(OperationResult.Failure("Falha na validação do login.", errors.ToArray()));
         }
 
         var usuario = await _context.Usuarios
@@ -47,12 +49,12 @@ public class AuthController : ControllerBase
         
         if (usuario == null || !_authService.VerificarSenha(loginDto.Senha, usuario.SenhaHash))
         {
-            return Unauthorized(new { Erro = "E-mail ou senha inválidos." });
+            return Unauthorized(OperationResult.Failure("E-mail ou senha inválidos."));
         }
 
         var token = _authService.GerarTokenJwt(usuario);
         
-        return Ok(new AuthRespostaDto
+        var response = new AuthRespostaDto
         {
             Token = token,
             Usuario = new UsuarioDto
@@ -62,7 +64,9 @@ public class AuthController : ControllerBase
                 Email = usuario.Email,
                 Perfil = usuario.Perfil?.Nome ?? "Indefinido"
             }
-        });
+        };
+        
+        return Ok(OperationResult<AuthRespostaDto>.Ok(response, "Login realizado com sucesso."));
     }
 
     [HttpPost("registro")]
@@ -71,12 +75,13 @@ public class AuthController : ControllerBase
         ValidationResult validationResult = await _registroValidator.ValidateAsync(registroDto);
         if (!validationResult.IsValid)
         {
-            return BadRequest(validationResult.Errors.Select(e => new { Campo = e.PropertyName, Erro = e.ErrorMessage }));
+            var errors = validationResult.Errors.Select(e => e.ErrorMessage).ToList();
+            return BadRequest(OperationResult.Failure("Falha na validação do registro.", errors.ToArray()));
         }
 
         if (await _context.Usuarios.AnyAsync(u => u.Email == registroDto.Email))
         {
-            return BadRequest(new { Erro = "Um usuário com este e-mail já existe." });
+            return BadRequest(OperationResult.Failure("Um usuário com este e-mail já existe."));
         }
 
         var usuario = new Usuario
@@ -90,6 +95,6 @@ public class AuthController : ControllerBase
         _context.Usuarios.Add(usuario);
         await _context.SaveChangesAsync();
 
-        return Ok(new { Mensagem = "Usuário registrado com sucesso." });
+        return Ok(OperationResult.Ok("Usuário registrado com sucesso."));
     }
 }

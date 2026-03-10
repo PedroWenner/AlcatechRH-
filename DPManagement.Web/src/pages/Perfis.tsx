@@ -70,7 +70,10 @@ export default function Perfis() {
     const fetchMatriz = async () => {
         try {
             const response = await api.get('/permissoes/matriz');
-            setPermissoesMatriz(response.data);
+            const resData = response.data;
+            if (resData.success) {
+                setPermissoesMatriz(resData.data);
+            }
         } catch (error) {
             console.error('Erro ao buscar matriz de permissões', error);
         }
@@ -80,11 +83,16 @@ export default function Perfis() {
         try {
             showLoading('Carregando perfis...');
             const response = await api.get('/perfis');
-            let data = response.data;
-            if (filters.nome) {
-                data = data.filter((p: Perfil) => p.nome.toLowerCase().includes(filters.nome.toLowerCase()));
+            const resData = response.data;
+            if (resData.success) {
+                let data = resData.data;
+                if (filters.nome) {
+                    data = data.filter((p: Perfil) => p.nome.toLowerCase().includes(filters.nome.toLowerCase()));
+                }
+                setPerfis(data);
+            } else {
+                alertError(resData.message || 'Erro ao carregar perfis');
             }
-            setPerfis(data);
         } catch (error) {
             console.error('Erro ao buscar perfis', error);
             alertError('Erro ao carregar perfis');
@@ -97,17 +105,22 @@ export default function Perfis() {
         try {
             showLoading('Carregando permissões...');
             const response = await api.get('/permissoes');
-            let data = response.data;
-            if (permFilters.modulo) {
-                data = data.filter((p: Permissao) => p.modulo.toLowerCase().includes(permFilters.modulo.toLowerCase()));
+            const resData = response.data;
+            if (resData.success) {
+                let data = resData.data;
+                if (permFilters.modulo) {
+                    data = data.filter((p: Permissao) => p.modulo.toLowerCase().includes(permFilters.modulo.toLowerCase()));
+                }
+                if (permFilters.moduloPai) {
+                    data = data.filter((p: Permissao) => (p.moduloPai || '').toLowerCase().includes(permFilters.moduloPai.toLowerCase()));
+                }
+                if (permFilters.acao) {
+                    data = data.filter((p: Permissao) => p.acao.toLowerCase().includes(permFilters.acao.toLowerCase()));
+                }
+                setPermissoesList(data);
+            } else {
+                alertError(resData.message || 'Erro ao carregar permissões');
             }
-            if (permFilters.moduloPai) {
-                data = data.filter((p: Permissao) => (p.moduloPai || '').toLowerCase().includes(permFilters.moduloPai.toLowerCase()));
-            }
-            if (permFilters.acao) {
-                data = data.filter((p: Permissao) => p.acao.toLowerCase().includes(permFilters.acao.toLowerCase()));
-            }
-            setPermissoesList(data);
         } catch (error) {
             console.error('Erro ao buscar permissoes', error);
             alertError('Erro ao carregar permissões');
@@ -133,20 +146,27 @@ export default function Perfis() {
         e.preventDefault();
         showLoading('Salvando perfil...');
         try {
+            let response;
             if (editingPerfil) {
-                await api.put(`/perfis/${editingPerfil.id}`, formData);
-                alertSuccess('Perfil atualizado');
+                response = await api.put(`/perfis/${editingPerfil.id}`, formData);
             } else {
-                await api.post('/perfis', formData);
-                alertSuccess('Perfil cadastrado');
+                response = await api.post('/perfis', formData);
             }
-            setIsModalOpen(false);
-            setEditingPerfil(null);
-            setFormData({ nome: '', descricao: '' });
-            fetchPerfis();
-        } catch (error) {
+
+            const resData = response.data;
+            if (resData.success) {
+                alertSuccess(resData.message || (editingPerfil ? 'Perfil atualizado' : 'Perfil cadastrado'));
+                setIsModalOpen(false);
+                setEditingPerfil(null);
+                setFormData({ nome: '', descricao: '' });
+                fetchPerfis();
+            } else {
+                alertError(resData.message || 'Erro ao salvar perfil', resData.errors?.join('\n'));
+            }
+        } catch (error: any) {
             console.error('Erro ao salvar perfil', error);
-            alertError('Erro ao salvar perfil');
+            const apiError = error.response?.data;
+            alertError(apiError?.message || 'Erro ao salvar perfil', apiError?.errors?.join('\n'));
         } finally {
             closeLoading();
         }
@@ -159,11 +179,19 @@ export default function Perfis() {
     };
 
     const handleToggleStatusPerfil = async (perfil: Perfil) => {
-        showLoading(perfil.ativo ? 'Inativando...' : 'Ativando...');
+        const novoStatus = !perfil.ativo;
+        showLoading(novoStatus ? 'Ativando...' : 'Inativando...');
         try {
-            await api.put(`/perfis/${perfil.id}/ativar?ativo=${!perfil.ativo}`);
-            alertSuccess(`Perfil ${perfil.ativo ? 'inativado' : 'ativado'} com sucesso`);
-            fetchPerfis();
+            const response = await api.patch(`/perfis/${perfil.id}/status`, novoStatus, {
+                headers: { 'Content-Type': 'application/json' }
+            });
+            const resData = response.data;
+            if (resData.success) {
+                alertSuccess(resData.message || `Perfil ${novoStatus ? 'ativado' : 'inativado'} com sucesso`);
+                fetchPerfis();
+            } else {
+                alertError(resData.message || 'Erro ao alterar status');
+            }
         } catch (error) {
             console.error('Erro ao alterar status', error);
             alertError('Erro ao alterar status');
@@ -177,9 +205,14 @@ export default function Perfis() {
         if (confirmed) {
             showLoading('Excluindo...');
             try {
-                await api.delete(`/perfis/${id}`);
-                alertSuccess('Perfil excluído');
-                fetchPerfis();
+                const response = await api.delete(`/perfis/${id}`);
+                const resData = response.data;
+                if (resData.success) {
+                    alertSuccess(resData.message || 'Perfil excluído');
+                    fetchPerfis();
+                } else {
+                    alertError(resData.message || 'Erro ao excluir perfil');
+                }
             } catch (error) {
                 console.error('Erro ao excluir perfil', error);
                 alertError('Erro ao excluir perfil');
@@ -210,10 +243,15 @@ export default function Perfis() {
         if (!selectedPerfil) return;
         showLoading('Salvando permissões...');
         try {
-            await api.post(`/perfis/${selectedPerfil.id}/permissoes`, Array.from(selectedPermissoesIds));
-            alertSuccess('Permissões atualizadas com sucesso');
-            setIsMatrixOpen(false);
-            fetchPerfis();
+            const response = await api.post(`/perfis/${selectedPerfil.id}/permissoes`, Array.from(selectedPermissoesIds));
+            const resData = response.data;
+            if (resData.success) {
+                alertSuccess(resData.message || 'Permissões atualizadas com sucesso');
+                setIsMatrixOpen(false);
+                fetchPerfis();
+            } else {
+                alertError(resData.message || 'Erro ao atualizar permissões');
+            }
         } catch (error) {
             console.error('Erro ao salvar permissões', error);
             alertError('Erro ao atualizar permissões');
@@ -227,21 +265,28 @@ export default function Perfis() {
         e.preventDefault();
         showLoading('Salvando permissão...');
         try {
+            let response;
             if (editingPermissao) {
-                await api.put(`/permissoes/${editingPermissao.id}`, permFormData);
-                alertSuccess('Permissão atualizada');
+                response = await api.put(`/permissoes/${editingPermissao.id}`, permFormData);
             } else {
-                await api.post('/permissoes', permFormData);
-                alertSuccess('Permissão cadastrada');
+                response = await api.post('/permissoes', permFormData);
             }
-            setIsPermModalOpen(false);
-            setEditingPermissao(null);
-            setPermFormData({ modulo: '', moduloPai: '', acao: '', descricao: '' });
-            fetchPermissoes();
-            fetchMatriz(); // Refresh matrix dynamically after a generic permissão add/edit
-        } catch (error) {
+
+            const resData = response.data;
+            if (resData.success) {
+                alertSuccess(resData.message || (editingPermissao ? 'Permissão atualizada' : 'Permissão cadastrada'));
+                setIsPermModalOpen(false);
+                setEditingPermissao(null);
+                setPermFormData({ modulo: '', moduloPai: '', acao: '', descricao: '' });
+                fetchPermissoes();
+                fetchMatriz();
+            } else {
+                alertError(resData.message || 'Erro ao salvar permissão', resData.errors?.join('\n'));
+            }
+        } catch (error: any) {
             console.error('Erro ao salvar permissao', error);
-            alertError('Erro ao salvar permissão');
+            const apiError = error.response?.data;
+            alertError(apiError?.message || 'Erro ao salvar permissão', apiError?.errors?.join('\n'));
         } finally {
             closeLoading();
         }
@@ -254,12 +299,20 @@ export default function Perfis() {
     };
 
     const handleToggleStatusPermissao = async (permissao: Permissao) => {
-        showLoading(permissao.ativo ? 'Inativando...' : 'Ativando...');
+        const novoStatus = !permissao.ativo;
+        showLoading(novoStatus ? 'Ativando...' : 'Inativando...');
         try {
-            await api.put(`/permissoes/${permissao.id}/ativar?ativo=${!permissao.ativo}`);
-            alertSuccess(`Permissão ${permissao.ativo ? 'inativada' : 'ativada'} com sucesso`);
-            fetchPermissoes();
-            fetchMatriz();
+            const response = await api.patch(`/permissoes/${permissao.id}/status`, novoStatus, {
+                headers: { 'Content-Type': 'application/json' }
+            });
+            const resData = response.data;
+            if (resData.success) {
+                alertSuccess(resData.message || `Permissão ${novoStatus ? 'ativada' : 'inativada'} com sucesso`);
+                fetchPermissoes();
+                fetchMatriz();
+            } else {
+                alertError(resData.message || 'Erro ao alterar status');
+            }
         } catch (error) {
             console.error('Erro ao alterar status da permissão', error);
             alertError('Erro ao alterar status');
@@ -273,10 +326,15 @@ export default function Perfis() {
         if (confirmed) {
             showLoading('Excluindo...');
             try {
-                await api.delete(`/permissoes/${id}`);
-                alertSuccess('Permissão excluída');
-                fetchPermissoes();
-                fetchMatriz();
+                const response = await api.delete(`/permissoes/${id}`);
+                const resData = response.data;
+                if (resData.success) {
+                    alertSuccess(resData.message || 'Permissão excluída');
+                    fetchPermissoes();
+                    fetchMatriz();
+                } else {
+                    alertError(resData.message || 'Erro ao excluir permissão');
+                }
             } catch (error) {
                 console.error('Erro ao excluir permissão', error);
                 alertError('Erro ao excluir permissão');

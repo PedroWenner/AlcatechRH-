@@ -1,3 +1,4 @@
+using DPManagement.Application.Common;
 using DPManagement.Application.DTOs;
 using DPManagement.Application.Interfaces;
 using DPManagement.Domain.Entities;
@@ -14,30 +15,33 @@ public class ColaboradorAppService : IColaboradorAppService
         _colaboradorRepository = colaboradorRepository;
     }
 
-    public async Task<IEnumerable<ColaboradorDto>> GetAllAsync()
+    public async Task<OperationResult<IEnumerable<ColaboradorDto>>> GetAllAsync()
     {
         var entities = await _colaboradorRepository.GetAllAsync();
-        return entities.Select(e => MapToDto(e));
+        var dtos = entities.Select(e => MapToDto(e));
+        return OperationResult<IEnumerable<ColaboradorDto>>.Ok(dtos);
     }
 
-    public async Task<PagedResultDto<ColaboradorDto>> GetPagedAsync(int page, int pageSize, string? nome = null, string? cpf = null, Guid? cargoId = null)
+    public async Task<OperationResult<PagedResultDto<ColaboradorDto>>> GetPagedAsync(int page, int pageSize, string? nome = null, string? cpf = null, Guid? cargoId = null)
     {
         var result = await _colaboradorRepository.GetPagedAsync(page, pageSize, nome, cpf, cargoId);
-        return new PagedResultDto<ColaboradorDto>(
+        var pagedDto = new PagedResultDto<ColaboradorDto>(
             result.Items.Select(e => MapToDto(e)),
             result.TotalCount,
             page,
             pageSize
         );
+        return OperationResult<PagedResultDto<ColaboradorDto>>.Ok(pagedDto);
     }
 
-    public async Task<ColaboradorDto?> GetByIdAsync(Guid id)
+    public async Task<OperationResult<ColaboradorDto?>> GetByIdAsync(Guid id)
     {
         var entity = await _colaboradorRepository.GetByIdAsync(id);
-        return entity == null ? null : MapToDto(entity);
+        if (entity == null) return OperationResult<ColaboradorDto?>.Failure("Colaborador não encontrado.");
+        return OperationResult<ColaboradorDto?>.Ok(MapToDto(entity));
     }
 
-    public async Task AddAsync(CreateColaboradorDto dto)
+    public async Task<OperationResult> AddAsync(CreateColaboradorDto dto)
     {
         var entity = new Colaborador
         {
@@ -58,9 +62,10 @@ public class ColaboradorAppService : IColaboradorAppService
             CargoId = dto.CargoId
         };
         await _colaboradorRepository.AddAsync(entity);
+        return OperationResult.Ok("Colaborador criado com sucesso.");
     }
 
-    public async Task UpdateAsync(UpdateColaboradorDto dto)
+    public async Task<OperationResult> UpdateAsync(UpdateColaboradorDto dto)
     {
         var entity = new Colaborador
         {
@@ -82,9 +87,14 @@ public class ColaboradorAppService : IColaboradorAppService
             CargoId = dto.CargoId
         };
         await _colaboradorRepository.UpdateAsync(entity);
+        return OperationResult.Ok("Colaborador atualizado com sucesso.");
     }
 
-    public async Task DeleteAsync(Guid id) => await _colaboradorRepository.DeleteAsync(id);
+    public async Task<OperationResult> DeleteAsync(Guid id)
+    {
+        await _colaboradorRepository.DeleteAsync(id);
+        return OperationResult.Ok("Colaborador excluído com sucesso.");
+    }
 
     private static ColaboradorDto MapToDto(Colaborador e) => new ColaboradorDto
     {

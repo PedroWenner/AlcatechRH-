@@ -4,6 +4,7 @@ using DPManagement.Infrastructure.Services;
 using Microsoft.AspNetCore.Mvc;
 
 using Microsoft.AspNetCore.Authorization;
+using DPManagement.Application.Common;
 
 namespace DPManagement.API.Controllers;
 
@@ -28,38 +29,46 @@ public class ColaboradoresController : ControllerBase
         [FromQuery] string? nome = null,
         [FromQuery] string? cpf = null,
         [FromQuery] Guid? cargoId = null) 
-        => Ok(await _colaboradorAppService.GetPagedAsync(page, pageSize, nome, cpf, cargoId));
+    {
+        var result = await _colaboradorAppService.GetPagedAsync(page, pageSize, nome, cpf, cargoId);
+        return result.Success ? Ok(result) : BadRequest(result);
+    }
 
     [HttpGet("all")]
-    public async Task<IActionResult> GetAllOld() => Ok(await _colaboradorAppService.GetAllAsync());
+    public async Task<IActionResult> GetAllOld() 
+    {
+        var result = await _colaboradorAppService.GetAllAsync();
+        return result.Success ? Ok(result) : BadRequest(result);
+    }
 
     [HttpGet("{id}")]
     public async Task<IActionResult> GetById(Guid id)
     {
-        var colaborador = await _colaboradorAppService.GetByIdAsync(id);
-        return colaborador == null ? NotFound() : Ok(colaborador);
+        var result = await _colaboradorAppService.GetByIdAsync(id);
+        if (!result.Success) return NotFound(result);
+        return Ok(result);
     }
 
     [HttpPost]
     public async Task<IActionResult> Create(CreateColaboradorDto dto)
     {
-        await _colaboradorAppService.AddAsync(dto);
-        return Ok();
+        var result = await _colaboradorAppService.AddAsync(dto);
+        return result.Success ? Ok(result) : BadRequest(result);
     }
 
     [HttpPut("{id}")]
     public async Task<IActionResult> Update(Guid id, UpdateColaboradorDto dto)
     {
-        if (id != dto.Id) return BadRequest();
-        await _colaboradorAppService.UpdateAsync(dto);
-        return Ok();
+        if (id != dto.Id) return BadRequest(OperationResult.Failure("ID do colaborador não confere."));
+        var result = await _colaboradorAppService.UpdateAsync(dto);
+        return result.Success ? Ok(result) : BadRequest(result);
     }
 
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(Guid id)
     {
-        await _colaboradorAppService.DeleteAsync(id);
-        return Ok();
+        var result = await _colaboradorAppService.DeleteAsync(id);
+        return result.Success ? Ok(result) : BadRequest(result);
     }
 
     [HttpGet("cep/{cep}")]

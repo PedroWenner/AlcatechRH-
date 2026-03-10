@@ -1,3 +1,4 @@
+using DPManagement.Application.Common;
 using DPManagement.Application.DTOs;
 using DPManagement.Application.Interfaces;
 using DPManagement.Infrastructure.Persistence;
@@ -14,10 +15,10 @@ public class BancoService : IBancoService
         _context = context;
     }
 
-    public async Task<IEnumerable<BancoDto>> SearchAsync(string term)
+    public async Task<OperationResult<IEnumerable<BancoDto>>> SearchAsync(string term)
     {
         if (string.IsNullOrWhiteSpace(term))
-            return Enumerable.Empty<BancoDto>();
+            return OperationResult<IEnumerable<BancoDto>>.Ok(Enumerable.Empty<BancoDto>());
 
         term = term.ToLower();
         var bancos = await _context.Bancos
@@ -26,26 +27,26 @@ public class BancoService : IBancoService
             .Take(50)
             .ToListAsync();
 
-        return bancos.Select(b => new BancoDto
+        return OperationResult<IEnumerable<BancoDto>>.Ok(bancos.Select(b => new BancoDto
+        {
+            Id = b.Id,
+            Codigo = b.CodigoBanco,
+            Titulo = b.Nome
+        }));
+    }
+
+    public async Task<OperationResult<BancoDto>> GetByCodigoAsync(string codigo)
+    {
+        if (string.IsNullOrWhiteSpace(codigo)) return OperationResult<BancoDto>.Failure("Código do banco não informado.");
+
+        var b = await _context.Bancos.FirstOrDefaultAsync(x => x.CodigoBanco == codigo);
+        if (b == null) return OperationResult<BancoDto>.Failure("Banco não encontrado.");
+
+        return OperationResult<BancoDto>.Ok(new BancoDto
         {
             Id = b.Id,
             Codigo = b.CodigoBanco,
             Titulo = b.Nome
         });
-    }
-
-    public async Task<BancoDto?> GetByCodigoAsync(string codigo)
-    {
-        if (string.IsNullOrWhiteSpace(codigo)) return null;
-
-        var b = await _context.Bancos.FirstOrDefaultAsync(x => x.CodigoBanco == codigo);
-        if (b == null) return null;
-
-        return new BancoDto
-        {
-            Id = b.Id,
-            Codigo = b.CodigoBanco,
-            Titulo = b.Nome
-        };
     }
 }

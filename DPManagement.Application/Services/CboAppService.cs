@@ -1,3 +1,7 @@
+using DPManagement.Application.Common;
+using DPManagement.Application.DTOs;
+using DPManagement.Application.Interfaces;
+using DPManagement.Application.Common;
 using DPManagement.Application.DTOs;
 using DPManagement.Application.Interfaces;
 using DPManagement.Domain.Repositories;
@@ -13,27 +17,29 @@ public class CboAppService : ICboAppService
         _cboRepository = cboRepository;
     }
 
-    public async Task<IEnumerable<CboDto>> SearchAsync(string term)
+    public async Task<OperationResult<IEnumerable<CboDto>>> SearchAsync(string term)
     {
         var cbos = await _cboRepository.SearchAsync(term);
-        return cbos.Select(c => new CboDto
+        var dtos = cbos.Select(c => new CboDto
         {
             Id = c.Id,
             Codigo = c.Codigo,
             Titulo = c.Titulo
         });
+        return OperationResult<IEnumerable<CboDto>>.Ok(dtos);
     }
 
-    public async Task<CboDto?> GetByCodigoAsync(string codigo)
+    public async Task<OperationResult<CboDto>> GetByCodigoAsync(string codigo)
     {
         var c = await _cboRepository.GetByCodigoAsync(codigo);
-        if (c == null) return null;
+        if (c == null) return OperationResult<CboDto>.Failure("CBO não encontrado.");
 
-        return new CboDto
+        var dto = new CboDto
         {
             Id = c.Id,
             Codigo = c.Codigo,
             Titulo = c.Titulo
         };
+        return OperationResult<CboDto>.Ok(dto);
     }
 }

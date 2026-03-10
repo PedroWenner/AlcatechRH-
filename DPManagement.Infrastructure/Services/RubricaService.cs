@@ -1,3 +1,4 @@
+using DPManagement.Application.Common;
 using DPManagement.Application.DTOs;
 using DPManagement.Application.Interfaces;
 using DPManagement.Domain.Entities;
@@ -17,7 +18,7 @@ public class RubricaService : IRubricaService
         _context = context;
     }
 
-    public async Task<PagedResultDto<RubricaDto>> GetPaginatedAsync(int page, int pageSize, string? filtro = null)
+    public async Task<OperationResult<PagedResultDto<RubricaDto>>> GetPaginatedAsync(int page, int pageSize, string? filtro = null)
     {
         var query = _context.Rubricas.AsNoTracking();
 
@@ -44,15 +45,15 @@ public class RubricaService : IRubricaService
             })
             .ToListAsync();
 
-        return new PagedResultDto<RubricaDto>(items, totalCount, page, pageSize);
+        return OperationResult<PagedResultDto<RubricaDto>>.Ok(new PagedResultDto<RubricaDto>(items, totalCount, page, pageSize));
     }
 
-    public async Task<IEnumerable<RubricaDto>> GetAllAsync(bool showDeleted = false)
+    public async Task<OperationResult<IEnumerable<RubricaDto>>> GetAllAsync(bool showDeleted = false)
     {
         var query = _context.Rubricas.AsNoTracking();
         if (showDeleted) query = query.IgnoreQueryFilters();
 
-        return await query
+        var items = await query
             .OrderBy(r => r.Codigo)
             .Select(r => new RubricaDto
             {
@@ -66,14 +67,16 @@ public class RubricaService : IRubricaService
                 Ativo = r.Ativo
             })
             .ToListAsync();
+
+        return OperationResult<IEnumerable<RubricaDto>>.Ok(items);
     }
 
-    public async Task<RubricaDto?> GetByIdAsync(Guid id)
+    public async Task<OperationResult<RubricaDto?>> GetByIdAsync(Guid id)
     {
         var r = await _context.Rubricas.AsNoTracking().FirstOrDefaultAsync(x => x.Id == id);
-        if (r == null) return null;
+        if (r == null) return OperationResult<RubricaDto?>.Failure("Rubrica não encontrada.");
 
-        return new RubricaDto
+        var dto = new RubricaDto
         {
             Id = r.Id,
             Codigo = r.Codigo,
@@ -84,13 +87,15 @@ public class RubricaService : IRubricaService
             IncidePrevidencia = r.IncidePrevidencia,
             Ativo = r.Ativo
         };
+
+        return OperationResult<RubricaDto?>.Ok(dto);
     }
 
-    public async Task<RubricaDto> CreateAsync(RubricaCreateUpdateDto dto)
+    public async Task<OperationResult<RubricaDto>> CreateAsync(RubricaCreateUpdateDto dto)
     {
         if (await _context.Rubricas.AnyAsync(r => r.Codigo == dto.Codigo))
         {
-            throw new Exception($"Já existe uma rubrica cadastrada com o código {dto.Codigo}.");
+            return OperationResult<RubricaDto>.Failure($"Já existe uma rubrica cadastrada com o código {dto.Codigo}.");
         }
 
         var rubrica = new Rubrica
@@ -108,17 +113,18 @@ public class RubricaService : IRubricaService
         _context.Rubricas.Add(rubrica);
         await _context.SaveChangesAsync();
 
-        return await GetByIdAsync(rubrica.Id) ?? throw new Exception("Falha ao recuperar rubrica criada.");
+        var createdDto = await GetByIdAsync(rubrica.Id);
+        return OperationResult<RubricaDto>.Ok(createdDto.Data!);
     }
 
-    public async Task UpdateAsync(Guid id, RubricaCreateUpdateDto dto)
+    public async Task<OperationResult> UpdateAsync(Guid id, RubricaCreateUpdateDto dto)
     {
         var r = await _context.Rubricas.FindAsync(id);
-        if (r == null) throw new Exception("Rubrica não encontrada.");
+        if (r == null) return OperationResult.Failure("Rubrica não encontrada.");
 
         if (await _context.Rubricas.AnyAsync(rub => rub.Codigo == dto.Codigo && rub.Id != id))
         {
-            throw new Exception($"Já existe outra rubrica cadastrada com o código {dto.Codigo}.");
+            return OperationResult.Failure($"Já existe outra rubrica cadastrada com o código {dto.Codigo}.");
         }
 
         r.Codigo = dto.Codigo;
@@ -128,23 +134,26 @@ public class RubricaService : IRubricaService
         r.IncidePrevidencia = dto.IncidePrevidencia;
 
         await _context.SaveChangesAsync();
+        return OperationResult.Ok("Rubrica atualizada com sucesso.");
     }
 
-    public async Task DeleteAsync(Guid id)
+    public async Task<OperationResult> DeleteAsync(Guid id)
     {
         var r = await _context.Rubricas.FindAsync(id);
-        if (r == null) throw new Exception("Rubrica não encontrada.");
+        if (r == null) return OperationResult.Failure("Rubrica não encontrada.");
 
         _context.Rubricas.Remove(r);
         await _context.SaveChangesAsync();
+        return OperationResult.Ok("Rubrica excluída com sucesso.");
     }
 
-    public async Task ToggleStatusAsync(Guid id)
+    public async Task<OperationResult> ToggleStatusAsync(Guid id)
     {
         var r = await _context.Rubricas.FindAsync(id);
-        if (r == null) throw new Exception("Rubrica não encontrada.");
+        if (r == null) return OperationResult.Failure("Rubrica não encontrada.");
 
         r.Ativo = !r.Ativo;
         await _context.SaveChangesAsync();
+        return OperationResult.Ok(r.Ativo ? "Rubrica ativada com sucesso." : "Rubrica inativada com sucesso.");
     }
 }

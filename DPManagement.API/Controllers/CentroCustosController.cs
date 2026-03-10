@@ -1,3 +1,4 @@
+using DPManagement.Application.Common;
 using DPManagement.Application.Interfaces;
 using DPManagement.Domain.Entities;
 using Microsoft.AspNetCore.Mvc;
@@ -18,72 +19,45 @@ public class CentroCustosController : ControllerBase
     [HttpGet]
     public async Task<IActionResult> GetAll([FromQuery] string? descricao, [FromQuery] Guid? orgaoId)
     {
-        var centros = await _service.ObterTodosAsync(descricao, orgaoId);
-        var dtos = centros.Select(c => new CentroCustoDto
-        {
-            Id = c.Id,
-            Descricao = c.Descricao,
-            OrgaoId = c.OrgaoId,
-            OrgaoNome = c.Orgao != null ? $"{c.Orgao.Nome} ({c.Orgao.Abreviatura})" : string.Empty,
-            Ativo = c.Ativo
-        });
-
-        return Ok(dtos);
+        var result = await _service.ObterTodosAsync(descricao, orgaoId);
+        return result.Success ? Ok(result) : BadRequest(result);
     }
 
     [HttpGet("{id}")]
     public async Task<IActionResult> GetById(Guid id)
     {
-        var c = await _service.ObterPorIdAsync(id);
-        if (c == null) return NotFound();
-
-        return Ok(new CentroCustoDto
-        {
-            Id = c.Id,
-            Descricao = c.Descricao,
-            OrgaoId = c.OrgaoId,
-            OrgaoNome = c.Orgao != null ? $"{c.Orgao.Nome} ({c.Orgao.Abreviatura})" : string.Empty,
-            Ativo = c.Ativo
-        });
+        var result = await _service.ObterPorIdAsync(id);
+        if (!result.Success) return NotFound(result);
+        return Ok(result);
     }
 
     [HttpPost]
-    public async Task<IActionResult> Create([FromBody] CentroCustoRequestDto request)
+    public async Task<IActionResult> Create([FromBody] CentroCusto centroCusto)
     {
-        var centro = new CentroCusto
-        {
-            Descricao = request.Descricao,
-            OrgaoId = request.OrgaoId
-        };
-
-        await _service.AdicionarAsync(centro);
-        return CreatedAtAction(nameof(GetById), new { id = centro.Id }, centro);
+        var result = await _service.AdicionarAsync(centroCusto);
+        if (!result.Success) return BadRequest(result);
+        return CreatedAtAction(nameof(GetById), new { id = result.Data?.Id }, result);
     }
 
     [HttpPut("{id}")]
-    public async Task<IActionResult> Update(Guid id, [FromBody] CentroCustoRequestDto request)
+    public async Task<IActionResult> Update(Guid id, [FromBody] CentroCusto centroCusto)
     {
-        var centro = await _service.ObterPorIdAsync(id);
-        if (centro == null) return NotFound();
-
-        centro.Descricao = request.Descricao;
-        centro.OrgaoId = request.OrgaoId;
-
-        await _service.AtualizarAsync(centro);
-        return NoContent();
+        if (id != centroCusto.Id) return BadRequest(OperationResult.Failure("ID do centro de custo não confere."));
+        var result = await _service.AtualizarAsync(centroCusto);
+        return result.Success ? Ok(result) : BadRequest(result);
     }
 
-    [HttpPut("{id}/ativar")]
-    public async Task<IActionResult> ToggleAtivo(Guid id, [FromQuery] bool ativo)
+    [HttpPatch("{id}/status")]
+    public async Task<IActionResult> ToggleStatus(Guid id, [FromBody] bool ativo)
     {
-        await _service.AtivarInativarAsync(id, ativo);
-        return NoContent();
+        var result = await _service.AtivarInativarAsync(id, ativo);
+        return result.Success ? Ok(result) : BadRequest(result);
     }
 
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(Guid id)
     {
-        await _service.RemoverAsync(id);
-        return NoContent();
+        var result = await _service.RemoverAsync(id);
+        return result.Success ? Ok(result) : BadRequest(result);
     }
 }

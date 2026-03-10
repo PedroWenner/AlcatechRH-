@@ -33,16 +33,19 @@ export default function Permissoes() {
         try {
             showLoading('Carregando...');
             const response = await api.get('/permissoes');
-            let data = response.data;
-
-            if (filters.modulo) {
-                data = data.filter((p: Permissao) => p.modulo.toLowerCase().includes(filters.modulo.toLowerCase()));
+            const resData = response.data;
+            if (resData.success) {
+                let data = resData.data;
+                if (filters.modulo) {
+                    data = data.filter((p: Permissao) => p.modulo.toLowerCase().includes(filters.modulo.toLowerCase()));
+                }
+                if (filters.acao) {
+                    data = data.filter((p: Permissao) => p.acao.toLowerCase().includes(filters.acao.toLowerCase()));
+                }
+                setPermissoes(data);
+            } else {
+                alertError(resData.message || 'Erro ao carregar permissões');
             }
-            if (filters.acao) {
-                data = data.filter((p: Permissao) => p.acao.toLowerCase().includes(filters.acao.toLowerCase()));
-            }
-
-            setPermissoes(data);
         } catch (error) {
             console.error('Erro ao buscar permissões', error);
             alertError('Erro ao carregar permissões');
@@ -62,20 +65,27 @@ export default function Permissoes() {
         e.preventDefault();
         showLoading('Salvando permissão...');
         try {
+            let response;
             if (editingPermissao) {
-                await api.put(`/permissoes/${editingPermissao.id}`, formData);
-                alertSuccess('Permissão atualizada');
+                response = await api.put(`/permissoes/${editingPermissao.id}`, formData);
             } else {
-                await api.post('/permissoes', formData);
-                alertSuccess('Permissão cadastrada');
+                response = await api.post('/permissoes', formData);
             }
-            setIsModalOpen(false);
-            setEditingPermissao(null);
-            setFormData({ modulo: '', acao: '', descricao: '' });
-            fetchPermissoes();
-        } catch (error) {
+
+            const resData = response.data;
+            if (resData.success) {
+                alertSuccess(resData.message || (editingPermissao ? 'Permissão atualizada' : 'Permissão cadastrada'));
+                setIsModalOpen(false);
+                setEditingPermissao(null);
+                setFormData({ modulo: '', acao: '', descricao: '' });
+                fetchPermissoes();
+            } else {
+                alertError(resData.message || 'Erro ao salvar permissão', resData.errors?.join('\n'));
+            }
+        } catch (error: any) {
             console.error('Erro ao salvar permissão', error);
-            alertError('Erro ao salvar permissão');
+            const apiError = error.response?.data;
+            alertError(apiError?.message || 'Erro ao salvar permissão', apiError?.errors?.join('\n'));
         } finally {
             closeLoading();
         }
@@ -88,11 +98,19 @@ export default function Permissoes() {
     };
 
     const handleToggleStatus = async (permissao: Permissao) => {
-        showLoading(permissao.ativo ? 'Inativando...' : 'Ativando...');
+        const novoStatus = !permissao.ativo;
+        showLoading(novoStatus ? 'Ativando...' : 'Inativando...');
         try {
-            await api.put(`/permissoes/${permissao.id}/ativar?ativo=${!permissao.ativo}`);
-            alertSuccess(`Permissão ${permissao.ativo ? 'inativada' : 'ativada'} com sucesso`);
-            fetchPermissoes();
+            const response = await api.patch(`/permissoes/${permissao.id}/status`, novoStatus, {
+                headers: { 'Content-Type': 'application/json' }
+            });
+            const resData = response.data;
+            if (resData.success) {
+                alertSuccess(resData.message || `Permissão ${novoStatus ? 'ativada' : 'inativada'} com sucesso`);
+                fetchPermissoes();
+            } else {
+                alertError(resData.message || 'Erro ao alterar status');
+            }
         } catch (error) {
             console.error('Erro ao alterar status', error);
             alertError('Erro ao alterar status');
@@ -106,9 +124,14 @@ export default function Permissoes() {
         if (confirmed) {
             showLoading('Excluindo...');
             try {
-                await api.delete(`/permissoes/${id}`);
-                alertSuccess('Permissão excluída');
-                fetchPermissoes();
+                const response = await api.delete(`/permissoes/${id}`);
+                const resData = response.data;
+                if (resData.success) {
+                    alertSuccess(resData.message || 'Permissão excluída');
+                    fetchPermissoes();
+                } else {
+                    alertError(resData.message || 'Erro ao excluir permissão');
+                }
             } catch (error) {
                 console.error('Erro ao excluir permissão', error);
                 alertError('Erro ao excluir permissão');

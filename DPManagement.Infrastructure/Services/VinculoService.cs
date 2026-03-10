@@ -1,3 +1,4 @@
+using DPManagement.Application.Common;
 using DPManagement.Application.DTOs;
 using DPManagement.Application.Interfaces;
 using DPManagement.Domain.Entities;
@@ -16,7 +17,7 @@ public class VinculoService : IVinculoService
         _context = context;
     }
 
-    public async Task<PagedResultDto<VinculoDto>> GetPaginatedAsync(int page, int pageSize, string? matricula, string? nomeColaborador)
+    public async Task<OperationResult<PagedResultDto<VinculoDto>>> GetPaginatedAsync(int page, int pageSize, string? matricula, string? nomeColaborador)
     {
         var query = _context.Vinculos
             .Include(v => v.Colaborador)
@@ -64,12 +65,10 @@ public class VinculoService : IVinculoService
             })
             .ToListAsync();
 
-        var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
-
-        return new PagedResultDto<VinculoDto>(items, totalCount, page, pageSize);
+        return OperationResult<PagedResultDto<VinculoDto>>.Ok(new PagedResultDto<VinculoDto>(items, totalCount, page, pageSize));
     }
 
-    public async Task<IEnumerable<VinculoDto>> GetAllAsync(bool showDeleted = false)
+    public async Task<OperationResult<IEnumerable<VinculoDto>>> GetAllAsync(bool showDeleted = false)
     {
         var query = _context.Vinculos
             .Include(v => v.Colaborador)
@@ -83,7 +82,7 @@ public class VinculoService : IVinculoService
             query = query.IgnoreQueryFilters();
         }
 
-        return await query.Select(v => new VinculoDto
+        var items = await query.Select(v => new VinculoDto
         {
             Id = v.Id,
             ColaboradorId = v.ColaboradorId,
@@ -104,9 +103,11 @@ public class VinculoService : IVinculoService
             DataAdmissao = v.DataAdmissao,
             Ativo = v.Ativo
         }).ToListAsync();
+
+        return OperationResult<IEnumerable<VinculoDto>>.Ok(items);
     }
 
-    public async Task<VinculoDto?> GetByIdAsync(Guid id)
+    public async Task<OperationResult<VinculoDto?>> GetByIdAsync(Guid id)
     {
         var v = await _context.Vinculos
             .Include(x => x.Colaborador)
@@ -116,9 +117,9 @@ public class VinculoService : IVinculoService
             .AsNoTracking()
             .FirstOrDefaultAsync(x => x.Id == id);
 
-        if (v == null) return null;
+        if (v == null) return OperationResult<VinculoDto?>.Failure("Vínculo não encontrado.");
 
-        return new VinculoDto
+        var dto = new VinculoDto
         {
             Id = v.Id,
             ColaboradorId = v.ColaboradorId,
@@ -139,9 +140,11 @@ public class VinculoService : IVinculoService
             DataAdmissao = v.DataAdmissao,
             Ativo = v.Ativo
         };
+
+        return OperationResult<VinculoDto?>.Ok(dto);
     }
 
-    public async Task<VinculoDto> CreateAsync(VinculoCreateUpdateDto dto)
+    public async Task<OperationResult<VinculoDto>> CreateAsync(VinculoCreateUpdateDto dto)
     {
         var vinculo = new Vinculo
         {
@@ -161,14 +164,15 @@ public class VinculoService : IVinculoService
         _context.Vinculos.Add(vinculo);
         await _context.SaveChangesAsync();
         
-        return await GetByIdAsync(vinculo.Id) ?? throw new Exception("Falha ao recuperar víncuo recém criado");
+        var createdDto = await GetByIdAsync(vinculo.Id);
+        return OperationResult<VinculoDto>.Ok(createdDto.Data!);
     }
 
-    public async Task UpdateAsync(Guid id, VinculoCreateUpdateDto dto)
+    public async Task<OperationResult> UpdateAsync(Guid id, VinculoCreateUpdateDto dto)
     {
         var vinculo = await _context.Vinculos.FindAsync(id);
         if (vinculo == null)
-            throw new Exception("Vínculo não encontrado.");
+            return OperationResult.Failure("Vínculo não encontrado.");
 
         vinculo.ColaboradorId = dto.ColaboradorId;
         vinculo.OrgaoId = dto.OrgaoId;
@@ -181,25 +185,28 @@ public class VinculoService : IVinculoService
 
         _context.Vinculos.Update(vinculo);
         await _context.SaveChangesAsync();
+        return OperationResult.Ok("Vínculo atualizado com sucesso.");
     }
 
-    public async Task ToggleStatusAsync(Guid id)
+    public async Task<OperationResult> ToggleStatusAsync(Guid id)
     {
         var vinculo = await _context.Vinculos.FindAsync(id);
         if (vinculo == null)
-            throw new Exception("Vínculo não encontrado.");
+            return OperationResult.Failure("Vínculo não encontrado.");
 
         vinculo.Ativo = !vinculo.Ativo;
         await _context.SaveChangesAsync();
+        return OperationResult.Ok(vinculo.Ativo ? "Vínculo ativado com sucesso." : "Vínculo inativado com sucesso.");
     }
 
-    public async Task DeleteAsync(Guid id)
+    public async Task<OperationResult> DeleteAsync(Guid id)
     {
         var vinculo = await _context.Vinculos.FindAsync(id);
         if (vinculo == null)
-            throw new Exception("Vínculo não encontrado.");
+            return OperationResult.Failure("Vínculo não encontrado.");
 
         _context.Vinculos.Remove(vinculo);
         await _context.SaveChangesAsync();
+        return OperationResult.Ok("Vínculo excluído com sucesso.");
     }
 }

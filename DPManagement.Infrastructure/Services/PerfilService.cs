@@ -1,3 +1,4 @@
+using DPManagement.Application.Common;
 using DPManagement.Application.Interfaces;
 using DPManagement.Domain.Entities;
 using DPManagement.Infrastructure.Persistence;
@@ -14,62 +15,72 @@ public class PerfilService : IPerfilService
         _context = context;
     }
 
-    public async Task<IEnumerable<Perfil>> ListarTodosAsync()
+    public async Task<OperationResult<IEnumerable<Perfil>>> ListarTodosAsync()
     {
-        return await _context.Perfis
+        var items = await _context.Perfis
             .Include(p => p.PerfilPermissoes)
             .OrderBy(p => p.Nome)
             .ToListAsync();
+        return OperationResult<IEnumerable<Perfil>>.Ok(items);
     }
 
-    public async Task<Perfil?> ObterPorIdAsync(Guid id)
+    public async Task<OperationResult<Perfil?>> ObterPorIdAsync(Guid id)
     {
-        return await _context.Perfis
+        var item = await _context.Perfis
             .Include(p => p.PerfilPermissoes)
                 .ThenInclude(pp => pp.Permissao)
             .FirstOrDefaultAsync(p => p.Id == id);
+        if (item == null) return OperationResult<Perfil?>.Failure("Perfil não encontrado.");
+        return OperationResult<Perfil?>.Ok(item);
     }
 
-    public async Task<Perfil> AdicionarAsync(Perfil perfil)
+    public async Task<OperationResult<Perfil>> AdicionarAsync(Perfil perfil)
     {
         _context.Perfis.Add(perfil);
         await _context.SaveChangesAsync();
-        return perfil;
+        return OperationResult<Perfil>.Ok(perfil, "Perfil criado com sucesso.");
     }
 
-    public async Task AtualizarAsync(Perfil perfil)
+    public async Task<OperationResult> AtualizarAsync(Perfil perfil)
     {
         _context.Entry(perfil).State = EntityState.Modified;
         await _context.SaveChangesAsync();
+        return OperationResult.Ok("Perfil atualizado com sucesso.");
     }
 
-    public async Task AtivarInativarAsync(Guid id, bool ativo)
+    public async Task<OperationResult> AtivarInativarAsync(Guid id, bool ativo)
     {
-        var perfil = await ObterPorIdAsync(id);
+        var result = await ObterPorIdAsync(id);
+        var perfil = result.Data;
         if (perfil != null)
         {
             perfil.Ativo = ativo;
             await _context.SaveChangesAsync();
+            return OperationResult.Ok(ativo ? "Perfil ativado com sucesso." : "Perfil inativado com sucesso.");
         }
+        return OperationResult.Failure("Perfil não encontrado.");
     }
 
-    public async Task RemoverAsync(Guid id)
+    public async Task<OperationResult> RemoverAsync(Guid id)
     {
-        var perfil = await ObterPorIdAsync(id);
+        var result = await ObterPorIdAsync(id);
+        var perfil = result.Data;
         if (perfil != null)
         {
             perfil.IsDeleted = true;
             await _context.SaveChangesAsync();
+            return OperationResult.Ok("Perfil excluído com sucesso.");
         }
+        return OperationResult.Failure("Perfil não encontrado.");
     }
 
-    public async Task AtribuirPermissoesAsync(Guid perfilId, IEnumerable<Guid> permissaoIds)
+    public async Task<OperationResult> AtribuirPermissoesAsync(Guid perfilId, IEnumerable<Guid> permissaoIds)
     {
         var perfil = await _context.Perfis
             .Include(p => p.PerfilPermissoes)
             .FirstOrDefaultAsync(p => p.Id == perfilId);
 
-        if (perfil == null) return;
+        if (perfil == null) return OperationResult.Failure("Perfil não encontrado.");
 
         // Limpa as permissões antigas
         _context.PerfilPermissoes.RemoveRange(perfil.PerfilPermissoes);
@@ -85,5 +96,6 @@ public class PerfilService : IPerfilService
         }
 
         await _context.SaveChangesAsync();
+        return OperationResult.Ok("Permissões atribuídas com sucesso.");
     }
 }

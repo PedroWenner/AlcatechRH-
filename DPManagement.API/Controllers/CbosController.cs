@@ -1,3 +1,4 @@
+using DPManagement.Application.Common;
 using DPManagement.Application.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
@@ -18,15 +19,16 @@ public class CbosController : ControllerBase
     public async Task<IActionResult> Search([FromQuery] string term)
     {
         if (string.IsNullOrWhiteSpace(term) || term.Length < 2) 
-            return Ok(Enumerable.Empty<object>());
+            return Ok(OperationResult<IEnumerable<object>>.Ok(Enumerable.Empty<object>()));
 
-        return Ok(await _cboAppService.SearchAsync(term));
+        var result = await _cboAppService.SearchAsync(term);
+        return result.Success ? Ok(result) : BadRequest(result);
     }
 
     [HttpGet("{codigo}")]
     public async Task<IActionResult> GetByCodigo(string codigo)
     {
-        var cbo = await _cboAppService.GetByCodigoAsync(codigo);
-        return cbo == null ? NotFound() : Ok(cbo);
+        var result = await _cboAppService.GetByCodigoAsync(codigo);
+        return result.Success ? Ok(result) : NotFound(result);
     }
 }
