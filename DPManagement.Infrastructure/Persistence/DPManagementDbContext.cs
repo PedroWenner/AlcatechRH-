@@ -27,6 +27,7 @@ public class DPManagementDbContext : DbContext
     public DbSet<AuditLog> AuditLogs { get; set; } = null!;
     public DbSet<DadoBancario> DadosBancarios { get; set; } = null!;
     public DbSet<Orgao> Orgaos { get; set; } = null!;
+    public DbSet<Vinculo> Vinculos { get; set; } = null!;
 
     public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
@@ -129,6 +130,15 @@ public class DPManagementDbContext : DbContext
         base.OnModelCreating(modelBuilder);
 
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(DPManagementDbContext).Assembly);
+
+        // Mapping Vinculo Enum Conversions or restrictions if needed
+        modelBuilder.Entity<Vinculo>()
+            .Property(v => v.RegimeJuridicoId)
+            .HasConversion<int>();
+            
+        modelBuilder.Entity<Vinculo>()
+            .Property(v => v.FormaIngressoId)
+            .HasConversion<int>();
 
         foreach (var entityType in modelBuilder.Model.GetEntityTypes())
         {

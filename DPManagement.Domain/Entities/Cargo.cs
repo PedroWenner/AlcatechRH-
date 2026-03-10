@@ -8,5 +8,6 @@ public class Cargo : ISoftDelete
     public string Nome { get; set; } = string.Empty;
     public string CBO { get; set; } = string.Empty;
     public ICollection<Colaborador> Colaboradores { get; set; } = new List<Colaborador>();
+    public ICollection<Vinculo> Vinculos { get; set; } = new List<Vinculo>();
     public bool IsDeleted { get; set; }
 }

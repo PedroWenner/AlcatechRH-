@@ -25,4 +25,5 @@ public class Colaborador : ISoftDelete
     public bool IsDeleted { get; set; } = false;
 
     public ICollection<DadoBancario> DadosBancarios { get; set; } = new List<DadoBancario>();
+    public ICollection<Vinculo> Vinculos { get; set; } = new List<Vinculo>();
 }

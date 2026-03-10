@@ -1,6 +1,6 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import { NavLink, Outlet, useNavigate, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Users, LogOut, Settings, Calculator, Briefcase, History, Shield, Clock, UserCog, Building2, ChevronDown, ChevronRight, FolderTree } from 'lucide-react';
+import { LayoutDashboard, Users, LogOut, Settings, Calculator, Briefcase, History, Shield, Clock, UserCog, Building2, ChevronDown, ChevronRight, FolderTree, BadgeDollarSign } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 
 export function AppLayout() {
@@ -9,14 +9,18 @@ export function AppLayout() {
   const location = useLocation();
   const [timeLeft, setTimeLeft] = useState<number | null>(null);
 
-  const hasAnyCadastroPermission = hasPermission('Usuarios', 'Visualizar') || 
-                                   hasPermission('Colaboradores', 'Visualizar') || 
-                                   hasPermission('Cargos', 'Visualizar') || 
-                                   hasPermission('Estrutura', 'Visualizar') || 
-                                   hasPermission('CentroCustos', 'Visualizar') || 
-                                   hasPermission('Perfis', 'Visualizar');
-  
+  const hasAnyCadastroPermission = hasPermission('Usuarios', 'Visualizar') ||
+    hasPermission('Colaboradores', 'Visualizar') ||
+    hasPermission('Cargos', 'Visualizar') ||
+    hasPermission('Estrutura', 'Visualizar') ||
+    hasPermission('CentroCustos', 'Visualizar') ||
+    hasPermission('Perfis', 'Visualizar');
+
   const isCadastrosActive = ['/users', '/employees', '/cargos', '/orgaos', '/centro-custos', '/perfis'].some(path => location.pathname.startsWith(path));
+
+  const hasAnyFolhaPermission = hasPermission('Vinculos', 'Visualizar') || hasPermission('Vinculos', 'Criar');
+
+  const isFolhaActive = ['/vinculos'].some(path => location.pathname.startsWith(path));
 
   useEffect(() => {
     if (!token) {
@@ -99,6 +103,14 @@ export function AppLayout() {
             </NavGroup>
           )}
 
+          {hasAnyFolhaPermission && (
+            <NavGroup icon={<BadgeDollarSign size={20} />} label="Folha" isActive={isFolhaActive}>
+              {hasPermission('Vinculos', 'Visualizar') && (
+                <NavItem to="/vinculos" icon={<Briefcase size={20} />} label="Vínculos Funcionais" />
+              )}
+            </NavGroup>
+          )}
+
           {hasPermission('Auditoria', 'Visualizar') && (
             <NavItem to="/audit" icon={<History size={20} />} label="Auditoria" />
           )}
@@ -175,9 +187,8 @@ function NavGroup({ icon, label, children, isActive }: { icon: ReactNode; label:
     <div className="space-y-1">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className={`w-full flex items-center justify-between px-4 py-3 rounded-md transition-colors focus:outline-none ${
-          isActive || isOpen ? 'bg-indigo-800 text-white' : 'text-indigo-100 hover:bg-indigo-800 hover:text-white'
-        }`}
+        className={`w-full flex items-center justify-between px-4 py-3 rounded-md transition-colors focus:outline-none ${isActive || isOpen ? 'bg-indigo-800 text-white' : 'text-indigo-100 hover:bg-indigo-800 hover:text-white'
+          }`}
       >
         <div className="flex items-center">
           <span className="mr-3">{icon}</span>

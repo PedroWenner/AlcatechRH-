@@ -22,7 +22,7 @@ public class CentroCustoService : ICentroCustoService
             .AsQueryable();
 
         if (!string.IsNullOrWhiteSpace(descricao))
-            query = query.Where(c => c.Descricao.Contains(descricao));
+            query = query.Where(c => c.Descricao.ToLower().Contains(descricao.ToLower()));
 
         if (orgaoId.HasValue && orgaoId.Value != Guid.Empty)
             query = query.Where(c => c.OrgaoId == orgaoId.Value);
