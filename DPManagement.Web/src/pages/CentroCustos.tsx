@@ -30,7 +30,7 @@ export default function CentroCustos() {
   const [orgaos, setOrgaos] = useState<Orgao[]>([]);
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState({ descricao: '' });
-  
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingCentro, setEditingCentro] = useState<CentroCusto | null>(null);
   const [formData, setFormData] = useState({ descricao: '', orgaoId: '' });
@@ -43,7 +43,7 @@ export default function CentroCustos() {
       setLoading(true);
       const params = new URLSearchParams();
       if (filters.descricao) params.append('descricao', filters.descricao);
-      
+
       const response = await api.get('/centro-custos', { params });
       setCentros(response.data);
     } catch (error) {
@@ -70,7 +70,7 @@ export default function CentroCustos() {
   }, []);
 
   const handleFilter = () => fetchCentros();
-  
+
   const handleClearFilters = () => {
     setFilters({ descricao: '' });
     setTimeout(fetchCentros, 0);
@@ -79,8 +79,8 @@ export default function CentroCustos() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.descricao || !formData.orgaoId) {
-        alertError('A descrição e o vínculo com Órgão são obrigatórios.');
-        return;
+      alertError('A descrição e o vínculo com Órgão são obrigatórios.');
+      return;
     }
     try {
       if (editingCentro) {
@@ -134,9 +134,8 @@ export default function CentroCustos() {
     {
       header: 'Status',
       render: (centro: CentroCusto) => (
-        <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-          centro.ativo ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-        }`}>
+        <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${centro.ativo ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+          }`}>
           {centro.ativo ? 'Ativo' : 'Inativo'}
         </span>
       )
@@ -222,6 +221,22 @@ export default function CentroCustos() {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         title={editingCentro ? 'Editar Centro de Custo' : 'Novo Centro de Custo'}
+        footer={(<>
+          <button
+            type="submit"
+            className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none sm:ml-3 sm:w-auto sm:text-sm"
+          >
+            Salvar
+          </button>
+          <button
+            type="button"
+            onClick={() => setIsModalOpen(false)}
+            className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
+          >
+            Cancelar
+          </button>
+        </>
+        )}
       >
         <form onSubmit={handleSubmit} className="space-y-4">
           <FormInput
@@ -238,10 +253,10 @@ export default function CentroCustos() {
             <Autocomplete
               label=""
               onSearch={async (term: string) => {
-                  return orgaos.filter((o: Orgao) => 
-                    o.nome.toLowerCase().includes(term.toLowerCase()) || 
-                    o.abreviatura.toLowerCase().includes(term.toLowerCase())
-                  );
+                return orgaos.filter((o: Orgao) =>
+                  o.nome.toLowerCase().includes(term.toLowerCase()) ||
+                  o.abreviatura.toLowerCase().includes(term.toLowerCase())
+                );
               }}
               displayValue={(item: Orgao) => `${item.nome} (${item.abreviatura})`}
               keyValue={(item: Orgao) => item.id}
@@ -257,21 +272,6 @@ export default function CentroCustos() {
               }}
               placeholder="Digite o nome do Órgão..."
             />
-          </div>
-          <div className="flex justify-end space-x-3 mt-6">
-            <button
-              type="button"
-              onClick={() => setIsModalOpen(false)}
-              className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-            >
-              Cancelar
-            </button>
-            <button
-              type="submit"
-              className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 border border-transparent rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-            >
-              Salvar
-            </button>
           </div>
         </form>
       </Modal>

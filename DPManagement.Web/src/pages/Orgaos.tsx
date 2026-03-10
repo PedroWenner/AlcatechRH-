@@ -24,7 +24,7 @@ export default function Orgaos() {
   const [data, setData] = useState<Orgao[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<Orgao | null>(null);
-  
+
   const [formData, setFormData] = useState({
     nome: '',
     abreviatura: '',
@@ -138,8 +138,8 @@ export default function Orgaos() {
       alertSuccess(novoStatus ? 'Estrutura ativada' : 'Estrutura inativada');
       fetchData();
     } catch (error) {
-       console.error('Erro ao alterar status:', error);
-       alertError('Erro ao alterar status');
+      console.error('Erro ao alterar status:', error);
+      alertError('Erro ao alterar status');
     } finally {
       closeLoading();
     }
@@ -191,18 +191,18 @@ export default function Orgaos() {
       render: (o) => (
         <div className="flex justify-end space-x-3 items-center">
           {canEdit && (
-             <>
-                <button title="Editar" onClick={() => handleEdit(o)} className="text-indigo-600 hover:text-indigo-900">
-                  <Edit size={18} />
-                </button>
-                <button 
-                  title={o.ativo ? "Inativar" : "Ativar"} 
-                  onClick={() => handleToggleStatus(o)} 
-                  className={o.ativo ? "text-red-500 hover:text-red-700" : "text-green-500 hover:text-green-700"}
-                >
-                  {o.ativo ? <XCircle size={18} /> : <CheckCircle size={18} />}
-                </button>
-             </>
+            <>
+              <button title="Editar" onClick={() => handleEdit(o)} className="text-indigo-600 hover:text-indigo-900">
+                <Edit size={18} />
+              </button>
+              <button
+                title={o.ativo ? "Inativar" : "Ativar"}
+                onClick={() => handleToggleStatus(o)}
+                className={o.ativo ? "text-red-500 hover:text-red-700" : "text-green-500 hover:text-green-700"}
+              >
+                {o.ativo ? <XCircle size={18} /> : <CheckCircle size={18} />}
+              </button>
+            </>
           )}
           {canDelete && (
             <button title="Excluir" onClick={() => handleDelete(o.id)} className="text-red-600 hover:text-red-900">
@@ -258,19 +258,34 @@ export default function Orgaos() {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         title={editingItem ? 'Editar Estrutura' : 'Nova Estrutura'}
+        footer={(<>
+          <button
+            type="submit"
+            className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none sm:ml-3 sm:w-auto sm:text-sm"
+          >
+            Salvar
+          </button>
+          <button
+            type="button"
+            onClick={() => setIsModalOpen(false)}
+            className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
+          >
+            Cancelar
+          </button>
+        </>)}
       >
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-             <label className="block text-sm font-medium text-gray-700 mb-1">Nível Hierárquico</label>
-             <select 
-               className="w-full px-3 py-2 border rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 outline-none"
-               value={formData.nivel}
-               onChange={(e) => setFormData({ ...formData, nivel: Number(e.target.value), orgaoPaiId: '' })}
-             >
-                <option value={1}>Órgão (Nível 1)</option>
-                <option value={2}>Secretaria (Nível 2)</option>
-                <option value={3}>Departamento (Nível 3)</option>
-             </select>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Nível Hierárquico</label>
+            <select
+              className="w-full px-3 py-2 border rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 outline-none"
+              value={formData.nivel}
+              onChange={(e) => setFormData({ ...formData, nivel: Number(e.target.value), orgaoPaiId: '' })}
+            >
+              <option value={1}>Órgão (Nível 1)</option>
+              <option value={2}>Secretaria (Nível 2)</option>
+              <option value={3}>Departamento (Nível 3)</option>
+            </select>
           </div>
 
           <FormInput
@@ -290,45 +305,29 @@ export default function Orgaos() {
           />
 
           {formData.nivel > 1 && (
-             <div className="mt-2">
-                <Autocomplete
-                  label={getParentLabel()}
-                  onSearch={async (term) => {
-                    const endpoint = getParentSearchEndpoint();
-                    if (!endpoint) return [];
-                    const res = await api.get(endpoint);
-                    return res.data.filter((o: Orgao) => o.nome.toLowerCase().includes(term.toLowerCase()) || o.abreviatura.toLowerCase().includes(term.toLowerCase()));
-                  }}
-                  placeholder={`Buscar e selecionar ${formData.nivel === 2 ? 'órgão' : 'secretaria'}...`}
-                  onSelect={(item) => {
-                    if (item) {
-                      setFormData({ ...formData, orgaoPaiId: item.id });
-                    } else {
-                      setFormData({ ...formData, orgaoPaiId: '' });
-                    }
-                  }}
-                  displayValue={(item) => `${item.nome} (${item.abreviatura})`}
-                  keyValue={(item) => item.id}
-                  defaultValue={editingItem?.orgaoPaiId ? editingItem.nomeAbreviaturaPai : undefined}
-                />
-             </div>
+            <div className="mt-2">
+              <Autocomplete
+                label={getParentLabel()}
+                onSearch={async (term) => {
+                  const endpoint = getParentSearchEndpoint();
+                  if (!endpoint) return [];
+                  const res = await api.get(endpoint);
+                  return res.data.filter((o: Orgao) => o.nome.toLowerCase().includes(term.toLowerCase()) || o.abreviatura.toLowerCase().includes(term.toLowerCase()));
+                }}
+                placeholder={`Buscar e selecionar ${formData.nivel === 2 ? 'órgão' : 'secretaria'}...`}
+                onSelect={(item) => {
+                  if (item) {
+                    setFormData({ ...formData, orgaoPaiId: item.id });
+                  } else {
+                    setFormData({ ...formData, orgaoPaiId: '' });
+                  }
+                }}
+                displayValue={(item) => `${item.nome} (${item.abreviatura})`}
+                keyValue={(item) => item.id}
+                defaultValue={editingItem?.orgaoPaiId ? editingItem.nomeAbreviaturaPai : undefined}
+              />
+            </div>
           )}
-
-          <div className="flex justify-end space-x-3 pt-4 border-t">
-            <button
-              type="button"
-              onClick={() => setIsModalOpen(false)}
-              className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 focus:outline-none"
-            >
-              Cancelar
-            </button>
-            <button
-              type="submit"
-              className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 focus:outline-none"
-            >
-              Salvar Estrutura
-            </button>
-          </div>
         </form>
       </Modal>
     </div>
