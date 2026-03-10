@@ -160,6 +160,10 @@ export default function Users() {
     }
   };
 
+  const canAdd = hasPermission('Usuarios', 'Criar');
+  const canEdit = hasPermission('Usuarios', 'Editar');
+  const canDelete = hasPermission('Usuarios', 'Excluir');
+
   const columns: TableColumn<Usuario>[] = [
     { header: 'Nome', accessor: 'nome' },
     { header: 'E-mail', accessor: 'email' },
@@ -169,12 +173,12 @@ export default function Users() {
       align: 'right',
       render: (user) => (
         <div className="space-x-4">
-          {hasPermission('Usuarios', 'Editar') && (
+          {canEdit && (
             <button onClick={() => handleEdit(user)} className="text-indigo-600 hover:text-indigo-900">
               <Edit size={18} />
             </button>
           )}
-          {hasPermission('Usuarios', 'Excluir') && (
+          {canDelete && (
             <button onClick={() => handleDelete(user.id)} className="text-red-600 hover:text-red-900">
               <Trash2 size={18} />
             </button>
@@ -194,7 +198,7 @@ export default function Users() {
           </h1>
           <p className="text-gray-500 mt-1">Gerencie as contas de acesso ao sistema e os perfis vinculados.</p>
         </div>
-        {hasPermission('Usuarios', 'Criar') && (
+        {canAdd && (
           <button
             onClick={() => { setEditingUser(null); setFormData({ nome: '', email: '', senha: '', perfilId: '' }); setIsModalOpen(true); }}
             className="flex items-center px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors shadow-sm"

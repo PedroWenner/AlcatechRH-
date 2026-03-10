@@ -117,6 +117,10 @@ export default function Cargos() {
     }
   };
 
+  const canAdd = hasPermission('Cargos', 'Criar');
+  const canEdit = hasPermission('Cargos', 'Editar');
+  const canDelete = hasPermission('Cargos', 'Excluir');
+
   const columns: TableColumn<Cargo>[] = [
     { header: 'Nome', accessor: 'nome' },
     { header: 'CBO', accessor: 'cbo' },
@@ -125,12 +129,12 @@ export default function Cargos() {
       align: 'right',
       render: (cargo) => (
         <div className="space-x-4">
-          {hasPermission('Cargos', 'Editar') && (
+          {canEdit && (
             <button onClick={() => handleEdit(cargo)} className="text-indigo-600 hover:text-indigo-900">
               <Edit size={18} />
             </button>
           )}
-          {hasPermission('Cargos', 'Excluir') && (
+          {canDelete && (
             <button onClick={() => handleDelete(cargo.id)} className="text-red-600 hover:text-red-900">
               <Trash2 size={18} />
             </button>
@@ -150,7 +154,7 @@ export default function Cargos() {
           </h1>
           <p className="text-gray-500 mt-1">Gerencie os cargos e CBOs da empresa.</p>
         </div>
-        {hasPermission('Cargos', 'Criar') && (
+        {canAdd && (
           <button
             onClick={() => { setEditingCargo(null); setFormData({ nome: '', cbo: '' }); setIsModalOpen(true); }}
             className="flex items-center px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors shadow-sm"

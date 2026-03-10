@@ -61,7 +61,7 @@ export default function Employees() {
     estado: '', cargoId: ''
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
-  
+
   const [isBankModalOpen, setIsBankModalOpen] = useState(false);
   const [selectedBankEmployee, setSelectedBankEmployee] = useState<{ id: string, nome: string } | null>(null);
 
@@ -119,7 +119,6 @@ export default function Employees() {
   const validateCPF = (cpf: string) => {
     const cleanCpf = cpf.replace(/\D/g, '');
     if (cleanCpf.length !== 11) return 'CPF deve ter 11 dígitos';
-    // Basic check for repeated numbers (real validation is on backend but let's provide feedback)
     if (/^(\d)\1+$/.test(cleanCpf)) return 'CPF inválido';
     return '';
   };
@@ -162,7 +161,6 @@ export default function Employees() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Final check
     const newErrors: Record<string, string> = {};
     if (!formData.nome) newErrors.nome = 'Campo obrigatório';
     const cpfErr = validateCPF(formData.cpf);
@@ -234,6 +232,11 @@ export default function Employees() {
     setIsModalOpen(true);
   };
 
+
+  const canAdd = hasPermission('Colaboradores', 'Criar');
+  const canEdit = hasPermission('Colaboradores', 'Editar');
+  const canDelete = hasPermission('Colaboradores', 'Excluir');
+
   const columns: TableColumn<Colaborador>[] = [
     {
       header: 'Nome / CPF',
@@ -254,24 +257,24 @@ export default function Employees() {
       align: 'right',
       render: (emp) => (
         <div className="space-x-4 flex justify-end">
-          {hasPermission('Colaboradores', 'Editar') && (
+          {canEdit && (
             <button
-               title="Dados Bancários"
-               onClick={() => {
-                 setSelectedBankEmployee({ id: emp.id, nome: emp.nome });
-                 setIsBankModalOpen(true);
-               }}
-               className="text-amber-600 hover:text-amber-900"
+              title="Dados Bancários"
+              onClick={() => {
+                setSelectedBankEmployee({ id: emp.id, nome: emp.nome });
+                setIsBankModalOpen(true);
+              }}
+              className="text-amber-600 hover:text-amber-900"
             >
               <Landmark size={18} />
             </button>
           )}
-          {hasPermission('Colaboradores', 'Editar') && (
+          {canEdit && (
             <button onClick={() => handleEdit(emp)} className="text-indigo-600 hover:text-indigo-900">
               <Edit size={18} />
             </button>
           )}
-          {hasPermission('Colaboradores', 'Excluir') && (
+          {canDelete && (
             <button onClick={() => handleDelete(emp.id)} className="text-red-600 hover:text-red-900">
               <Trash2 size={18} />
             </button>
@@ -291,7 +294,7 @@ export default function Employees() {
           </h1>
           <p className="text-gray-500 mt-1">Gerencie os colaboradores e seus dados cadastrais.</p>
         </div>
-        {hasPermission('Colaboradores', 'Criar') && (
+        {canAdd && (
           <button
             onClick={() => {
               setEditingEmployee(null);
