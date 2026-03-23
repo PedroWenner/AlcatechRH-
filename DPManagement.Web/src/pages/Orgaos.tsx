@@ -130,7 +130,7 @@ export default function Orgaos() {
       showLoading('Verificando dependências...');
       const countRes = await api.get(`/orgaos/${id}/contagem-descendentes`);
       closeLoading();
-      
+
       const count = countRes.data.success ? countRes.data.data : 0;
       let message = 'Esta ação não poderá ser desfeita.';
       if (count > 0) {
@@ -152,6 +152,7 @@ export default function Orgaos() {
     } catch (error) {
       console.error('Erro ao excluir estrutura:', error);
       alertError('Erro ao excluir estrutura');
+    } finally {
       closeLoading();
     }
   };
