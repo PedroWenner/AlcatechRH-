@@ -1,14 +1,14 @@
 using DPManagement.Application.Common;
-using DPManagement.Domain.Entities;
+using DPManagement.Application.DTOs;
 
 namespace DPManagement.Application.Interfaces;
 
 public interface ICentroCustoService
 {
-    Task<OperationResult<IEnumerable<CentroCusto>>> ObterTodosAsync(string? descricao = null, Guid? orgaoId = null);
-    Task<OperationResult<CentroCusto?>> ObterPorIdAsync(Guid id);
-    Task<OperationResult<CentroCusto>> AdicionarAsync(CentroCusto centroCusto);
-    Task<OperationResult> AtualizarAsync(CentroCusto centroCusto);
+    Task<OperationResult<IEnumerable<CentroCustoDto>>> ObterTodosAsync(string? descricao = null, Guid? orgaoId = null);
+    Task<OperationResult<CentroCustoDto?>> ObterPorIdAsync(Guid id);
+    Task<OperationResult<CentroCustoDto>> AdicionarAsync(CentroCustoRequestDto request);
+    Task<OperationResult> AtualizarAsync(CentroCustoRequestDto request);
     Task<OperationResult> RemoverAsync(Guid id);
     Task<OperationResult> AtivarInativarAsync(Guid id, bool ativo);
 }

@@ -1,4 +1,4 @@
-namespace DPManagement.API.Controllers;
+namespace DPManagement.Application.DTOs;
 
 public class CentroCustoDto
 {
@@ -11,6 +11,7 @@ public class CentroCustoDto
 
 public class CentroCustoRequestDto
 {
+    public Guid? Id { get; set; }
     public string Descricao { get; set; } = string.Empty;
     public Guid OrgaoId { get; set; }
 }

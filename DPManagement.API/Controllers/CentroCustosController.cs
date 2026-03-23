@@ -1,6 +1,6 @@
 using DPManagement.Application.Common;
+using DPManagement.Application.DTOs;
 using DPManagement.Application.Interfaces;
-using DPManagement.Domain.Entities;
 using Microsoft.AspNetCore.Mvc;
 
 namespace DPManagement.API.Controllers;
@@ -32,18 +32,18 @@ public class CentroCustosController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<IActionResult> Create([FromBody] CentroCusto centroCusto)
+    public async Task<IActionResult> Create([FromBody] CentroCustoRequestDto request)
     {
-        var result = await _service.AdicionarAsync(centroCusto);
+        var result = await _service.AdicionarAsync(request);
         if (!result.Success) return BadRequest(result);
         return CreatedAtAction(nameof(GetById), new { id = result.Data?.Id }, result);
     }
 
     [HttpPut("{id}")]
-    public async Task<IActionResult> Update(Guid id, [FromBody] CentroCusto centroCusto)
+    public async Task<IActionResult> Update(Guid id, [FromBody] CentroCustoRequestDto request)
     {
-        if (id != centroCusto.Id) return BadRequest(OperationResult.Failure("ID do centro de custo não confere."));
-        var result = await _service.AtualizarAsync(centroCusto);
+        if (id != request.Id) return BadRequest(OperationResult.Failure("ID do centro de custo não confere."));
+        var result = await _service.AtualizarAsync(request);
         return result.Success ? Ok(result) : BadRequest(result);
     }
 

@@ -1,4 +1,5 @@
 using DPManagement.Application.Common;
+using DPManagement.Application.DTOs;
 using DPManagement.Application.Interfaces;
 using DPManagement.Domain.Entities;
 using DPManagement.Infrastructure.Persistence;
@@ -15,7 +16,7 @@ public class CentroCustoService : ICentroCustoService
         _context = context;
     }
 
-    public async Task<OperationResult<IEnumerable<CentroCusto>>> ObterTodosAsync(string? descricao = null, Guid? orgaoId = null)
+    public async Task<OperationResult<IEnumerable<CentroCustoDto>>> ObterTodosAsync(string? descricao = null, Guid? orgaoId = null)
     {
         var query = _context.CentroCustos
             .Include(c => c.Orgao)
@@ -29,37 +30,82 @@ public class CentroCustoService : ICentroCustoService
             query = query.Where(c => c.OrgaoId == orgaoId.Value);
 
         var items = await query.OrderBy(c => c.Descricao).ToListAsync();
-        return OperationResult<IEnumerable<CentroCusto>>.Ok(items);
+        
+        var dtos = items.Select(c => new CentroCustoDto
+        {
+            Id = c.Id,
+            Descricao = c.Descricao,
+            OrgaoId = c.OrgaoId,
+            OrgaoNome = c.Orgao?.Nome ?? string.Empty,
+            Ativo = c.Ativo
+        });
+
+        return OperationResult<IEnumerable<CentroCustoDto>>.Ok(dtos);
     }
 
-    public async Task<OperationResult<CentroCusto?>> ObterPorIdAsync(Guid id)
+    public async Task<OperationResult<CentroCustoDto?>> ObterPorIdAsync(Guid id)
     {
         var item = await _context.CentroCustos
             .Include(c => c.Orgao)
             .FirstOrDefaultAsync(c => c.Id == id && !c.IsDeleted);
         
-        if (item == null) return OperationResult<CentroCusto?>.Failure("Centro de custo não encontrado.");
-        return OperationResult<CentroCusto?>.Ok(item);
+        if (item == null) return OperationResult<CentroCustoDto?>.Failure("Centro de custo não encontrado.");
+
+        var dto = new CentroCustoDto
+        {
+            Id = item.Id,
+            Descricao = item.Descricao,
+            OrgaoId = item.OrgaoId,
+            OrgaoNome = item.Orgao?.Nome ?? string.Empty,
+            Ativo = item.Ativo
+        };
+
+        return OperationResult<CentroCustoDto?>.Ok(dto);
     }
 
-    public async Task<OperationResult<CentroCusto>> AdicionarAsync(CentroCusto centroCusto)
+    public async Task<OperationResult<CentroCustoDto>> AdicionarAsync(CentroCustoRequestDto request)
     {
+        var centroCusto = new CentroCusto
+        {
+            Descricao = request.Descricao,
+            OrgaoId = request.OrgaoId,
+            Ativo = true
+        };
+
         _context.CentroCustos.Add(centroCusto);
         await _context.SaveChangesAsync();
-        return OperationResult<CentroCusto>.Ok(centroCusto, "Centro de custo criado com sucesso.");
+
+        var orgao = await _context.Orgaos.FindAsync(request.OrgaoId);
+
+        var dto = new CentroCustoDto
+        {
+            Id = centroCusto.Id,
+            Descricao = centroCusto.Descricao,
+            OrgaoId = centroCusto.OrgaoId,
+            OrgaoNome = orgao?.Nome ?? string.Empty,
+            Ativo = centroCusto.Ativo
+        };
+
+        return OperationResult<CentroCustoDto>.Ok(dto, "Centro de custo criado com sucesso.");
     }
 
-    public async Task<OperationResult> AtualizarAsync(CentroCusto centroCusto)
+    public async Task<OperationResult> AtualizarAsync(CentroCustoRequestDto request)
     {
-        _context.Entry(centroCusto).State = EntityState.Modified;
+        if (!request.Id.HasValue) return OperationResult.Failure("ID do centro de custo é obrigatório para atualização.");
+
+        var centroCusto = await _context.CentroCustos.FindAsync(request.Id.Value);
+        if (centroCusto == null) return OperationResult.Failure("Centro de custo não encontrado.");
+
+        centroCusto.Descricao = request.Descricao;
+        centroCusto.OrgaoId = request.OrgaoId;
+
         await _context.SaveChangesAsync();
         return OperationResult.Ok("Centro de custo atualizado com sucesso.");
     }
 
     public async Task<OperationResult> AtivarInativarAsync(Guid id, bool ativo)
     {
-        var result = await ObterPorIdAsync(id);
-        var centro = result.Data;
+        var centro = await _context.CentroCustos.FirstOrDefaultAsync(c => c.Id == id && !c.IsDeleted);
         if (centro != null)
         {
             centro.Ativo = ativo;
@@ -71,8 +117,7 @@ public class CentroCustoService : ICentroCustoService
 
     public async Task<OperationResult> RemoverAsync(Guid id)
     {
-        var result = await ObterPorIdAsync(id);
-        var centro = result.Data;
+        var centro = await _context.CentroCustos.FirstOrDefaultAsync(c => c.Id == id && !c.IsDeleted);
         if (centro != null)
         {
             centro.IsDeleted = true;
