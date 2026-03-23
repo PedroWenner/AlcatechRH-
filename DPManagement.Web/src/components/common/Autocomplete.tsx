@@ -51,7 +51,7 @@ export function Autocomplete({
         setIsLoading(true);
         try {
           const data = await onSearch(searchTerm);
-          setResults(data);
+          setResults(data || []);
           setSelectedIndex(-1);
         } catch (error) {
           console.error('Erro na busca autocomplete:', error);

@@ -311,7 +311,7 @@ export default function Vinculos() {
                 required
                 onSearch={async (term) => {
                   const res = await api.get('/colaboradores', { params: { nome: term } });
-                  return res.data.items;
+                  return res.data.data?.items || [];
                 }}
                 displayValue={(c: Colaborador) => `${c.nome} (${c.cpf})`}
                 keyValue={(c: Colaborador) => c.id}
@@ -346,7 +346,11 @@ export default function Vinculos() {
                 required
                 onSearch={async (term) => {
                   const res = await api.get('/orgaos');
-                  return res.data.filter((o: Orgao) => o.nome.toLowerCase().includes(term.toLowerCase()) || o.abreviatura.toLowerCase().includes(term.toLowerCase()));
+                  const orgaos = res.data.data || [];
+                  return orgaos.filter((o: Orgao) => 
+                    o.nome.toLowerCase().includes(term.toLowerCase()) || 
+                    o.abreviatura.toLowerCase().includes(term.toLowerCase())
+                  );
                 }}
                 displayValue={(o: Orgao) => `${o.nome} (${o.abreviatura})`}
                 keyValue={(o: Orgao) => o.id}
@@ -362,7 +366,7 @@ export default function Vinculos() {
                 required
                 onSearch={async (term) => {
                   const res = await api.get('/centro-custos', { params: { descricao: term } });
-                  return res.data;
+                  return res.data.data || [];
                 }}
                 displayValue={(cc: CentroCusto) => cc.descricao}
                 keyValue={(cc: CentroCusto) => cc.id}
@@ -378,7 +382,7 @@ export default function Vinculos() {
                 required
                 onSearch={async (term) => {
                   const res = await api.get('/cargos', { params: { nome: term } });
-                  return res.data.items;
+                  return res.data.data?.items || [];
                 }}
                 displayValue={(c: Cargo) => c.nome}
                 keyValue={(c: Cargo) => c.id}
