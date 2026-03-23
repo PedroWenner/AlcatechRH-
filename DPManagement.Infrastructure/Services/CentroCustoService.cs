@@ -118,12 +118,17 @@ public class CentroCustoService : ICentroCustoService
     public async Task<OperationResult> RemoverAsync(Guid id)
     {
         var centro = await _context.CentroCustos.FirstOrDefaultAsync(c => c.Id == id && !c.IsDeleted);
-        if (centro != null)
+        if (centro == null) return OperationResult.Failure("Centro de custo não encontrado.");
+
+        // Verificando se existem vínculos ativos atrelados a este centro de custo
+        var possuiVinculos = await _context.Vinculos.AnyAsync(v => v.CentroCustoId == id && !v.IsDeleted);
+        if (possuiVinculos)
         {
-            centro.IsDeleted = true;
-            await _context.SaveChangesAsync();
-            return OperationResult.Ok("Centro de custo excluído com sucesso.");
+            return OperationResult.Failure("Não é possível excluir este Centro de Custo pois ele possui vínculos ativos.");
         }
-        return OperationResult.Failure("Centro de custo não encontrado.");
+
+        centro.IsDeleted = true;
+        await _context.SaveChangesAsync();
+        return OperationResult.Ok("Centro de custo excluído com sucesso.");
     }
 }

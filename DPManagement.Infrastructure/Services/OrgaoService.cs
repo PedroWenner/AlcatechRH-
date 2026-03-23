@@ -68,10 +68,36 @@ public class OrgaoService : IOrgaoService
         var orgao = await _context.Orgaos.FirstOrDefaultAsync(o => o.Id == id && !o.IsDeleted);
         if (orgao == null) return OperationResult.Failure("Órgão não encontrado.");
 
+        // Check for active Vinculos in this organ or any descendant
+        if (await PossuiVinculosAtivosRecursivoAsync(id))
+        {
+            return OperationResult.Failure("Não é possível excluir esta estrutura pois ela ou uma subestrutura possui vínculos ativos.");
+        }
+
         await MarcarComoDeletadoRecursivoAsync(id);
         
         await _context.SaveChangesAsync();
         return OperationResult.Ok("Órgão excluído com sucesso.");
+    }
+
+    private async Task<bool> PossuiVinculosAtivosRecursivoAsync(Guid id)
+    {
+        // Check current organ
+        var temVinculo = await _context.Vinculos.AnyAsync(v => v.OrgaoId == id && !v.IsDeleted);
+        if (temVinculo) return true;
+
+        // Check children
+        var children = await _context.Orgaos
+            .Where(o => o.OrgaoPaiId == id && !o.IsDeleted)
+            .Select(o => o.Id)
+            .ToListAsync();
+
+        foreach (var childId in children)
+        {
+            if (await PossuiVinculosAtivosRecursivoAsync(childId)) return true;
+        }
+
+        return false;
     }
 
     private async Task MarcarComoDeletadoRecursivoAsync(Guid id)
