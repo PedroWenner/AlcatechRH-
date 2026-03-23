@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Edit, Trash2, CheckCircle, XCircle, Building2 } from 'lucide-react';
+import { Plus, Edit, Trash2, Building2 } from 'lucide-react';
 import api from '../services/api';
 import { FormInput } from '../components/common/FormInput';
 import { Table, type TableColumn } from '../components/common/Table';
@@ -147,27 +147,6 @@ export default function Orgaos() {
     }
   };
 
-  const handleToggleStatus = async (item: Orgao) => {
-    const novoStatus = !item.ativo;
-    showLoading(novoStatus ? 'Ativando...' : 'Inativando...');
-    try {
-      const response = await api.patch(`/orgaos/${item.id}/status`, novoStatus, {
-        headers: { 'Content-Type': 'application/json' }
-      });
-      const resData = response.data;
-      if (resData.success) {
-        alertSuccess(resData.message || (novoStatus ? 'Estrutura ativada' : 'Estrutura inativada'));
-        fetchData();
-      } else {
-        alertError(resData.message || 'Erro ao alterar status');
-      }
-    } catch (error) {
-      console.error('Erro ao alterar status:', error);
-      alertError('Erro ao alterar status');
-    } finally {
-      closeLoading();
-    }
-  };
 
   const openNewModal = () => {
     setEditingItem(null);
@@ -202,31 +181,14 @@ export default function Orgaos() {
     { header: 'Abreviação', accessor: 'abreviatura' },
     { header: 'Vinculado a', render: (o) => o.nomeAbreviaturaPai || '-' },
     {
-      header: 'Status',
-      render: (o) => (
-        <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${o.ativo ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-          {o.ativo ? 'Ativo' : 'Inativo'}
-        </span>
-      )
-    },
-    {
       header: 'Ações',
       align: 'right',
       render: (o) => (
         <div className="flex justify-end space-x-3 items-center">
           {canEdit && (
-            <>
-              <button title="Editar" onClick={() => handleEdit(o)} className="text-indigo-600 hover:text-indigo-900">
-                <Edit size={18} />
-              </button>
-              <button
-                title={o.ativo ? "Inativar" : "Ativar"}
-                onClick={() => handleToggleStatus(o)}
-                className={o.ativo ? "text-red-500 hover:text-red-700" : "text-green-500 hover:text-green-700"}
-              >
-                {o.ativo ? <XCircle size={18} /> : <CheckCircle size={18} />}
-              </button>
-            </>
+            <button title="Editar" onClick={() => handleEdit(o)} className="text-indigo-600 hover:text-indigo-900">
+              <Edit size={18} />
+            </button>
           )}
           {canDelete && (
             <button title="Excluir" onClick={() => handleDelete(o.id)} className="text-red-600 hover:text-red-900">

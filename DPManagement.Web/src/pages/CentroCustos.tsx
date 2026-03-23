@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Plus, CheckCircle, XCircle, FolderTree, Shield, Edit } from 'lucide-react';
+import { Plus, Trash2, FolderTree, Shield, Edit } from 'lucide-react';
 import api from '../services/api';
 import { FilterBar } from '../components/common/FilterBar';
 import { FormInput } from '../components/common/FormInput';
@@ -7,7 +7,7 @@ import { Autocomplete } from '../components/common/Autocomplete';
 import { Modal } from '../components/common/Modal';
 import { Table } from '../components/common/Table';
 import type { TableColumn } from '../components/common/Table';
-import { alertSuccess, alertError } from '../services/alertService';
+import { alertSuccess, alertError, alertDeleteConfirm, showLoading, closeLoading } from '../services/alertService';
 import { useAuth } from '../hooks/useAuth';
 
 interface CentroCusto {
@@ -117,20 +117,25 @@ export default function CentroCustos() {
     }
   };
 
-  const handleToggleStatus = async (id: string, currentStatus: boolean) => {
-    try {
-      const response = await api.patch(`/centro-custos/${id}/status`, !currentStatus, {
-        headers: { 'Content-Type': 'application/json' }
-      });
-      const resData = response.data;
-      if (resData.success) {
-        alertSuccess(resData.message || `Centro de custo ${currentStatus ? 'inativado' : 'ativado'} com sucesso`);
-        fetchCentros();
-      } else {
-        alertError(resData.message || `Erro ao ${currentStatus ? 'inativar' : 'ativar'} centro de custo`);
+  const handleDelete = async (id: string) => {
+    const confirmed = await alertDeleteConfirm('Excluir Centro de Custo?', 'Esta ação não poderá ser desfeita.');
+    if (confirmed) {
+      showLoading('Excluindo...');
+      try {
+        const response = await api.delete(`/centro-custos/${id}`);
+        const resData = response.data;
+        if (resData.success) {
+          alertSuccess(resData.message || 'Centro de custo excluído');
+          fetchCentros();
+        } else {
+          alertError(resData.message || 'Erro ao excluir centro de custo');
+        }
+      } catch (error) {
+        console.error('Erro ao excluir centro de custo:', error);
+        alertError('Erro ao excluir centro de custo');
+      } finally {
+        closeLoading();
       }
-    } catch (error) {
-      alertError(`Erro ao ${currentStatus ? 'inativar' : 'ativar'} centro de custo`);
     }
   };
 
@@ -158,15 +163,6 @@ export default function CentroCustos() {
     { header: 'Descrição', accessor: 'descricao' },
     { header: 'Órgão Vinculado', accessor: 'orgaoNome' },
     {
-      header: 'Status',
-      render: (centro: CentroCusto) => (
-        <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${centro.ativo ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-          }`}>
-          {centro.ativo ? 'Ativo' : 'Inativo'}
-        </span>
-      )
-    },
-    {
       header: 'Ações',
       align: 'right',
       render: (centro: CentroCusto) => (
@@ -180,13 +176,13 @@ export default function CentroCustos() {
               <Edit size={18} />
             </button>
           )}
-          {checkPerm('Editar') && (
+          {checkPerm('Excluir') && (
             <button
-              onClick={() => handleToggleStatus(centro.id, centro.ativo)}
-              className={`${centro.ativo ? 'text-red-600 hover:text-red-900' : 'text-green-600 hover:text-green-900'}`}
-              title={centro.ativo ? 'Inativar' : 'Ativar'}
+              onClick={() => handleDelete(centro.id)}
+              className="text-red-600 hover:text-red-900"
+              title="Excluir"
             >
-              {centro.ativo ? <XCircle size={18} /> : <CheckCircle size={18} />}
+              <Trash2 size={18} />
             </button>
           )}
         </div>
