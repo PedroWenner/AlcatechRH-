@@ -12,4 +12,5 @@ public interface IOrgaoService
     Task<OperationResult> AtualizarAsync(Orgao orgao);
     Task<OperationResult> RemoverAsync(Guid id);
     Task<OperationResult> AlternarStatusAsync(Guid id, bool ativo);
+    Task<OperationResult<int>> ObterContagemDescendentesAsync(Guid id);
 }

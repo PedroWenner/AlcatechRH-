@@ -126,10 +126,20 @@ export default function Orgaos() {
   };
 
   const handleDelete = async (id: string) => {
-    const confirmed = await alertDeleteConfirm('Excluir Estrutura?', 'Esta ação não poderá ser desfeita e pode afetar estruturas filhas.');
-    if (confirmed) {
-      showLoading('Excluindo...');
-      try {
+    try {
+      showLoading('Verificando dependências...');
+      const countRes = await api.get(`/orgaos/${id}/contagem-descendentes`);
+      closeLoading();
+      
+      const count = countRes.data.success ? countRes.data.data : 0;
+      let message = 'Esta ação não poderá ser desfeita.';
+      if (count > 0) {
+        message = `Atenção: Existem ${count} estruturas (secretarias/departamentos) vinculadas que serão excluídas juntamente. Esta ação não poderá ser desfeita.`;
+      }
+
+      const confirmed = await alertDeleteConfirm('Excluir Estrutura?', message);
+      if (confirmed) {
+        showLoading('Excluindo...');
         const response = await api.delete(`/orgaos/${id}`);
         const resData = response.data;
         if (resData.success) {
@@ -138,12 +148,11 @@ export default function Orgaos() {
         } else {
           alertError(resData.message || 'Erro ao excluir estrutura');
         }
-      } catch (error) {
-        console.error('Erro ao excluir estrutura:', error);
-        alertError('Erro ao excluir estrutura');
-      } finally {
-        closeLoading();
       }
+    } catch (error) {
+      console.error('Erro ao excluir estrutura:', error);
+      alertError('Erro ao excluir estrutura');
+      closeLoading();
     }
   };
 

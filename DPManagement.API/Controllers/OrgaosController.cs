@@ -105,6 +105,13 @@ public class OrgaosController : ControllerBase
         return result.Success ? Ok(result) : BadRequest(result);
     }
 
+    [HttpGet("{id}/contagem-descendentes")]
+    public async Task<IActionResult> GetChildrenCount(Guid id)
+    {
+        var result = await _service.ObterContagemDescendentesAsync(id);
+        return result.Success ? Ok(result) : BadRequest(result);
+    }
+
     [HttpPatch("{id}/status")]
     public async Task<IActionResult> ToggleStatus(Guid id, [FromBody] bool ativo)
     {

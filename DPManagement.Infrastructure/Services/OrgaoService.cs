@@ -65,15 +65,53 @@ public class OrgaoService : IOrgaoService
 
     public async Task<OperationResult> RemoverAsync(Guid id)
     {
-        var result = await ObterPorIdAsync(id);
-        var orgao = result.Data;
-        if (orgao != null)
+        var orgao = await _context.Orgaos.FirstOrDefaultAsync(o => o.Id == id && !o.IsDeleted);
+        if (orgao == null) return OperationResult.Failure("Órgão não encontrado.");
+
+        await MarcarComoDeletadoRecursivoAsync(id);
+        
+        await _context.SaveChangesAsync();
+        return OperationResult.Ok("Órgão excluído com sucesso.");
+    }
+
+    private async Task MarcarComoDeletadoRecursivoAsync(Guid id)
+    {
+        var orgao = await _context.Orgaos.FirstOrDefaultAsync(o => o.Id == id && !o.IsDeleted);
+        if (orgao == null) return;
+
+        orgao.IsDeleted = true;
+
+        var children = await _context.Orgaos
+            .Where(o => o.OrgaoPaiId == id && !o.IsDeleted)
+            .Select(o => o.Id)
+            .ToListAsync();
+
+        foreach (var childId in children)
         {
-            orgao.IsDeleted = true;
-            await _context.SaveChangesAsync();
-            return OperationResult.Ok("Órgão excluído com sucesso.");
+            await MarcarComoDeletadoRecursivoAsync(childId);
         }
-        return OperationResult.Failure("Órgão não encontrado.");
+    }
+
+    public async Task<OperationResult<int>> ObterContagemDescendentesAsync(Guid id)
+    {
+        var total = 0;
+        var children = await _context.Orgaos
+            .Where(o => o.OrgaoPaiId == id && !o.IsDeleted)
+            .Select(o => o.Id)
+            .ToListAsync();
+
+        total += children.Count;
+
+        foreach (var childId in children)
+        {
+            var subResult = await ObterContagemDescendentesAsync(childId);
+            if (subResult.Success)
+            {
+                total += subResult.Data;
+            }
+        }
+
+        return OperationResult<int>.Ok(total);
     }
 
     public async Task<OperationResult> AlternarStatusAsync(Guid id, bool ativo)
