@@ -10,4 +10,5 @@ public interface ICargoRepository
     Task AddAsync(Cargo cargo);
     Task UpdateAsync(Cargo cargo);
     Task DeleteAsync(Guid id);
+    Task<bool> HasActiveVinculosAsync(Guid id);
 }

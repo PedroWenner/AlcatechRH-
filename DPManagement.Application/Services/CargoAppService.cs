@@ -57,6 +57,12 @@ public class CargoAppService : ICargoAppService
 
     public async Task<OperationResult> DeleteAsync(Guid id)
     {
+        var hasVinculos = await _cargoRepository.HasActiveVinculosAsync(id);
+        if (hasVinculos)
+        {
+            return OperationResult.Failure("Não é possível excluir este Cargo pois ele possui vínculos ativos.");
+        }
+
         await _cargoRepository.DeleteAsync(id);
         return OperationResult.Ok("Cargo excluído com sucesso.");
     }

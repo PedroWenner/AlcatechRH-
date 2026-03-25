@@ -59,4 +59,9 @@ public class CargoRepository : ICargoRepository
             await _context.SaveChangesAsync();
         }
     }
+
+    public async Task<bool> HasActiveVinculosAsync(Guid id)
+    {
+        return await _context.Vinculos.AnyAsync(v => v.CargoId == id && !v.IsDeleted);
+    }
 }
