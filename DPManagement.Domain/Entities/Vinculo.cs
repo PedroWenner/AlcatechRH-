@@ -27,6 +27,8 @@ public class Vinculo : ISoftDelete
     
     public DateTime DataAdmissao { get; set; }
     
+    public decimal SalarioBase { get; set; }
+    
     public bool Ativo { get; set; } = true;
     public bool IsDeleted { get; set; } = false;
 }

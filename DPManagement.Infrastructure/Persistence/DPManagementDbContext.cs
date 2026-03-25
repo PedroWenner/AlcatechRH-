@@ -34,9 +34,9 @@ public class DPManagementDbContext : DbContext
     {
         OnBeforeSaveChanges();
         var auditEntries = HandleAuditing();
-        
+
         var result = await base.SaveChangesAsync(cancellationToken);
-        
+
         if (auditEntries.Any())
         {
             await OnAfterSaveChanges(auditEntries);
@@ -132,6 +132,23 @@ public class DPManagementDbContext : DbContext
 
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(DPManagementDbContext).Assembly);
 
+        // Mapping Vinculo Enum Conversions or restrictions if needed
+        modelBuilder.Entity<Vinculo>()
+            .Property(v => v.RegimeJuridicoId)
+            .HasConversion<int>();
+
+        modelBuilder.Entity<Vinculo>()
+            .Property(v => v.FormaIngressoId)
+            .HasConversion<int>();
+
+        modelBuilder.Entity<Rubrica>()
+            .Property(v => v.Tipo)
+            .HasConversion<int>();
+
+        modelBuilder.Entity<Rubrica>()
+            .HasIndex(r => r.Codigo)
+            .IsUnique();
+
         foreach (var entityType in modelBuilder.Model.GetEntityTypes())
         {
             if (typeof(ISoftDelete).IsAssignableFrom(entityType.ClrType))
@@ -140,7 +157,7 @@ public class DPManagementDbContext : DbContext
                 var body = Expression.Equal(
                     Expression.Property(parameter, nameof(ISoftDelete.IsDeleted)),
                     Expression.Constant(false));
-                
+
                 var filter = Expression.Lambda(body, parameter);
                 modelBuilder.Entity(entityType.ClrType).HasQueryFilter(filter);
             }
