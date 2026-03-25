@@ -96,7 +96,7 @@ export default function CentroCustos() {
     try {
       let response;
       if (editingCentro) {
-        response = await api.put(`/centro-custos/${editingCentro.id}`, formData);
+        response = await api.put(`/centro-custos/${editingCentro.id}`, { ...formData, id: editingCentro.id });
       } else {
         response = await api.post('/centro-custos', formData);
       }

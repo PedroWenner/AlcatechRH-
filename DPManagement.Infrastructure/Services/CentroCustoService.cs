@@ -96,6 +96,16 @@ public class CentroCustoService : ICentroCustoService
         var centroCusto = await _context.CentroCustos.FindAsync(request.Id.Value);
         if (centroCusto == null) return OperationResult.Failure("Centro de custo não encontrado.");
 
+        // Se o órgão está sendo alterado, verificamos se existem vínculos
+        if (centroCusto.OrgaoId != request.OrgaoId)
+        {
+            var possuiVinculos = await _context.Vinculos.AnyAsync(v => v.CentroCustoId == centroCusto.Id && !v.IsDeleted);
+            if (possuiVinculos)
+            {
+                return OperationResult.Failure("Não é possível alterar o órgão deste Centro de Custo pois ele possui vínculos ativos.");
+            }
+        }
+
         centroCusto.Descricao = request.Descricao;
         centroCusto.OrgaoId = request.OrgaoId;
 
