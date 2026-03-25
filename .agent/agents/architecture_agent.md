@@ -19,3 +19,10 @@ Responsibilities:
 - ../skills/architecture/layered_architecture.md  
 - ../skills/architecture/rest_api_design.md  
 - ../skills/architecture/component_guidelines.md
+
+---
+
+## Persistence Standards
+
+- **Modular Configuration**: Entity mapping must be modularized using `IEntityTypeConfiguration<T>` in separate files to ensure `DbContext` maintainability.
+- **Auto-Discovery**: Map configurations using assembly scanning (`ApplyConfigurationsFromAssembly`) to avoid manual registration in the `DbContext`.

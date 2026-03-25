@@ -37,6 +37,13 @@ O DP Specialist deve:
 
 ---
 
+## Arquitetura & Persistência
+
+- **Configuração de Entidades**: Todas as configurações de mapeamento do Entity Framework (índices, conversões, chaves, relacionamentos) **devem** ser feitas em arquivos separados implementando `IEntityTypeConfiguration<T>`, localizados na pasta `Persistence/Configurations`.
+- **DbContext Limpo**: O `DPManagementDbContext` deve utilizar apenas `modelBuilder.ApplyConfigurationsFromAssembly(typeof(DPManagementDbContext).Assembly)` para carregar os mapeamentos, mantendo o método `OnModelCreating` o mais limpo possível.
+
+---
+
 ## Standards
 
 - ../standards/dp/naming_conventions.md  

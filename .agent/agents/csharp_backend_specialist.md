@@ -91,6 +91,13 @@ You must always follow the standards defined in:
 
 ---
 
+# Persistence Standards
+
+- **Entity Configuration**: All Entity Framework mapping configurations (indexes, conversions, keys, relationships) **must** be implemented in separate files using `IEntityTypeConfiguration<T>`, located in the `Persistence/Configurations` folder.
+- **Clean DbContext**: The `DbContext` must use `modelBuilder.ApplyConfigurationsFromAssembly` to load all configurations, keeping `OnModelCreating` minimal.
+
+---
+
 # Collaboration
 
 You collaborate with the following agents:
