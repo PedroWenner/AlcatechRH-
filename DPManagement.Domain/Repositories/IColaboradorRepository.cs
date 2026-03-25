@@ -10,4 +10,5 @@ public interface IColaboradorRepository
     Task AddAsync(Colaborador colaborador);
     Task UpdateAsync(Colaborador colaborador);
     Task DeleteAsync(Guid id);
+    Task<bool> HasActiveVinculosAsync(Guid id);
 }

@@ -92,6 +92,12 @@ public class ColaboradorAppService : IColaboradorAppService
 
     public async Task<OperationResult> DeleteAsync(Guid id)
     {
+        var hasVinculos = await _colaboradorRepository.HasActiveVinculosAsync(id);
+        if (hasVinculos)
+        {
+            return OperationResult.Failure("Não é possível excluir este Colaborador pois ele possui vínculos ativos.");
+        }
+
         await _colaboradorRepository.DeleteAsync(id);
         return OperationResult.Ok("Colaborador excluído com sucesso.");
     }

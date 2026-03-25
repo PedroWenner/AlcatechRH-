@@ -74,8 +74,6 @@ export default function Cargos() {
     fetchCargos(1, newFilters);
   };
 
-
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     showLoading('Salvando cargo...');
@@ -125,9 +123,10 @@ export default function Cargos() {
         } else {
           alertError(resData.message || 'Erro ao excluir cargo');
         }
-      } catch (error) {
+      } catch (error: any) {
         console.error('Erro ao excluir cargo', error);
-        alertError('Erro ao excluir cargo');
+        const apiError = error.response?.data;
+        alertError(apiError?.message || 'Erro ao excluir cargo', apiError?.errors?.join('\n'));
       } finally {
         closeLoading();
       }

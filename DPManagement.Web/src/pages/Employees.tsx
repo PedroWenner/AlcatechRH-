@@ -220,9 +220,10 @@ export default function Employees() {
         } else {
           alertError(resData.message || 'Erro ao excluir colaborador');
         }
-      } catch (error) {
+      } catch (error: any) {
         console.error('Erro ao excluir colaborador', error);
-        alertError('Erro ao excluir colaborador');
+        const apiError = error.response?.data;
+        alertError(apiError?.message || 'Erro ao excluir colaborador');
       } finally {
         closeLoading();
       }
