@@ -41,6 +41,8 @@ public class RubricaService : IRubricaService
                 TipoDescricao = r.Tipo.GetDescription(),
                 IncideIR = r.IncideIR,
                 IncidePrevidencia = r.IncidePrevidencia,
+                Rotina = r.Rotina,
+                RotinaDescricao = r.Rotina.GetDescription(),
                 Ativo = r.Ativo
             })
             .ToListAsync();
@@ -64,6 +66,8 @@ public class RubricaService : IRubricaService
                 TipoDescricao = r.Tipo.GetDescription(),
                 IncideIR = r.IncideIR,
                 IncidePrevidencia = r.IncidePrevidencia,
+                Rotina = r.Rotina,
+                RotinaDescricao = r.Rotina.GetDescription(),
                 Ativo = r.Ativo
             })
             .ToListAsync();
@@ -85,6 +89,8 @@ public class RubricaService : IRubricaService
             TipoDescricao = r.Tipo.GetDescription(),
             IncideIR = r.IncideIR,
             IncidePrevidencia = r.IncidePrevidencia,
+            Rotina = r.Rotina,
+            RotinaDescricao = r.Rotina.GetDescription(),
             Ativo = r.Ativo
         };
 
@@ -106,6 +112,7 @@ public class RubricaService : IRubricaService
             Tipo = dto.Tipo,
             IncideIR = dto.IncideIR,
             IncidePrevidencia = dto.IncidePrevidencia,
+            Rotina = dto.Rotina,
             Ativo = true,
             IsDeleted = false
         };
@@ -132,6 +139,7 @@ public class RubricaService : IRubricaService
         r.Tipo = dto.Tipo;
         r.IncideIR = dto.IncideIR;
         r.IncidePrevidencia = dto.IncidePrevidencia;
+        r.Rotina = dto.Rotina;
 
         await _context.SaveChangesAsync();
         return OperationResult.Ok("Rubrica atualizada com sucesso.");

@@ -15,6 +15,8 @@ interface Rubrica {
   descricao: string;
   tipo: number;
   tipoDescricao: string;
+  rotina: number;
+  rotinaDescricao: string;
   incideIR: boolean;
   incidePrevidencia: boolean;
   ativo: boolean;
@@ -32,6 +34,7 @@ export default function Rubricas() {
     codigo: '',
     descricao: '',
     tipo: 1,
+    rotina: 0,
     incideIR: false,
     incidePrevidencia: false
   });
@@ -79,7 +82,7 @@ export default function Rubricas() {
 
   const openNewModal = () => {
     setEditingRubrica(null);
-    setFormData({ codigo: '', descricao: '', tipo: 1, incideIR: false, incidePrevidencia: false });
+    setFormData({ codigo: '', descricao: '', tipo: 1, rotina: 0, incideIR: false, incidePrevidencia: false });
     setIsModalOpen(true);
   };
 
@@ -89,6 +92,7 @@ export default function Rubricas() {
       codigo: r.codigo,
       descricao: r.descricao,
       tipo: r.tipo,
+      rotina: r.rotina,
       incideIR: r.incideIR,
       incidePrevidencia: r.incidePrevidencia
     });
@@ -159,6 +163,7 @@ export default function Rubricas() {
     { header: 'Código', accessor: 'codigo' },
     { header: 'Descrição', accessor: 'descricao' },
     { header: 'Tipo', accessor: 'tipoDescricao' },
+    { header: 'Rotina', accessor: 'rotinaDescricao' },
     { 
       header: 'Incidências', 
       render: (r) => (
@@ -277,6 +282,13 @@ export default function Rubricas() {
             enumType="TipoRubrica"
             value={formData.tipo}
             onChange={(e) => setFormData({ ...formData, tipo: Number(e.target.value) })}
+          />
+          <EnumSelect
+            label="Rotina de Cálculo"
+            required
+            enumType="RotinaCalculo"
+            value={formData.rotina}
+            onChange={(e) => setFormData({ ...formData, rotina: Number(e.target.value) })}
           />
           <div className="flex gap-6 mt-4">
             <label className="flex items-center space-x-3 cursor-pointer">

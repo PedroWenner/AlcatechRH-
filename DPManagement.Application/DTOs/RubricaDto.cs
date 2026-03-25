@@ -11,6 +11,8 @@ public class RubricaDto
     public string TipoDescricao { get; set; } = string.Empty;
     public bool IncideIR { get; set; }
     public bool IncidePrevidencia { get; set; }
+    public RotinaCalculo Rotina { get; set; }
+    public string RotinaDescricao { get; set; } = string.Empty;
     public bool Ativo { get; set; }
 }
 
@@ -21,4 +23,5 @@ public class RubricaCreateUpdateDto
     public TipoRubrica Tipo { get; set; }
     public bool IncideIR { get; set; }
     public bool IncidePrevidencia { get; set; }
+    public RotinaCalculo Rotina { get; set; }
 }

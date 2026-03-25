@@ -3,17 +3,18 @@ import type { CatalogoItem } from '../../hooks/useCatalogos';
 
 interface EnumSelectProps extends React.SelectHTMLAttributes<HTMLSelectElement> {
   label: string;
-  enumType: 'RegimeJuridico' | 'FormaIngresso' | 'TipoRubrica';
+  enumType: 'RegimeJuridico' | 'FormaIngresso' | 'TipoRubrica' | 'RotinaCalculo';
   error?: string;
 }
 
 export function EnumSelect({ label, enumType, error, className = '', ...rest }: EnumSelectProps) {
-  const { regimesJuridicos, formasIngresso, tiposRubrica, isLoading, hasError } = useCatalogos();
+  const { regimesJuridicos, formasIngresso, tiposRubrica, rotinasCalculo, isLoading, hasError } = useCatalogos();
 
   let options: CatalogoItem[] = [];
   if (enumType === 'RegimeJuridico') options = regimesJuridicos;
   if (enumType === 'FormaIngresso') options = formasIngresso;
   if (enumType === 'TipoRubrica') options = tiposRubrica;
+  if (enumType === 'RotinaCalculo') options = rotinasCalculo;
 
   return (
     <div className="mb-4 w-full">

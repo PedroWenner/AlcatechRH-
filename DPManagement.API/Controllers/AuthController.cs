@@ -52,6 +52,11 @@ public class AuthController : ControllerBase
             return Unauthorized(OperationResult.Failure("E-mail ou senha inválidos."));
         }
 
+        if (!usuario.Perfil.Ativo)
+        {
+            return Unauthorized(OperationResult.Failure("Perfil inativo."));
+        }
+
         var token = _authService.GerarTokenJwt(usuario);
         
         var response = new AuthRespostaDto

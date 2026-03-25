@@ -11,6 +11,7 @@ public class Rubrica : ISoftDelete
     public TipoRubrica Tipo { get; set; }
     public bool IncideIR { get; set; }
     public bool IncidePrevidencia { get; set; }
+    public RotinaCalculo Rotina { get; set; }
     
     // Soft Delete
     public bool Ativo { get; set; } = true;

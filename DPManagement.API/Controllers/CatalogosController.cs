@@ -49,4 +49,18 @@ public class CatalogosController : ControllerBase
 
         return Ok(tipos);
     }
+
+    [HttpGet("rotinas-calculo")]
+    public IActionResult GetRotinasCalculo()
+    {
+        var rotinas = Enum.GetValues(typeof(RotinaCalculo))
+            .Cast<RotinaCalculo>()
+            .Select(e => new
+            {
+                Id = (int)e,
+                Nome = e.GetDescription()
+            });
+
+        return Ok(rotinas);
+    }
 }
