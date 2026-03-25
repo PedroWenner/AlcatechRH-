@@ -116,6 +116,14 @@ All frontend implementations must follow:
 - ../standards/react_tailwind/page_header.md
 - ../standards/react_tailwind/modals.md
 
+---
+
+## Masking & Formatting Rules
+
+**CRITICAL RULE: All monetary fields MUST use the `maskMoney` function from `src/utils/masks.ts`.**
+
+**CRITICAL RULE: All sensitive or formatted fields (CPF, CNPJ, Telefone, Celular, CEP) MUST use their respective masking functions from `src/utils/masks.ts` to ensure consistency across the application.**
+
 **CRITICAL RULE: All CRUD screens (e.g. List pages with Tables) MUST implement the standard `<FilterBar>` component to allow searching/filtering records, regardless of whether the user explicitly requests it. This is a standard UI pattern for this project.**
 
 **CRITICAL RULE: All CRUD screens MUST implement the standardized `PageHeader` HTML block with a semantic icon, title, subtitle, and primary action button as defined in `../standards/react_tailwind/page_header.md`.**

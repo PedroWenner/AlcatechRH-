@@ -30,6 +30,8 @@ public class VinculoDto
     
     public DateTime DataAdmissao { get; set; }
     
+    public decimal SalarioBase { get; set; }
+    
     public bool Ativo { get; set; }
 }
 
@@ -42,5 +44,6 @@ public class VinculoCreateUpdateDto
     public RegimeJuridico RegimeJuridicoId { get; set; }
     public FormaIngresso FormaIngressoId { get; set; }
     public Guid CentroCustoId { get; set; }
+    public decimal SalarioBase { get; set; }
     public DateTime DataAdmissao { get; set; }
 }

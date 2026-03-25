@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Briefcase, Plus, Edit, Trash2, CheckCircle, XCircle } from 'lucide-react';
 import api from '../services/api';
 import { FormInput } from '../components/common/FormInput';
+import { maskMoney } from '../utils/masks';
 import { alertSuccess, alertError, alertDeleteConfirm, showLoading, closeLoading } from '../services/alertService';
 import { Table, type TableColumn } from '../components/common/Table';
 import { FilterBar } from '../components/common/FilterBar';
@@ -35,6 +36,7 @@ interface Vinculo {
   centroCustoId: string;
   centroCustoDescricao: string;
   dataAdmissao: string;
+  salarioBase: number;
   ativo: boolean;
 }
 
@@ -56,7 +58,8 @@ export default function Vinculos() {
     regimeJuridicoId: 0,
     formaIngressoId: 0,
     centroCustoId: '',
-    dataAdmissao: null as Date | null
+    dataAdmissao: null as Date | null,
+    salarioBase: ''
   });
 
   const canAdd = hasPermission('Vinculos', 'Criar');
@@ -105,7 +108,8 @@ export default function Vinculos() {
     setEditingVinculo(null);
     setFormData({
       colaboradorId: '', orgaoId: '', matricula: '', cargoId: '',
-      regimeJuridicoId: 0, formaIngressoId: 0, centroCustoId: '', dataAdmissao: null
+      regimeJuridicoId: 0, formaIngressoId: 0, centroCustoId: '', 
+      dataAdmissao: null, salarioBase: ''
     });
     setIsModalOpen(true);
   };
@@ -116,9 +120,19 @@ export default function Vinculos() {
       showLoading('Salvando vínculo...');
       let response;
       if (editingVinculo) {
-        response = await api.put(`/vinculos/${editingVinculo.id}`, formData);
+        response = await api.put(`/vinculos/${editingVinculo.id}`, {
+          ...formData,
+          salarioBase: typeof formData.salarioBase === 'string' 
+            ? parseFloat(formData.salarioBase.replace(/\D/g, '')) / 100 
+            : formData.salarioBase
+        });
       } else {
-        response = await api.post('/vinculos', formData);
+        response = await api.post('/vinculos', {
+          ...formData,
+          salarioBase: typeof formData.salarioBase === 'string' 
+            ? parseFloat(formData.salarioBase.replace(/\D/g, '')) / 100 
+            : formData.salarioBase
+        });
       }
 
       const resData = response.data;
@@ -147,7 +161,8 @@ export default function Vinculos() {
       regimeJuridicoId: v.regimeJuridicoId,
       formaIngressoId: v.formaIngressoId,
       centroCustoId: v.centroCustoId,
-      dataAdmissao: v.dataAdmissao ? parseISO(v.dataAdmissao) : null
+      dataAdmissao: v.dataAdmissao ? parseISO(v.dataAdmissao) : null,
+      salarioBase: v.salarioBase.toString()
     });
     setIsModalOpen(true);
   };
@@ -192,6 +207,7 @@ export default function Vinculos() {
     { header: 'Cargo', accessor: 'cargoNome' },
     { header: 'Centro de Custos', accessor: 'centroCustoDescricao' },
     { header: 'Admissão', render: (v) => v.dataAdmissao ? format(parseISO(v.dataAdmissao), 'dd/MM/yyyy') : '-' },
+    { header: 'Salário Base', render: (v) => maskMoney(v.salarioBase) },
     {
       header: 'Status',
       render: (v) => (
@@ -283,7 +299,7 @@ export default function Vinculos() {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         title={editingVinculo ? 'Editar Vínculo' : 'Novo Vínculo'}
-        size="lg"
+        size="xl"
         footer={(
           <>
             <button
@@ -337,6 +353,15 @@ export default function Vinculos() {
                 onChange={(date) => setFormData({ ...formData, dataAdmissao: date })}
               />
             </div>
+
+            <FormInput
+              label="Salário Base"
+              required
+              mask={maskMoney}
+              value={formData.salarioBase}
+              onChange={(e) => setFormData({ ...formData, salarioBase: e.target.value })}
+              placeholder="R$ 0,00"
+            />
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

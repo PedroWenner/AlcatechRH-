@@ -14,6 +14,9 @@ public class VinculoConfiguration : IEntityTypeConfiguration<Vinculo>
             .IsRequired()
             .HasMaxLength(50);
 
+        builder.Property(v => v.SalarioBase)
+            .HasPrecision(18, 2);
+
         builder.Property(v => v.RegimeJuridicoId)
             .HasConversion<int>();
             
@@ -31,7 +34,7 @@ public class VinculoConfiguration : IEntityTypeConfiguration<Vinculo>
             .OnDelete(DeleteBehavior.Restrict);
 
         builder.HasOne(v => v.Cargo)
-            .WithMany()
+            .WithMany(c => c.Vinculos)
             .HasForeignKey(v => v.CargoId)
             .OnDelete(DeleteBehavior.Restrict);
 

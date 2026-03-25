@@ -61,6 +61,7 @@ public class VinculoService : IVinculoService
                 CentroCustoId = v.CentroCustoId,
                 CentroCustoDescricao = v.CentroCusto.Descricao,
                 DataAdmissao = v.DataAdmissao,
+                SalarioBase = v.SalarioBase,
                 Ativo = v.Ativo
             })
             .ToListAsync();
@@ -101,6 +102,7 @@ public class VinculoService : IVinculoService
             CentroCustoId = v.CentroCustoId,
             CentroCustoDescricao = v.CentroCusto.Descricao,
             DataAdmissao = v.DataAdmissao,
+            SalarioBase = v.SalarioBase,
             Ativo = v.Ativo
         }).ToListAsync();
 
@@ -138,6 +140,7 @@ public class VinculoService : IVinculoService
             CentroCustoId = v.CentroCustoId,
             CentroCustoDescricao = v.CentroCusto.Descricao,
             DataAdmissao = v.DataAdmissao,
+            SalarioBase = v.SalarioBase,
             Ativo = v.Ativo
         };
 
@@ -157,6 +160,7 @@ public class VinculoService : IVinculoService
             FormaIngressoId = dto.FormaIngressoId,
             CentroCustoId = dto.CentroCustoId,
             DataAdmissao = dto.DataAdmissao,
+            SalarioBase = dto.SalarioBase,
             Ativo = true,
             IsDeleted = false
         };
@@ -182,6 +186,7 @@ public class VinculoService : IVinculoService
         vinculo.FormaIngressoId = dto.FormaIngressoId;
         vinculo.CentroCustoId = dto.CentroCustoId;
         vinculo.DataAdmissao = dto.DataAdmissao;
+        vinculo.SalarioBase = dto.SalarioBase;
 
         _context.Vinculos.Update(vinculo);
         await _context.SaveChangesAsync();

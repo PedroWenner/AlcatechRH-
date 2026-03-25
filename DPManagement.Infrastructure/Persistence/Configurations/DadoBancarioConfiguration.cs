@@ -29,7 +29,7 @@ public class DadoBancarioConfiguration : IEntityTypeConfiguration<DadoBancario>
             .HasMaxLength(10);
 
         builder.HasOne(d => d.Colaborador)
-            .WithMany()
+            .WithMany(c => c.DadosBancarios)
             .HasForeignKey(d => d.ColaboradorId)
             .OnDelete(DeleteBehavior.Cascade);
 

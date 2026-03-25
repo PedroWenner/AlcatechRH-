@@ -25,6 +25,8 @@ public class Vinculo : ISoftDelete
     public Guid CentroCustoId { get; set; }
     public CentroCusto CentroCusto { get; set; } = null!;
     
+    public decimal SalarioBase { get; set; }
+    
     public DateTime DataAdmissao { get; set; }
     
     public bool Ativo { get; set; } = true;
