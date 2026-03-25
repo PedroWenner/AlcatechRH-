@@ -132,23 +132,6 @@ public class DPManagementDbContext : DbContext
 
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(DPManagementDbContext).Assembly);
 
-        // Mapping Vinculo Enum Conversions or restrictions if needed
-        modelBuilder.Entity<Vinculo>()
-            .Property(v => v.RegimeJuridicoId)
-            .HasConversion<int>();
-            
-        modelBuilder.Entity<Vinculo>()
-            .Property(v => v.FormaIngressoId)
-            .HasConversion<int>();
-
-        modelBuilder.Entity<Rubrica>()
-            .Property(v => v.Tipo)
-            .HasConversion<int>();
-
-        modelBuilder.Entity<Rubrica>()
-            .HasIndex(r => r.Codigo)
-            .IsUnique();
-
         foreach (var entityType in modelBuilder.Model.GetEntityTypes())
         {
             if (typeof(ISoftDelete).IsAssignableFrom(entityType.ClrType))
