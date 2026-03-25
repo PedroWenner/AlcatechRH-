@@ -149,9 +149,10 @@ export default function Orgaos() {
           alertError(resData.message || 'Erro ao excluir estrutura');
         }
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Erro ao excluir estrutura:', error);
-      alertError('Erro ao excluir estrutura');
+      const apiError = error.response?.data;
+      alertError(apiError?.message || 'Erro ao excluir estrutura');
     } finally {
       closeLoading();
     }

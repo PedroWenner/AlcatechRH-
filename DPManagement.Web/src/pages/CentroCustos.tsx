@@ -130,9 +130,10 @@ export default function CentroCustos() {
         } else {
           alertError(resData.message || 'Erro ao excluir centro de custo');
         }
-      } catch (error) {
+      } catch (error: any) {
         console.error('Erro ao excluir centro de custo:', error);
-        alertError('Erro ao excluir centro de custo');
+        const apiError = error.response?.data;
+        alertError(apiError?.message || 'Erro ao excluir centro de custo');
       } finally {
         closeLoading();
       }
