@@ -29,6 +29,7 @@ public class DPManagementDbContext : DbContext
     public DbSet<Orgao> Orgaos { get; set; } = null!;
     public DbSet<Vinculo> Vinculos { get; set; } = null!;
     public DbSet<Rubrica> Rubricas { get; set; } = null!;
+    public DbSet<NaturezaRubrica> NaturezaRubricas { get; set; } = null!;
 
     public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {

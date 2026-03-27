@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { BadgeDollarSign, Plus, Edit, Trash2, CheckCircle, XCircle } from 'lucide-react';
+import { BadgeDollarSign, Plus, Edit, Trash2, CheckCircle, XCircle, Search } from 'lucide-react';
 import api from '../services/api';
 import { FormInput } from '../components/common/FormInput';
 import { alertSuccess, alertError, alertDeleteConfirm, showLoading, closeLoading } from '../services/alertService';
@@ -7,7 +7,16 @@ import { Table, type TableColumn } from '../components/common/Table';
 import { FilterBar } from '../components/common/FilterBar';
 import { Modal } from '../components/common/Modal';
 import { EnumSelect } from '../components/common/EnumSelect';
+import { FormSelect } from '../components/common/FormSelect';
+import { DatePicker } from '../components/common/DatePicker';
+import { Autocomplete } from '../components/common/Autocomplete';
 import { useAuth } from '../hooks/useAuth';
+
+interface NaturezaRubrica {
+  codigo: string;
+  nome: string;
+  descricao: string;
+}
 
 interface Rubrica {
   id: string;
@@ -20,24 +29,46 @@ interface Rubrica {
   incideIR: boolean;
   incidePrevidencia: boolean;
   ativo: boolean;
+  // eSocial
+  natRubr?: string;
+  ideTabRubr?: string;
+  codIncCP?: string;
+  codIncIRRF?: string;
+  codIncFGTS?: string;
+  codIncPisPasep?: string;
+  iniValid: string;
+  fimValid?: string;
 }
 
 export default function Rubricas() {
   const [rubricas, setRubricas] = useState<Rubrica[]>([]);
+  const [naturezas, setNaturezas] = useState<NaturezaRubrica[]>([]);
   const [loading, setLoading] = useState(true);
   const { hasPermission } = useAuth();
   const [filtro, setFiltro] = useState('');
   const [pagination, setPagination] = useState({ currentPage: 1, totalPages: 1, totalCount: 0, pageSize: 10 });
+  const [activeTab, setActiveTab] = useState<'geral' | 'esocial'>('geral');
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isNaturezaModalOpen, setIsNaturezaModalOpen] = useState(false);
   const [editingRubrica, setEditingRubrica] = useState<Rubrica | null>(null);
+  const [selectedNaturezaLabel, setSelectedNaturezaLabel] = useState('');
   const [formData, setFormData] = useState({
     codigo: '',
     descricao: '',
     tipo: 1,
     rotina: 0,
     incideIR: false,
-    incidePrevidencia: false
+    incidePrevidencia: false,
+    natRubr: '',
+    ideTabRubr: 'PADRAO',
+    codIncCP: '00',
+    codIncIRRF: '00',
+    codIncFGTS: '00',
+    codIncPisPasep: '00',
+    iniValid: new Date().toISOString().substring(0, 7),
+    fimValid: ''
   });
+  const [showErrors, setShowErrors] = useState(false);
 
   const canAdd = hasPermission('Rubricas', 'Criar');
   const canEdit = hasPermission('Rubricas', 'Editar');
@@ -45,7 +76,27 @@ export default function Rubricas() {
 
   useEffect(() => {
     fetchRubricas();
+    fetchNaturezas();
   }, []);
+
+  const fetchNaturezas = async () => {
+    try {
+      const response = await api.get('/naturezas-rubricas');
+      if (response.data.success) {
+        setNaturezas(response.data.data);
+      }
+    } catch (error) {
+      console.error('Erro ao buscar naturezas eSocial:', error);
+    }
+  };
+
+  const handleNaturezaSearch = async (term: string) => {
+    const filtered = naturezas.filter(n =>
+      n.codigo.includes(term) ||
+      n.nome.toLowerCase().includes(term.toLowerCase())
+    );
+    return filtered;
+  };
 
   const fetchRubricas = async (page = 1, f = filtro) => {
     try {
@@ -53,7 +104,7 @@ export default function Rubricas() {
       const response = await api.get('/rubricas', {
         params: { page, pageSize: pagination.pageSize, filtro: f }
       });
-      
+
       const resData = response.data;
       if (resData.success) {
         setRubricas(resData.data.items);
@@ -82,25 +133,76 @@ export default function Rubricas() {
 
   const openNewModal = () => {
     setEditingRubrica(null);
-    setFormData({ codigo: '', descricao: '', tipo: 1, rotina: 0, incideIR: false, incidePrevidencia: false });
+    setSelectedNaturezaLabel('');
+    setFormData({
+      codigo: '',
+      descricao: '',
+      tipo: 1,
+      rotina: 0,
+      incideIR: false,
+      incidePrevidencia: false,
+      natRubr: '',
+      ideTabRubr: 'PADRAO',
+      codIncCP: '00',
+      codIncIRRF: '00',
+      codIncFGTS: '00',
+      codIncPisPasep: '00',
+      iniValid: new Date().toISOString().substring(0, 7),
+      fimValid: ''
+    });
+    setShowErrors(false);
+    setActiveTab('geral');
     setIsModalOpen(true);
   };
 
   const handleEdit = (r: Rubrica) => {
     setEditingRubrica(r);
+    const nat = naturezas.find(n => n.codigo === r.natRubr);
+    setSelectedNaturezaLabel(nat ? `${nat.codigo} - ${nat.nome}` : r.natRubr || '');
     setFormData({
       codigo: r.codigo,
       descricao: r.descricao,
       tipo: r.tipo,
       rotina: r.rotina,
       incideIR: r.incideIR,
-      incidePrevidencia: r.incidePrevidencia
+      incidePrevidencia: r.incidePrevidencia,
+      natRubr: r.natRubr || '',
+      ideTabRubr: r.ideTabRubr || 'PADRAO',
+      codIncCP: r.codIncCP || '00',
+      codIncIRRF: r.codIncIRRF || '00',
+      codIncFGTS: r.codIncFGTS || '00',
+      codIncPisPasep: r.codIncPisPasep || '00',
+      iniValid: r.iniValid,
+      fimValid: r.fimValid || ''
     });
+    setShowErrors(false);
+    setActiveTab('geral');
     setIsModalOpen(true);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Manual Validation
+    const errors: string[] = [];
+    if (!formData.codigo) errors.push('O campo Código é obrigatório.');
+    if (!formData.descricao) errors.push('O campo Descrição é obrigatório.');
+    if (!formData.natRubr) errors.push('A Natureza da Rubrica (eSocial) é obrigatória.');
+    if (!formData.iniValid) errors.push('O Início de Validade é obrigatório.');
+
+    if (errors.length > 0) {
+      alertError('Campos Obrigatórios', errors.join('\n'));
+      setShowErrors(true);
+      
+      // Auto-switch to the tab with errors
+      if (!formData.codigo || !formData.descricao) {
+        setActiveTab('geral');
+      } else if (!formData.natRubr || !formData.iniValid) {
+        setActiveTab('esocial');
+      }
+      return;
+    }
+
     try {
       showLoading('Salvando rubrica...');
       let response;
@@ -164,8 +266,8 @@ export default function Rubricas() {
     { header: 'Descrição', accessor: 'descricao' },
     { header: 'Tipo', accessor: 'tipoDescricao' },
     { header: 'Rotina', accessor: 'rotinaDescricao' },
-    { 
-      header: 'Incidências', 
+    {
+      header: 'Incidências',
       render: (r) => (
         <div className="flex gap-2">
           {r.incideIR && <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded">IR</span>}
@@ -215,7 +317,7 @@ export default function Rubricas() {
             <BadgeDollarSign className="mr-3 text-indigo-600" size={28} />
             Rubricas / Eventos
           </h1>
-          <p className="text-gray-500 mt-1 text-sm font-medium">Cadastre proventos, descontos e suas incidências.</p>
+          <p className="text-gray-500 mt-1 text-sm font-medium">Cadastre proventos, descontos e suas incidências (eSocial S-1010).</p>
         </div>
         {canAdd && (
           <button onClick={openNewModal} className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-md flex items-center transition-colors font-medium shadow-sm">
@@ -240,8 +342,8 @@ export default function Rubricas() {
         isLoading={loading}
         emptyMessage="Nenhuma rubrica encontrada."
         pagination={{
-            ...pagination,
-            onPageChange: (page) => fetchRubricas(page)
+          ...pagination,
+          onPageChange: (page) => fetchRubricas(page)
         }}
       />
 
@@ -249,7 +351,7 @@ export default function Rubricas() {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         title={editingRubrica ? 'Editar Rubrica' : 'Nova Rubrica'}
-        size="md"
+        size="4xl"
         footer={(
           <>
             <button type="submit" form="rubrica-form" className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none sm:ml-3 sm:w-auto sm:text-sm">
@@ -261,56 +363,258 @@ export default function Rubricas() {
           </>
         )}
       >
+        <div className="mb-6 border-b border-gray-200">
+          <nav className="-mb-px flex space-x-8">
+            <button
+              onClick={() => setActiveTab('geral')}
+              className={`${activeTab === 'geral'
+                ? 'border-indigo-500 text-indigo-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors`}
+            >
+              Geral
+            </button>
+            <button
+              onClick={() => setActiveTab('esocial')}
+              className={`${activeTab === 'esocial'
+                ? 'border-indigo-500 text-indigo-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors`}
+            >
+              eSocial (S-1010)
+            </button>
+          </nav>
+        </div>
+
         <form id="rubrica-form" onSubmit={handleSubmit} className="space-y-4">
-          <FormInput
-            label="Código"
-            required
-            value={formData.codigo}
-            onChange={(e) => setFormData({ ...formData, codigo: e.target.value })}
-            placeholder="Ex: 001, 101..."
-          />
-          <FormInput
-            label="Descrição"
-            required
-            value={formData.descricao}
-            onChange={(e) => setFormData({ ...formData, descricao: e.target.value })}
-            placeholder="Ex: Salário Base, INSS..."
-          />
-          <EnumSelect
-            label="Tipo de Rubrica"
-            required
-            enumType="TipoRubrica"
-            value={formData.tipo}
-            onChange={(e) => setFormData({ ...formData, tipo: Number(e.target.value) })}
-          />
-          <EnumSelect
-            label="Rotina de Cálculo"
-            required
-            enumType="RotinaCalculo"
-            value={formData.rotina}
-            onChange={(e) => setFormData({ ...formData, rotina: Number(e.target.value) })}
-          />
-          <div className="flex gap-6 mt-4">
-            <label className="flex items-center space-x-3 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={formData.incideIR}
-                onChange={(e) => setFormData({ ...formData, incideIR: e.target.checked })}
-                className="h-5 w-5 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+          {activeTab === 'geral' ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <FormInput
+                label="Código"
+                required
+                value={formData.codigo}
+                onChange={(e) => setFormData({ ...formData, codigo: e.target.value })}
+                error={showErrors && !formData.codigo ? 'Código é obrigatório' : undefined}
+                placeholder="Ex: 001, 101..."
               />
-              <span className="text-sm font-medium text-gray-700">Incide IR</span>
-            </label>
-            <label className="flex items-center space-x-3 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={formData.incidePrevidencia}
-                onChange={(e) => setFormData({ ...formData, incidePrevidencia: e.target.checked })}
-                className="h-5 w-5 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+              <FormInput
+                label="Descrição"
+                required
+                value={formData.descricao}
+                onChange={(e) => setFormData({ ...formData, descricao: e.target.value })}
+                error={showErrors && !formData.descricao ? 'Descrição é obrigatória' : undefined}
+                placeholder="Ex: Salário Base, INSS..."
               />
-              <span className="text-sm font-medium text-gray-700">Incide Previdência</span>
-            </label>
-          </div>
+              <EnumSelect
+                label="Tipo de Rubrica"
+                required
+                enumType="TipoRubrica"
+                value={formData.tipo}
+                onChange={(e) => setFormData({ ...formData, tipo: Number(e.target.value) })}
+              />
+              <EnumSelect
+                label="Rotina de Cálculo"
+                required
+                enumType="RotinaCalculo"
+                value={formData.rotina}
+                onChange={(e) => setFormData({ ...formData, rotina: Number(e.target.value) })}
+              />
+              <div className="flex gap-6 mt-4 col-span-2">
+                <label className="flex items-center space-x-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={formData.incideIR}
+                    onChange={(e) => setFormData({ ...formData, incideIR: e.target.checked })}
+                    className="h-5 w-5 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+                  />
+                  <span className="text-sm font-medium text-gray-700">Incide IR</span>
+                </label>
+                <label className="flex items-center space-x-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={formData.incidePrevidencia}
+                    onChange={(e) => setFormData({ ...formData, incidePrevidencia: e.target.checked })}
+                    className="h-5 w-5 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+                  />
+                  <span className="text-sm font-medium text-gray-700">Incide Previdência</span>
+                </label>
+              </div>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="col-span-2 flex items-end gap-2 mb-4">
+                <div className="flex-1">
+                  <Autocomplete
+                    label="Natureza da Rubrica (Tab. 03)"
+                    placeholder="Busque por código ou nome..."
+                    required
+                    className="mb-0"
+                    error={showErrors && !formData.natRubr ? 'Natureza é obrigatória' : undefined}
+                    defaultValue={selectedNaturezaLabel}
+                    onSearch={handleNaturezaSearch}
+                    onSelect={(item) => {
+                      if (item) {
+                        setFormData({ ...formData, natRubr: item.codigo });
+                        setSelectedNaturezaLabel(`${item.codigo} - ${item.nome}`);
+                      } else {
+                        setFormData({ ...formData, natRubr: '' });
+                        setSelectedNaturezaLabel('');
+                      }
+                    }}
+                    displayValue={(item) => `${item.codigo} - ${item.nome}`}
+                    keyValue={(item) => item.codigo}
+                  />
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setIsNaturezaModalOpen(true)}
+                  className="p-2 h-[38px] text-indigo-600 hover:bg-indigo-50 rounded-md border border-indigo-200 transition-colors flex items-center justify-center"
+                  title="Ver Tabela 03 completa"
+                >
+                  <Search size={20} />
+                </button>
+              </div>
+
+              <FormInput
+                label="Identificador da Tabela"
+                required
+                value={formData.ideTabRubr}
+                onChange={(e) => setFormData({ ...formData, ideTabRubr: e.target.value })}
+                placeholder="Ex: PADRAO"
+              />
+
+              <FormSelect
+                label="Incidência Previdência (Tab. 21)"
+                required
+                value={formData.codIncCP}
+                onChange={(e) => setFormData({ ...formData, codIncCP: e.target.value })}
+                options={[
+                  { value: '00', label: '00 - Não é base de cálculo' },
+                  { value: '11', label: '11 - Base de cálculo mensal' },
+                  { value: '12', label: '12 - Base de cálculo 13º salário' },
+                  { value: '21', label: '21 - Salário-maternidade mensal' },
+                  { value: '31', label: '31 - Gratificações (Férias)' },
+                  { value: '91', label: '91 - Incidência suspensa (Decisão Judicial)' }
+                ]}
+              />
+
+              <FormSelect
+                label="Incidência IRRF (Tab. 21)"
+                required
+                value={formData.codIncIRRF}
+                onChange={(e) => setFormData({ ...formData, codIncIRRF: e.target.value })}
+                options={[
+                  { value: '00', label: '00 - Não é base de cálculo' },
+                  { value: '11', label: '11 - Remuneração mensal' },
+                  { value: '12', label: '12 - 13º salário' },
+                  { value: '13', label: '13 - Férias' },
+                  { value: '14', label: '14 - PLR' },
+                  { value: '15', label: '15 - Rendimentos Recebidos Acumuladamente' },
+                  { value: '31', label: '31 - Retenções (Previdência)' },
+                  { value: '91', label: '91 - Verba com incidência suspensa' }
+                ]}
+              />
+
+              <FormSelect
+                label="Incidência FGTS (Tab. 21)"
+                required
+                value={formData.codIncFGTS}
+                onChange={(e) => setFormData({ ...formData, codIncFGTS: e.target.value })}
+                options={[
+                  { value: '00', label: '00 - Não é base de cálculo' },
+                  { value: '11', label: '11 - Base de cálculo mensal' },
+                  { value: '12', label: '12 - Base de cálculo 13º salário' },
+                  { value: '21', label: '21 - Base de cálculo rescisão' },
+                  { value: '91', label: '91 - Incidência suspensa' }
+                ]}
+              />
+
+              <FormSelect
+                label="Incidência PIS/PASEP"
+                required
+                value={formData.codIncPisPasep}
+                onChange={(e) => setFormData({ ...formData, codIncPisPasep: e.target.value })}
+                options={[
+                  { value: '00', label: '00 - Não é base de cálculo' },
+                  { value: '11', label: '11 - Base de cálculo mensal' },
+                  { value: '91', label: '91 - Incidência suspensa' }
+                ]}
+              />
+
+              <DatePicker
+                label="Início Validade (MM/AAAA)"
+                required
+                showMonthYearPicker
+                dateFormat="MM/yyyy"
+                placeholder="mm/aaaa"
+                error={showErrors && !formData.iniValid ? 'Início de validade é obrigatório' : undefined}
+                selected={formData.iniValid ? new Date(Number(formData.iniValid.split('-')[0]), Number(formData.iniValid.split('-')[1]) - 1, 1) : null}
+                onChange={(date) => {
+                  if (date) {
+                    const y = date.getFullYear();
+                    const m = String(date.getMonth() + 1).padStart(2, '0');
+                    setFormData({ ...formData, iniValid: `${y}-${m}` });
+                  } else {
+                    setFormData({ ...formData, iniValid: '' });
+                  }
+                }}
+              />
+
+              <DatePicker
+                label="Fim Validade (MM/AAAA)"
+                showMonthYearPicker
+                dateFormat="MM/yyyy"
+                placeholder="mm/aaaa"
+                selected={formData.fimValid ? new Date(Number(formData.fimValid.split('-')[0]), Number(formData.fimValid.split('-')[1]) - 1, 1) : null}
+                onChange={(date) => {
+                  if (date) {
+                    const y = date.getFullYear();
+                    const m = String(date.getMonth() + 1).padStart(2, '0');
+                    setFormData({ ...formData, fimValid: `${y}-${m}` });
+                  } else {
+                    setFormData({ ...formData, fimValid: '' });
+                  }
+                }}
+              />
+            </div>
+          )}
         </form>
+      </Modal>
+
+      {/* Tabela de Naturezas Modal */}
+      <Modal
+        isOpen={isNaturezaModalOpen}
+        onClose={() => setIsNaturezaModalOpen(false)}
+        title="Tabela 03 - Natureza das Rubricas da Folha de Pagamento"
+        size="4xl"
+      >
+        <div className="overflow-hidden">
+          <Table<NaturezaRubrica>
+            columns={[
+              { header: 'Código', accessor: 'codigo' },
+              { header: 'Nome', accessor: 'nome' },
+              { header: 'Descrição', accessor: 'descricao' },
+              {
+                header: 'Ação',
+                render: (n) => (
+                  <button
+                    onClick={() => {
+                      setFormData({ ...formData, natRubr: n.codigo });
+                      setSelectedNaturezaLabel(`${n.codigo} - ${n.nome}`);
+                      setIsNaturezaModalOpen(false);
+                    }}
+                    className="text-indigo-600 hover:text-indigo-900 font-medium text-sm"
+                  >
+                    Selecionar
+                  </button>
+                )
+              }
+            ]}
+            data={naturezas}
+            isLoading={false}
+            emptyMessage="Nenhuma natureza encontrada."
+          />
+        </div>
       </Modal>
     </div>
   );

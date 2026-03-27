@@ -11,6 +11,7 @@ interface AutocompleteProps {
   keyValue: (item: any) => string;
   required?: boolean;
   error?: string;
+  className?: string;
 }
 
 export function Autocomplete({
@@ -22,7 +23,8 @@ export function Autocomplete({
   displayValue,
   keyValue,
   required = false,
-  error
+  error,
+  className = 'mb-4'
 }: AutocompleteProps) {
   const [searchTerm, setSearchTerm] = useState(defaultValue);
   const [results, setResults] = useState<any[]>([]);
@@ -87,7 +89,7 @@ export function Autocomplete({
   };
 
   return (
-    <div className="relative mb-4" ref={wrapperRef}>
+    <div className={`relative ${className}`} ref={wrapperRef}>
       <label className="block text-sm font-medium text-gray-700 mb-1">
         {label} {required && <span className="text-red-500">*</span>}
       </label>

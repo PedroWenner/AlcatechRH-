@@ -8,5 +8,11 @@ public enum TipoRubrica
     Provento = 1,
 
     [Description("Desconto")]
-    Desconto = 2
+    Desconto = 2,
+
+    [Description("Informativa")]
+    Informativa = 3,
+
+    [Description("Informativa de Dedução")]
+    InformativaDeducao = 4
 }

@@ -12,6 +12,16 @@ public class Rubrica : ISoftDelete
     public bool IncideIR { get; set; }
     public bool IncidePrevidencia { get; set; }
     public RotinaCalculo Rotina { get; set; }
+
+    // eSocial S-1010
+    public string? NatRubr { get; set; }
+    public string? IdeTabRubr { get; set; }
+    public string? CodIncCP { get; set; }
+    public string? CodIncIRRF { get; set; }
+    public string? CodIncFGTS { get; set; }
+    public string? CodIncPisPasep { get; set; }
+    public string IniValid { get; set; } = string.Empty;
+    public string? FimValid { get; set; }
     
     // Soft Delete
     public bool Ativo { get; set; } = true;

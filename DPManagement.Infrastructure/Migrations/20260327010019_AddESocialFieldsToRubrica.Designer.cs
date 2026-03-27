@@ -3,6 +3,7 @@ using System;
 using DPManagement.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace DPManagement.Infrastructure.Migrations
 {
     [DbContext(typeof(DPManagementDbContext))]
-    partial class DPManagementDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260327010019_AddESocialFieldsToRubrica")]
+    partial class AddESocialFieldsToRubrica
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -300,120 +303,6 @@ namespace DPManagement.Infrastructure.Migrations
                     b.HasIndex("ColaboradorId");
 
                     b.ToTable("DadosBancarios");
-                });
-
-            modelBuilder.Entity("DPManagement.Domain.Entities.NaturezaRubrica", b =>
-                {
-                    b.Property<string>("Codigo")
-                        .HasMaxLength(4)
-                        .HasColumnType("character varying(4)");
-
-                    b.Property<string>("Descricao")
-                        .IsRequired()
-                        .HasMaxLength(2000)
-                        .HasColumnType("character varying(2000)");
-
-                    b.Property<DateTime>("Inicio")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("Nome")
-                        .IsRequired()
-                        .HasMaxLength(255)
-                        .HasColumnType("character varying(255)");
-
-                    b.Property<DateTime?>("Termino")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.HasKey("Codigo");
-
-                    b.ToTable("NaturezaRubricas", (string)null);
-
-                    b.HasData(
-                        new
-                        {
-                            Codigo = "1000",
-                            Descricao = "Corresponde ao salário básico contratual, inclusive o valor pago ao estagiário e ao bolsista por força da Lei nº 11.788/2008.",
-                            Inicio = new DateTime(2014, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Nome = "Salário, vencimento, soldo"
-                        },
-                        new
-                        {
-                            Codigo = "1001",
-                            Descricao = "Corresponde à remuneração paga na forma de subsídio aos ocupantes de cargos de que trata o art. 39, § 4º, da Constituição Federal de 1988.",
-                            Inicio = new DateTime(2014, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Nome = "Subsídio"
-                        },
-                        new
-                        {
-                            Codigo = "1002",
-                            Descricao = "Valor correspondente a um dia de trabalho por semana, ou em feriados, destinado ao repouso dos trabalhadores, desde que não esteja incluído no salário.",
-                            Inicio = new DateTime(2014, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Nome = "Descanso semanal remunerado - DSR",
-                            Termino = new DateTime(2024, 4, 30, 0, 0, 0, 0, DateTimeKind.Utc)
-                        },
-                        new
-                        {
-                            Codigo = "1003",
-                            Descricao = "Valor correspondente à hora extraordinária de trabalho, paga a qualquer título.",
-                            Inicio = new DateTime(2014, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Nome = "Horas extraordinárias"
-                        },
-                        new
-                        {
-                            Codigo = "1004",
-                            Descricao = "Valor correspondente a pagamento das horas extraordinárias, inicialmente destinadas para o banco de horas e que não foram compensadas.",
-                            Inicio = new DateTime(2014, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Nome = "Horas extraordinárias - Banco de horas"
-                        },
-                        new
-                        {
-                            Codigo = "1005",
-                            Descricao = "Valores relativos a direito de arena decorrente do espetáculo, devidos ao atleta.",
-                            Inicio = new DateTime(2014, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Nome = "Direito de arena"
-                        },
-                        new
-                        {
-                            Codigo = "9232",
-                            Descricao = "Valor correspondente ao desconto de contribuição assistencial, devida ao sindicato.",
-                            Inicio = new DateTime(2014, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Nome = "Contribuição sindical - Assistencial"
-                        },
-                        new
-                        {
-                            Codigo = "9233",
-                            Descricao = "Valor correspondente ao desconto de contribuição confederativa, devida ao sindicato.",
-                            Inicio = new DateTime(2014, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Nome = "Contribuição sindical - Confederativa"
-                        },
-                        new
-                        {
-                            Codigo = "9240",
-                            Descricao = "Desconto referente à alimentação concedida em pecúnia.",
-                            Inicio = new DateTime(2014, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Nome = "Alimentação concedida em pecúnia - Desconto"
-                        },
-                        new
-                        {
-                            Codigo = "9241",
-                            Descricao = "Desconto referente à participação do trabalhador no custeio da alimentação em ticket ou cartão, vinculada ao PAT.",
-                            Inicio = new DateTime(2014, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Nome = "Alimentação em ticket ou cartão, vinculada ao PAT - Desconto"
-                        },
-                        new
-                        {
-                            Codigo = "9271",
-                            Descricao = "Valor correspondente ao desconto de indenizações por rescisão de contrato.",
-                            Inicio = new DateTime(2014, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Nome = "Indenizações por rescisão de contrato"
-                        },
-                        new
-                        {
-                            Codigo = "9299",
-                            Descricao = "Outros descontos não discriminados nos códigos acima.",
-                            Inicio = new DateTime(2014, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Nome = "Outros descontos"
-                        });
                 });
 
             modelBuilder.Entity("DPManagement.Domain.Entities.Orgao", b =>

@@ -24,5 +24,10 @@ O e-Social Specialist deve:
 
 ## Standards
 
+- [Leiautes e Tabelas eSocial v.S-1.3](https://www.gov.br/esocial/pt-br/documentacao-tecnica/leiautes-esocial-v-s-1-3-cons-nt-05-2025/index.html)
 - ../standards/dp/validation_rules.md  
-- ../standards/dp/documentation_standards.md  
+- ../standards/dp/documentation_standards.md
+
+## Primary Source of Truth
+
+Toda e qualquer validação de campos obrigatórios, códigos de natureza e incidência deve obrigatoriamente seguir o manual oficial presente no link acima, especificamente os eventos S-1000 a S-1070 e as Tabelas 01 a 30.

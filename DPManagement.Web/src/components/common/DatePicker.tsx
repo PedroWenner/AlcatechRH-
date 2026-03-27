@@ -14,6 +14,8 @@ interface DatePickerProps {
   error?: string;
   placeholder?: string;
   required?: boolean;
+  showMonthYearPicker?: boolean;
+  dateFormat?: string;
 }
 
 export const DatePicker: React.FC<DatePickerProps> = ({
@@ -22,7 +24,9 @@ export const DatePicker: React.FC<DatePickerProps> = ({
   onChange,
   error,
   placeholder = "dd/mm/aaaa",
-  required
+  required,
+  showMonthYearPicker = false,
+  dateFormat = "dd/MM/yyyy"
 }) => {
   return (
     <div className="w-full">
@@ -36,7 +40,8 @@ export const DatePicker: React.FC<DatePickerProps> = ({
         <ReactDatePicker
           selected={selected}
           onChange={onChange}
-          dateFormat="dd/MM/yyyy"
+          dateFormat={dateFormat}
+          showMonthYearPicker={showMonthYearPicker}
           locale="pt-BR"
           placeholderText={placeholder}
           isClearable

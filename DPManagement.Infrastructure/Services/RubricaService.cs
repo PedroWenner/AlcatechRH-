@@ -43,7 +43,15 @@ public class RubricaService : IRubricaService
                 IncidePrevidencia = r.IncidePrevidencia,
                 Rotina = r.Rotina,
                 RotinaDescricao = r.Rotina.GetDescription(),
-                Ativo = r.Ativo
+                Ativo = r.Ativo,
+                NatRubr = r.NatRubr,
+                IdeTabRubr = r.IdeTabRubr,
+                CodIncCP = r.CodIncCP,
+                CodIncIRRF = r.CodIncIRRF,
+                CodIncFGTS = r.CodIncFGTS,
+                CodIncPisPasep = r.CodIncPisPasep,
+                IniValid = r.IniValid,
+                FimValid = r.FimValid
             })
             .ToListAsync();
 
@@ -68,7 +76,15 @@ public class RubricaService : IRubricaService
                 IncidePrevidencia = r.IncidePrevidencia,
                 Rotina = r.Rotina,
                 RotinaDescricao = r.Rotina.GetDescription(),
-                Ativo = r.Ativo
+                Ativo = r.Ativo,
+                NatRubr = r.NatRubr,
+                IdeTabRubr = r.IdeTabRubr,
+                CodIncCP = r.CodIncCP,
+                CodIncIRRF = r.CodIncIRRF,
+                CodIncFGTS = r.CodIncFGTS,
+                CodIncPisPasep = r.CodIncPisPasep,
+                IniValid = r.IniValid,
+                FimValid = r.FimValid
             })
             .ToListAsync();
 
@@ -91,7 +107,15 @@ public class RubricaService : IRubricaService
             IncidePrevidencia = r.IncidePrevidencia,
             Rotina = r.Rotina,
             RotinaDescricao = r.Rotina.GetDescription(),
-            Ativo = r.Ativo
+            Ativo = r.Ativo,
+            NatRubr = r.NatRubr,
+            IdeTabRubr = r.IdeTabRubr,
+            CodIncCP = r.CodIncCP,
+            CodIncIRRF = r.CodIncIRRF,
+            CodIncFGTS = r.CodIncFGTS,
+            CodIncPisPasep = r.CodIncPisPasep,
+            IniValid = r.IniValid,
+            FimValid = r.FimValid
         };
 
         return OperationResult<RubricaDto?>.Ok(dto);
@@ -113,6 +137,14 @@ public class RubricaService : IRubricaService
             IncideIR = dto.IncideIR,
             IncidePrevidencia = dto.IncidePrevidencia,
             Rotina = dto.Rotina,
+            NatRubr = dto.NatRubr,
+            IdeTabRubr = dto.IdeTabRubr,
+            CodIncCP = dto.CodIncCP,
+            CodIncIRRF = dto.CodIncIRRF,
+            CodIncFGTS = dto.CodIncFGTS,
+            CodIncPisPasep = dto.CodIncPisPasep,
+            IniValid = dto.IniValid,
+            FimValid = dto.FimValid,
             Ativo = true,
             IsDeleted = false
         };
@@ -140,6 +172,14 @@ public class RubricaService : IRubricaService
         r.IncideIR = dto.IncideIR;
         r.IncidePrevidencia = dto.IncidePrevidencia;
         r.Rotina = dto.Rotina;
+        r.NatRubr = dto.NatRubr;
+        r.IdeTabRubr = dto.IdeTabRubr;
+        r.CodIncCP = dto.CodIncCP;
+        r.CodIncIRRF = dto.CodIncIRRF;
+        r.CodIncFGTS = dto.CodIncFGTS;
+        r.CodIncPisPasep = dto.CodIncPisPasep;
+        r.IniValid = dto.IniValid;
+        r.FimValid = dto.FimValid;
 
         await _context.SaveChangesAsync();
         return OperationResult.Ok("Rubrica atualizada com sucesso.");
