@@ -1,7 +1,9 @@
 using DPManagement.Application.Common;
 using DPManagement.Application.DTOs;
 using DPManagement.Application.Interfaces;
+using DPManagement.Application.Validators;
 using DPManagement.Domain.Entities;
+using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
 
 namespace DPManagement.API.Controllers;
@@ -11,10 +13,12 @@ namespace DPManagement.API.Controllers;
 public class PerfisController : ControllerBase
 {
     private readonly IPerfilService _perfilService;
+    private readonly IValidator<PerfilRequestDto> _validator;
 
-    public PerfisController(IPerfilService perfilService)
+    public PerfisController(IPerfilService perfilService, IValidator<PerfilRequestDto> validator)
     {
         _perfilService = perfilService;
+        _validator = validator;
     }
 
     [HttpGet]
@@ -57,6 +61,13 @@ public class PerfisController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> Adicionar([FromBody] PerfilRequestDto request)
     {
+        var validation = await _validator.ValidateAsync(request);
+        if (!validation.IsValid)
+        {
+            var errors = validation.Errors.Select(e => e.ErrorMessage).ToList();
+            return BadRequest(OperationResult.Failure("Falha na validação.", errors.ToArray()));
+        }
+
         var perfil = new Perfil
         {
             Nome = request.Nome,
@@ -71,6 +82,13 @@ public class PerfisController : ControllerBase
     [HttpPut("{id}")]
     public async Task<IActionResult> Atualizar(Guid id, [FromBody] PerfilRequestDto request)
     {
+        var validation = await _validator.ValidateAsync(request);
+        if (!validation.IsValid)
+        {
+            var errors = validation.Errors.Select(e => e.ErrorMessage).ToList();
+            return BadRequest(OperationResult.Failure("Falha na validação.", errors.ToArray()));
+        }
+
         var getResult = await _perfilService.ObterPorIdAsync(id);
         if (!getResult.Success) return NotFound(getResult);
 
@@ -102,19 +120,4 @@ public class PerfisController : ControllerBase
         var result = await _perfilService.AtribuirPermissoesAsync(id, permissaoIds);
         return result.Success ? Ok(result) : BadRequest(result);
     }
-}
-
-public class PerfilDto
-{
-    public Guid Id { get; set; }
-    public string Nome { get; set; } = string.Empty;
-    public string? Descricao { get; set; }
-    public bool Ativo { get; set; }
-    public List<Guid> PermissoesIds { get; set; } = new List<Guid>();
-}
-
-public class PerfilRequestDto
-{
-    public string Nome { get; set; } = string.Empty;
-    public string? Descricao { get; set; }
 }

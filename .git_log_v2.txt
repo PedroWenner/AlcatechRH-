@@ -1,0 +1,34 @@
+* ccd3794 feat: implement eSocial S-1010 integration, Table 03 Natureza lookup, and UI standardization for Rubricas
+* 7357632 feat: adicionar sal├írio base ao v├¡nculo e corrigir mapeamentos de relacionamento
+| * e756334 s
+|/  
+* 1e24b9f refactor: merge da separa├º├úo de configura├º├Áes do DbContext e atualiza├º├úo de documentos de agentes
+* 648c017 refactor: separa├º├úo das configura├º├Áes do DbContext em arquivos individuais
+* 8a36cfa feat: adi├º├úo de migra├º├úo para rotina de c├ílculo em rubricas
+* ecbc4b8 feat: adicionado campo de Rotina de C├ílculo no cadastro de rubricas
+* eaf443d feat: restri├º├úo de exclus├úo de colaboradores com v├¡nculos ativos e melhoria no frontend
+* 2cf7930 docs: atualiza├º├úo do agente dp_specialist com regras de exclus├úo e erro
+* a105c39 feat: restri├º├úo de exclus├úo de cargos com v├¡nculos ativos
+* 1b9d07d fix: melhoria no tratamento de erro do frontend para capturar mensagens do backend no delete
+* d7978fe fix: corre├º├úo do erro de edi├º├úo de centro de custo e trava para troca de ├│rg├úo com v├¡nculos ativos
+* 6c8ff0f fix: corre├º├úo definitiva dos autocompletes no modal de v├¡nculos
+* e433e76 feat: restri├º├úo de exclus├úo para ├│rg├úos e centros de custos vinculados a colaboradores
+* 3db893e fix: pequenos ajustes de formata├º├úo e finalmente no modal de ├│rg├úos
+* be3886a fix: alerta de exclus├úo recursiva com contagem de descendentes
+* 5e55c5e feat: adicionar editar e excluir em ├│rg├úos e centros de custos, remover inativar
+* 00e0dd1 bugfix: resolver erro de carregamento e circularidade em centros de custos
+* 93b9b7d Standardize API responses to OperationResult across all modules
+* 5cbc583 feat: implement Rubric registration, unique code constraint, and support SoftDelete for Usuario and Rubrica
+* ed8816b fetch: ajuste nas vari├íveis para o haspermission
+* 12ba7a3 docs: update task router workflow to include git issue creation step
+* 54a5434 feat: complete implementation of VinculoFuncional feature including backend services and refined frontend ui
+| *   011a030 Merge pull request #6 from PedroWenner/master
+| |\  
+| |/  
+|/|   
+* | 688a15b feat(enums): renomeia os nomes dos docs
+* | 5fbf006 feat(enums): adiciona base estrutural e ui component para regimes e formas de ingresso de servidores
+* | b2f513e fix(ui): adiciona ligacao de ids entre form e footer nos modais de orgaos e centro de custos
+* | b167ac8 docs(agents): adiciona padrao critico de footer para modais do frontend
+* | 8afc893 docs(agents): enforced task_router flow requiring explicit approvals and strict 'Fa├ºa o merge' validation
+* | 09757e8 feat(ui): implementa react-hot-toast globalmente via alertService

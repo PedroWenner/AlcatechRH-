@@ -1,5 +1,7 @@
+using DPManagement.Application.Common;
 using DPManagement.Application.DTOs;
 using DPManagement.Application.Interfaces;
+using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
 
 namespace DPManagement.API.Controllers;
@@ -9,10 +11,12 @@ namespace DPManagement.API.Controllers;
 public class RubricasController : ControllerBase
 {
     private readonly IRubricaService _rubricaService;
+    private readonly IValidator<RubricaCreateUpdateDto> _validator;
 
-    public RubricasController(IRubricaService rubricaService)
+    public RubricasController(IRubricaService rubricaService, IValidator<RubricaCreateUpdateDto> validator)
     {
         _rubricaService = rubricaService;
+        _validator = validator;
     }
 
     [HttpGet]
@@ -40,6 +44,13 @@ public class RubricasController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] RubricaCreateUpdateDto dto)
     {
+        var validation = await _validator.ValidateAsync(dto);
+        if (!validation.IsValid)
+        {
+            var errors = validation.Errors.Select(e => e.ErrorMessage).ToList();
+            return BadRequest(OperationResult.Failure("Falha na validação.", errors.ToArray()));
+        }
+
         var result = await _rubricaService.CreateAsync(dto);
         if (!result.Success) return BadRequest(result);
         return CreatedAtAction(nameof(GetById), new { id = result.Data?.Id }, result);
@@ -48,6 +59,13 @@ public class RubricasController : ControllerBase
     [HttpPut("{id}")]
     public async Task<IActionResult> Update(Guid id, [FromBody] RubricaCreateUpdateDto dto)
     {
+        var validation = await _validator.ValidateAsync(dto);
+        if (!validation.IsValid)
+        {
+            var errors = validation.Errors.Select(e => e.ErrorMessage).ToList();
+            return BadRequest(OperationResult.Failure("Falha na validação.", errors.ToArray()));
+        }
+
         var result = await _rubricaService.UpdateAsync(id, dto);
         return result.Success ? Ok(result) : BadRequest(result);
     }

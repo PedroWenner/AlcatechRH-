@@ -11,6 +11,7 @@ import { FormSelect } from '../components/common/FormSelect';
 import { DatePicker } from '../components/common/DatePicker';
 import { Autocomplete } from '../components/common/Autocomplete';
 import { useAuth } from '../hooks/useAuth';
+import { useFormValidation } from '../hooks/useFormValidation';
 
 interface NaturezaRubrica {
   codigo: string;
@@ -68,7 +69,25 @@ export default function Rubricas() {
     iniValid: new Date().toISOString().substring(0, 7),
     fimValid: ''
   });
-  const [showErrors, setShowErrors] = useState(false);
+
+  const { errors, validateField, validateAll, getError, clearAllErrors } = useFormValidation({
+    rules: {
+      codigo: {
+        required: 'O código é obrigatório.',
+        maxLength: { value: 20, message: 'O código não pode exceder 20 caracteres.' }
+      },
+      descricao: {
+        required: 'A descrição é obrigatória.',
+        maxLength: { value: 200, message: 'A descrição não pode exceder 200 caracteres.' }
+      },
+      natRubr: {
+        required: 'A natureza da rubrica (eSocial) é obrigatória.'
+      },
+      iniValid: {
+        required: 'O início de validade é obrigatório.'
+      }
+    }
+  });
 
   const canAdd = hasPermission('Rubricas', 'Criar');
   const canEdit = hasPermission('Rubricas', 'Editar');
@@ -150,7 +169,7 @@ export default function Rubricas() {
       iniValid: new Date().toISOString().substring(0, 7),
       fimValid: ''
     });
-    setShowErrors(false);
+    clearAllErrors();
     setActiveTab('geral');
     setIsModalOpen(true);
   };
@@ -175,7 +194,7 @@ export default function Rubricas() {
       iniValid: r.iniValid,
       fimValid: r.fimValid || ''
     });
-    setShowErrors(false);
+    clearAllErrors();
     setActiveTab('geral');
     setIsModalOpen(true);
   };
@@ -183,21 +202,10 @@ export default function Rubricas() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Manual Validation
-    const errors: string[] = [];
-    if (!formData.codigo) errors.push('O campo Código é obrigatório.');
-    if (!formData.descricao) errors.push('O campo Descrição é obrigatório.');
-    if (!formData.natRubr) errors.push('A Natureza da Rubrica (eSocial) é obrigatória.');
-    if (!formData.iniValid) errors.push('O Início de Validade é obrigatório.');
-
-    if (errors.length > 0) {
-      alertError('Campos Obrigatórios', errors.join('\n'));
-      setShowErrors(true);
-      
-      // Auto-switch to the tab with errors
+    if (!validateAll(formData)) {
       if (!formData.codigo || !formData.descricao) {
         setActiveTab('geral');
-      } else if (!formData.natRubr || !formData.iniValid) {
+      } else {
         setActiveTab('esocial');
       }
       return;
@@ -391,30 +399,32 @@ export default function Rubricas() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormInput
                 label="Código"
-                required
                 value={formData.codigo}
-                onChange={(e) => setFormData({ ...formData, codigo: e.target.value })}
-                error={showErrors && !formData.codigo ? 'Código é obrigatório' : undefined}
+                error={getError('codigo')}
+                onChange={(e) => {
+                  setFormData({ ...formData, codigo: e.target.value });
+                  validateField('codigo', e.target.value);
+                }}
                 placeholder="Ex: 001, 101..."
               />
               <FormInput
                 label="Descrição"
-                required
                 value={formData.descricao}
-                onChange={(e) => setFormData({ ...formData, descricao: e.target.value })}
-                error={showErrors && !formData.descricao ? 'Descrição é obrigatória' : undefined}
+                error={getError('descricao')}
+                onChange={(e) => {
+                  setFormData({ ...formData, descricao: e.target.value });
+                  validateField('descricao', e.target.value);
+                }}
                 placeholder="Ex: Salário Base, INSS..."
               />
               <EnumSelect
                 label="Tipo de Rubrica"
-                required
                 enumType="TipoRubrica"
                 value={formData.tipo}
                 onChange={(e) => setFormData({ ...formData, tipo: Number(e.target.value) })}
               />
               <EnumSelect
                 label="Rotina de Cálculo"
-                required
                 enumType="RotinaCalculo"
                 value={formData.rotina}
                 onChange={(e) => setFormData({ ...formData, rotina: Number(e.target.value) })}
@@ -447,18 +457,19 @@ export default function Rubricas() {
                   <Autocomplete
                     label="Natureza da Rubrica (Tab. 03)"
                     placeholder="Busque por código ou nome..."
-                    required
                     className="mb-0"
-                    error={showErrors && !formData.natRubr ? 'Natureza é obrigatória' : undefined}
+                    error={getError('natRubr')}
                     defaultValue={selectedNaturezaLabel}
                     onSearch={handleNaturezaSearch}
                     onSelect={(item) => {
                       if (item) {
                         setFormData({ ...formData, natRubr: item.codigo });
                         setSelectedNaturezaLabel(`${item.codigo} - ${item.nome}`);
+                        validateField('natRubr', item.codigo);
                       } else {
                         setFormData({ ...formData, natRubr: '' });
                         setSelectedNaturezaLabel('');
+                        validateField('natRubr', '');
                       }
                     }}
                     displayValue={(item) => `${item.codigo} - ${item.nome}`}
@@ -477,7 +488,6 @@ export default function Rubricas() {
 
               <FormInput
                 label="Identificador da Tabela"
-                required
                 value={formData.ideTabRubr}
                 onChange={(e) => setFormData({ ...formData, ideTabRubr: e.target.value })}
                 placeholder="Ex: PADRAO"
@@ -485,7 +495,6 @@ export default function Rubricas() {
 
               <FormSelect
                 label="Incidência Previdência (Tab. 21)"
-                required
                 value={formData.codIncCP}
                 onChange={(e) => setFormData({ ...formData, codIncCP: e.target.value })}
                 options={[
@@ -500,7 +509,6 @@ export default function Rubricas() {
 
               <FormSelect
                 label="Incidência IRRF (Tab. 21)"
-                required
                 value={formData.codIncIRRF}
                 onChange={(e) => setFormData({ ...formData, codIncIRRF: e.target.value })}
                 options={[
@@ -517,7 +525,6 @@ export default function Rubricas() {
 
               <FormSelect
                 label="Incidência FGTS (Tab. 21)"
-                required
                 value={formData.codIncFGTS}
                 onChange={(e) => setFormData({ ...formData, codIncFGTS: e.target.value })}
                 options={[
@@ -531,7 +538,6 @@ export default function Rubricas() {
 
               <FormSelect
                 label="Incidência PIS/PASEP"
-                required
                 value={formData.codIncPisPasep}
                 onChange={(e) => setFormData({ ...formData, codIncPisPasep: e.target.value })}
                 options={[
@@ -543,19 +549,21 @@ export default function Rubricas() {
 
               <DatePicker
                 label="Início Validade (MM/AAAA)"
-                required
                 showMonthYearPicker
                 dateFormat="MM/yyyy"
                 placeholder="mm/aaaa"
-                error={showErrors && !formData.iniValid ? 'Início de validade é obrigatório' : undefined}
+                error={getError('iniValid')}
                 selected={formData.iniValid ? new Date(Number(formData.iniValid.split('-')[0]), Number(formData.iniValid.split('-')[1]) - 1, 1) : null}
                 onChange={(date) => {
                   if (date) {
                     const y = date.getFullYear();
                     const m = String(date.getMonth() + 1).padStart(2, '0');
-                    setFormData({ ...formData, iniValid: `${y}-${m}` });
+                    const val = `${y}-${m}`;
+                    setFormData({ ...formData, iniValid: val });
+                    validateField('iniValid', val);
                   } else {
                     setFormData({ ...formData, iniValid: '' });
+                    validateField('iniValid', '');
                   }
                 }}
               />

@@ -35,6 +35,8 @@ export default function CentroCustos() {
   const [editingCentro, setEditingCentro] = useState<CentroCusto | null>(null);
   const [formData, setFormData] = useState({ descricao: '', orgaoId: '' });
   const [selectedOrgaoNome, setSelectedOrgaoNome] = useState('');
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [showErrors, setShowErrors] = useState(false);
 
   const checkPerm = (acao: string) => hasPermission('CentroCustos', acao);
 
@@ -89,10 +91,17 @@ export default function CentroCustos() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.descricao || !formData.orgaoId) {
-      alertError('A descrição e o vínculo com Órgão são obrigatórios.');
+
+    const newErrors: Record<string, string> = {};
+    if (!formData.descricao.trim()) newErrors.descricao = 'A descrição é obrigatória.';
+    if (!formData.orgaoId) newErrors.orgaoId = 'O vínculo com o órgão é obrigatório.';
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      setShowErrors(true);
       return;
     }
+
     try {
       let response;
       if (editingCentro) {
@@ -144,6 +153,8 @@ export default function CentroCustos() {
     setEditingCentro(null);
     setFormData({ descricao: '', orgaoId: '' });
     setSelectedOrgaoNome('');
+    setErrors({});
+    setShowErrors(false);
   };
 
   const openNewModal = () => {
@@ -265,9 +276,12 @@ export default function CentroCustos() {
         <form id="centro-custos-form" onSubmit={handleSubmit} className="space-y-4">
           <FormInput
             label="Descrição"
-            required
             value={formData.descricao}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, descricao: e.target.value })}
+            error={showErrors ? errors.descricao : undefined}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+              setFormData({ ...formData, descricao: e.target.value });
+              if (errors.descricao) setErrors({ ...errors, descricao: '' });
+            }}
             placeholder="Ex: Fundo da Saúde..."
           />
           <div>
@@ -285,10 +299,12 @@ export default function CentroCustos() {
               displayValue={(item: Orgao) => `${item.nome} (${item.abreviatura})`}
               keyValue={(item: Orgao) => item.id}
               defaultValue={selectedOrgaoNome}
+              error={showErrors ? errors.orgaoId : undefined}
               onSelect={(suggestion: Orgao | null) => {
                 if (suggestion) {
                   setSelectedOrgaoNome(`${suggestion.nome} (${suggestion.abreviatura})`);
                   setFormData({ ...formData, orgaoId: suggestion.id });
+                  if (errors.orgaoId) setErrors({ ...errors, orgaoId: '' });
                 } else {
                   setSelectedOrgaoNome('');
                   setFormData({ ...formData, orgaoId: '' });

@@ -31,6 +31,8 @@ export default function Cargos() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingCargo, setEditingCargo] = useState<Cargo | null>(null);
   const [formData, setFormData] = useState({ nome: '', cbo: '' });
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [showErrors, setShowErrors] = useState(false);
 
   useEffect(() => {
     fetchCargos();
@@ -76,6 +78,17 @@ export default function Cargos() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    const newErrors: Record<string, string> = {};
+    if (!formData.nome.trim()) newErrors.nome = 'O nome do cargo é obrigatório.';
+    if (!formData.cbo.trim()) newErrors.cbo = 'O CBO é obrigatório.';
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      setShowErrors(true);
+      return;
+    }
+
     showLoading('Salvando cargo...');
     try {
       let response;
@@ -91,6 +104,8 @@ export default function Cargos() {
         setIsModalOpen(false);
         setEditingCargo(null);
         setFormData({ nome: '', cbo: '' });
+        setErrors({});
+        setShowErrors(false);
         fetchCargos();
       } else {
         alertError(resData.message || 'Erro ao salvar cargo', resData.errors?.join('\n'));
@@ -107,6 +122,8 @@ export default function Cargos() {
   const handleEdit = (cargo: Cargo) => {
     setEditingCargo(cargo);
     setFormData({ nome: cargo.nome, cbo: cargo.cbo });
+    setErrors({});
+    setShowErrors(false);
     setIsModalOpen(true);
   };
 
@@ -172,7 +189,7 @@ export default function Cargos() {
         </div>
         {canAdd && (
           <button
-            onClick={() => { setEditingCargo(null); setFormData({ nome: '', cbo: '' }); setIsModalOpen(true); }}
+            onClick={() => { setEditingCargo(null); setFormData({ nome: '', cbo: '' }); setErrors({}); setShowErrors(false); setIsModalOpen(true); }}
             className="flex items-center px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors shadow-sm"
           >
             <Plus size={20} className="mr-2" />
@@ -236,15 +253,18 @@ export default function Cargos() {
           <div className="space-y-4">
             <FormInput
               label="Nome"
-              required
               value={formData.nome}
-              onChange={(e) => setFormData({ ...formData, nome: e.target.value })}
+              error={showErrors ? errors.nome : undefined}
+              onChange={(e) => {
+                setFormData({ ...formData, nome: e.target.value });
+                if (errors.nome) setErrors({ ...errors, nome: '' });
+              }}
             />
             <Autocomplete
               label="CBO"
-              required
               placeholder="Busque por código ou título..."
               defaultValue={formData.cbo}
+              error={showErrors ? errors.cbo : undefined}
               onSearch={async (term) => {
                 const response = await api.get(`/cbos?term=${encodeURIComponent(term)}`);
                 return response.data;
@@ -252,6 +272,7 @@ export default function Cargos() {
               onSelect={(item) => {
                 if (item) {
                   setFormData({ ...formData, cbo: item.codigo });
+                  if (errors.cbo) setErrors({ ...errors, cbo: '' });
                 } else {
                   setFormData({ ...formData, cbo: '' });
                 }

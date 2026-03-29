@@ -1,7 +1,8 @@
-using DPManagement.Application.DTOs;
 using DPManagement.Application.Common;
+using DPManagement.Application.DTOs;
 using DPManagement.Application.Interfaces;
 using DPManagement.Domain.Entities;
+using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
 
 namespace DPManagement.API.Controllers;
@@ -11,10 +12,12 @@ namespace DPManagement.API.Controllers;
 public class OrgaosController : ControllerBase
 {
     private readonly IOrgaoService _service;
+    private readonly IValidator<OrgaoRequestDto> _validator;
 
-    public OrgaosController(IOrgaoService service)
+    public OrgaosController(IOrgaoService service, IValidator<OrgaoRequestDto> validator)
     {
         _service = service;
+        _validator = validator;
     }
 
     [HttpGet]
@@ -64,6 +67,13 @@ public class OrgaosController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] OrgaoRequestDto request)
     {
+        var validation = await _validator.ValidateAsync(request);
+        if (!validation.IsValid)
+        {
+            var errors = validation.Errors.Select(e => e.ErrorMessage).ToList();
+            return BadRequest(OperationResult.Failure("Falha na validação.", errors.ToArray()));
+        }
+
         var entidade = new Orgao
         {
             Nome = request.Nome,
@@ -80,12 +90,18 @@ public class OrgaosController : ControllerBase
     [HttpPut("{id}")]
     public async Task<IActionResult> Update(Guid id, [FromBody] OrgaoRequestDto request)
     {
+        var validation = await _validator.ValidateAsync(request);
+        if (!validation.IsValid)
+        {
+            var errors = validation.Errors.Select(e => e.ErrorMessage).ToList();
+            return BadRequest(OperationResult.Failure("Falha na validação.", errors.ToArray()));
+        }
+
         var orgaoResult = await _service.ObterPorIdAsync(id);
         if (!orgaoResult.Success) return NotFound(orgaoResult);
 
         var orgao = orgaoResult.Data;
 
-        // Evitar ciclo infinito
         if (request.OrgaoPaiId == id)
             return BadRequest(OperationResult.Failure("Um órgão não pode ser pai dele mesmo."));
 

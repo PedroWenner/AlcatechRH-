@@ -1,0 +1,41 @@
+On branch master
+Your branch is up to date with 'origin/master'.
+
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	modified:   DPManagement.API/Controllers/CargosController.cs
+	modified:   DPManagement.API/Controllers/CentroCustosController.cs
+	modified:   DPManagement.API/Controllers/ColaboradoresController.cs
+	modified:   DPManagement.API/Controllers/OrgaosController.cs
+	modified:   DPManagement.API/Controllers/PerfisController.cs
+	modified:   DPManagement.API/Controllers/PermissoesController.cs
+	modified:   DPManagement.API/Controllers/RubricasController.cs
+	modified:   DPManagement.API/Controllers/VinculosController.cs
+	modified:   DPManagement.Application/Validators/CargoValidator.cs
+	modified:   DPManagement.Application/Validators/ColaboradorValidator.cs
+	modified:   DPManagement.Web/src/pages/Cargos.tsx
+	modified:   DPManagement.Web/src/pages/CentroCustos.tsx
+	modified:   DPManagement.Web/src/pages/Employees.tsx
+	modified:   DPManagement.Web/src/pages/Orgaos.tsx
+	modified:   DPManagement.Web/src/pages/Perfis.tsx
+	modified:   DPManagement.Web/src/pages/Rubricas.tsx
+	modified:   DPManagement.Web/src/pages/Users.tsx
+	modified:   DPManagement.Web/src/pages/Vinculos.tsx
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	.claude/
+	.git_branches.txt
+	.git_status.txt
+	DPManagement.Application/DTOs/PerfilRequestDto.cs
+	DPManagement.Application/DTOs/PermissaoRequestDto.cs
+	DPManagement.Application/Validators/CentroCustoValidator.cs
+	DPManagement.Application/Validators/OrgaoValidator.cs
+	DPManagement.Application/Validators/PerfilValidator.cs
+	DPManagement.Application/Validators/PermissaoValidator.cs
+	DPManagement.Application/Validators/RubricaValidator.cs
+	DPManagement.Application/Validators/VinculoValidator.cs
+	DPManagement.Web/src/hooks/useFormValidation.ts
+
+no changes added to commit (use "git add" and/or "git commit -a")

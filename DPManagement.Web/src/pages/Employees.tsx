@@ -61,6 +61,7 @@ export default function Employees() {
     estado: '', cargoId: ''
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [showErrors, setShowErrors] = useState(false);
 
   const [isBankModalOpen, setIsBankModalOpen] = useState(false);
   const [selectedBankEmployee, setSelectedBankEmployee] = useState<{ id: string, nome: string } | null>(null);
@@ -171,13 +172,25 @@ export default function Employees() {
     e.preventDefault();
 
     const newErrors: Record<string, string> = {};
-    if (!formData.nome) newErrors.nome = 'Campo obrigatório';
-    const cpfErr = validateCPF(formData.cpf);
-    if (cpfErr) newErrors.cpf = cpfErr;
+    if (!formData.nome.trim()) newErrors.nome = 'O nome é obrigatório.';
+    if (!formData.cpf.trim()) {
+      newErrors.cpf = 'O CPF é obrigatório.';
+    } else {
+      const cpfErr = validateCPF(formData.cpf);
+      if (cpfErr) newErrors.cpf = cpfErr;
+    }
+    if (!formData.dataNascimento) newErrors.dataNascimento = 'A data de nascimento é obrigatória.';
+    if (!formData.cep.trim()) newErrors.cep = 'O CEP é obrigatório.';
+    if (!formData.logradouro.trim()) newErrors.logradouro = 'O logradouro é obrigatório.';
+    if (!formData.numero.trim()) newErrors.numero = 'O número é obrigatório.';
+    if (!formData.bairro.trim()) newErrors.bairro = 'O bairro é obrigatório.';
+    if (!formData.cidade.trim()) newErrors.cidade = 'A cidade é obrigatória.';
+    if (!formData.estado.trim()) newErrors.estado = 'O estado é obrigatório.';
+    if (!formData.cargoId) newErrors.cargoId = 'O cargo é obrigatório.';
 
-    if (Object.values(newErrors).some(x => x)) {
+    if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
-      alertError('Campos inválidos', 'Por favor, corrija os erros no formulário.');
+      setShowErrors(true);
       return;
     }
 
@@ -194,6 +207,8 @@ export default function Employees() {
       if (resData.success) {
         alertSuccess(resData.message || (editingEmployee ? 'Colaborador atualizado' : 'Colaborador cadastrado'));
         setIsModalOpen(false);
+        setErrors({});
+        setShowErrors(false);
         fetchEmployees();
       } else {
         alertError(resData.message || 'Erro ao salvar colaborador', resData.errors?.join('\n'));
@@ -250,6 +265,7 @@ export default function Employees() {
       cargoId: emp.cargoId
     });
     setErrors({});
+    setShowErrors(false);
     setIsModalOpen(true);
   };
 
@@ -326,6 +342,7 @@ export default function Employees() {
                 estado: '', cargoId: ''
               });
               setErrors({});
+              setShowErrors(false);
               setIsModalOpen(true);
             }}
             className="flex items-center px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors shadow-sm"
@@ -404,22 +421,24 @@ export default function Employees() {
             <div className="md:col-span-2">
               <FormInput
                 label="Nome Completo"
-                required
                 value={formData.nome}
-                error={errors.nome}
-                onChange={e => setFormData({ ...formData, nome: e.target.value })}
-                onBlur={e => handleBlur('nome', e.target.value)}
+                error={showErrors ? errors.nome : undefined}
+                onChange={e => {
+                  setFormData({ ...formData, nome: e.target.value });
+                  if (errors.nome) setErrors({ ...errors, nome: '' });
+                }}
               />
             </div>
             <div>
               <FormInput
                 label="CPF"
-                required
                 mask={maskCPF}
                 value={formData.cpf}
-                error={errors.cpf}
-                onChange={e => setFormData({ ...formData, cpf: e.target.value.replace(/\D/g, '') })}
-                onBlur={e => handleBlur('cpf', e.target.value)}
+                error={showErrors ? errors.cpf : undefined}
+                onChange={e => {
+                  setFormData({ ...formData, cpf: e.target.value.replace(/\D/g, '') });
+                  if (errors.cpf) setErrors({ ...errors, cpf: '' });
+                }}
                 placeholder="000.000.000-00"
               />
             </div>
@@ -436,16 +455,13 @@ export default function Employees() {
             />
             <DatePicker
               label="Data de Nascimento"
-              required
               selected={formData.dataNascimento ? parseISO(formData.dataNascimento) : null}
+              error={showErrors ? errors.dataNascimento : undefined}
               onChange={(date) => {
                 const dateStr = date ? format(date, 'yyyy-MM-dd') : '';
                 setFormData({ ...formData, dataNascimento: dateStr });
-                if (dateStr) {
-                  setErrors(prev => ({ ...prev, dataNascimento: '' }));
-                }
+                if (errors.dataNascimento) setErrors({ ...errors, dataNascimento: '' });
               }}
-              error={errors.dataNascimento}
             />
 
             <FormInput
@@ -464,20 +480,23 @@ export default function Employees() {
             />
 
             <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 mb-1">Cargo</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Cargo <span className="text-red-500">*</span>
+              </label>
               <select
-                required
                 value={formData.cargoId}
-                onChange={e => setFormData({ ...formData, cargoId: e.target.value })}
-                onBlur={e => handleBlur('cargoId', e.target.value)}
-                className={`w-full rounded-md border px-3 py-2 transition-all outline-none focus:ring-2 
-                  ${errors.cargoId ? "border-red-500 bg-red-50 focus:ring-red-200" : "border-gray-300 focus:ring-indigo-100 focus:border-indigo-500"}
+                onChange={e => {
+                  setFormData({ ...formData, cargoId: e.target.value });
+                  if (errors.cargoId) setErrors({ ...errors, cargoId: '' });
+                }}
+                className={`w-full rounded-md border px-3 py-2 transition-all outline-none focus:ring-2
+                  ${showErrors && errors.cargoId ? "border-red-500 bg-red-50 focus:ring-red-200" : "border-gray-300 focus:ring-indigo-100 focus:border-indigo-500"}
                 `}
               >
                 <option value="">Selecione...</option>
                 {cargos.map(c => <option key={c.id} value={c.id}>{c.nome}</option>)}
               </select>
-              {errors.cargoId && <p className="text-sm text-red-600 mt-1">{errors.cargoId}</p>}
+              {showErrors && errors.cargoId && <p className="text-sm text-red-600 mt-1">{errors.cargoId}</p>}
             </div>
 
             <div className="md:col-span-3 border-t pt-4 mt-2">
@@ -486,60 +505,64 @@ export default function Employees() {
 
             <FormInput
               label="CEP"
-              required
               mask={maskCEP}
               value={formData.cep}
-              error={errors.cep}
+              error={showErrors ? errors.cep : undefined}
               onChange={e => {
                 const val = e.target.value.replace(/\D/g, '');
                 setFormData({ ...formData, cep: val });
                 if (val.length === 8) handleCepSearch(val);
+                if (errors.cep) setErrors({ ...errors, cep: '' });
               }}
-              onBlur={e => handleBlur('cep', e.target.value)}
               placeholder="00000-000"
             />
             <div className="md:col-span-2">
               <FormInput
                 label="Logradouro"
-                required
                 value={formData.logradouro}
-                error={errors.logradouro}
-                onChange={e => setFormData({ ...formData, logradouro: e.target.value })}
-                onBlur={e => handleBlur('logradouro', e.target.value)}
+                error={showErrors ? errors.logradouro : undefined}
+                onChange={e => {
+                  setFormData({ ...formData, logradouro: e.target.value });
+                  if (errors.logradouro) setErrors({ ...errors, logradouro: '' });
+                }}
               />
             </div>
             <FormInput
               label="Número"
-              required
               value={formData.numero}
-              error={errors.numero}
-              onChange={e => setFormData({ ...formData, numero: e.target.value })}
-              onBlur={e => handleBlur('numero', e.target.value)}
+              error={showErrors ? errors.numero : undefined}
+              onChange={e => {
+                setFormData({ ...formData, numero: e.target.value });
+                if (errors.numero) setErrors({ ...errors, numero: '' });
+              }}
             />
             <FormInput
               label="Bairro"
-              required
               value={formData.bairro}
-              error={errors.bairro}
-              onChange={e => setFormData({ ...formData, bairro: e.target.value })}
-              onBlur={e => handleBlur('bairro', e.target.value)}
+              error={showErrors ? errors.bairro : undefined}
+              onChange={e => {
+                setFormData({ ...formData, bairro: e.target.value });
+                if (errors.bairro) setErrors({ ...errors, bairro: '' });
+              }}
             />
             <FormInput
               label="Cidade"
-              required
               value={formData.cidade}
-              error={errors.cidade}
-              onChange={e => setFormData({ ...formData, cidade: e.target.value })}
-              onBlur={e => handleBlur('cidade', e.target.value)}
+              error={showErrors ? errors.cidade : undefined}
+              onChange={e => {
+                setFormData({ ...formData, cidade: e.target.value });
+                if (errors.cidade) setErrors({ ...errors, cidade: '' });
+              }}
             />
             <FormInput
               label="Estado (UF)"
-              required
               maxLength={2}
               value={formData.estado}
-              error={errors.estado}
-              onChange={e => setFormData({ ...formData, estado: e.target.value.toUpperCase() })}
-              onBlur={e => handleBlur('estado', e.target.value)}
+              error={showErrors ? errors.estado : undefined}
+              onChange={e => {
+                setFormData({ ...formData, estado: e.target.value.toUpperCase() });
+                if (errors.estado) setErrors({ ...errors, estado: '' });
+              }}
             />
             <div className="md:col-span-3">
               <FormInput

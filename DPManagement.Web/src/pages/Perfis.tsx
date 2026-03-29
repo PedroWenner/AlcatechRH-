@@ -6,6 +6,7 @@ import { alertSuccess, alertError, alertDeleteConfirm, showLoading, closeLoading
 import { Table, type TableColumn } from '../components/common/Table';
 import { FilterBar } from '../components/common/FilterBar';
 import { Modal } from '../components/common/Modal';
+import { useFormValidation } from '../hooks/useFormValidation';
 
 interface Perfil {
     id: string;
@@ -46,6 +47,14 @@ export default function Perfis() {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingPerfil, setEditingPerfil] = useState<Perfil | null>(null);
     const [formData, setFormData] = useState({ nome: '', descricao: '' });
+    const { errors: perfilErrors, validateField: validatePerfilField, validateAll: validatePerfilAll, getError: getPerfilError, clearAllErrors: clearPerfilErrors } = useFormValidation({
+        rules: {
+            nome: {
+                required: 'O nome do perfil é obrigatório.',
+                maxLength: { value: 100, message: 'O nome não pode exceder 100 caracteres.' }
+            }
+        }
+    });
 
     // === MATRIX STATE ===
     const [isMatrixOpen, setIsMatrixOpen] = useState(false);
@@ -59,6 +68,24 @@ export default function Perfis() {
     const [isPermModalOpen, setIsPermModalOpen] = useState(false);
     const [editingPermissao, setEditingPermissao] = useState<Permissao | null>(null);
     const [permFormData, setPermFormData] = useState({ modulo: '', moduloPai: '', acao: '', descricao: '' });
+    const { errors: permErrors, validateField: validatePermField, validateAll: validatePermAll, getError: getPermError, clearAllErrors: clearPermErrors } = useFormValidation({
+        rules: {
+            modulo: {
+                required: 'O módulo é obrigatório.',
+                maxLength: { value: 100, message: 'O módulo não pode exceder 100 caracteres.' }
+            },
+            moduloPai: {
+                maxLength: { value: 100, message: 'O módulo pai não pode exceder 100 caracteres.' }
+            },
+            acao: {
+                required: 'A ação é obrigatória.',
+                maxLength: { value: 50, message: 'A ação não pode exceder 50 caracteres.' }
+            },
+            descricao: {
+                maxLength: { value: 250, message: 'A descrição não pode exceder 250 caracteres.' }
+            }
+        }
+    });
 
     useEffect(() => {
         fetchPerfis();
@@ -144,6 +171,8 @@ export default function Perfis() {
     // --- PERFIL HANDLERS ---
     const handleSubmitPerfil = async (e: React.FormEvent) => {
         e.preventDefault();
+        if (!validatePerfilAll(formData)) return;
+
         showLoading('Salvando perfil...');
         try {
             let response;
@@ -159,6 +188,7 @@ export default function Perfis() {
                 setIsModalOpen(false);
                 setEditingPerfil(null);
                 setFormData({ nome: '', descricao: '' });
+                clearPerfilErrors();
                 fetchPerfis();
             } else {
                 alertError(resData.message || 'Erro ao salvar perfil', resData.errors?.join('\n'));
@@ -175,6 +205,7 @@ export default function Perfis() {
     const handleEditPerfil = (perfil: Perfil) => {
         setEditingPerfil(perfil);
         setFormData({ nome: perfil.nome, descricao: perfil.descricao || '' });
+        clearPerfilErrors();
         setIsModalOpen(true);
     };
 
@@ -263,6 +294,8 @@ export default function Perfis() {
     // --- PERMISSAO HANDLERS ---
     const handleSubmitPermissao = async (e: React.FormEvent) => {
         e.preventDefault();
+        if (!validatePermAll(permFormData)) return;
+
         showLoading('Salvando permissão...');
         try {
             let response;
@@ -278,6 +311,7 @@ export default function Perfis() {
                 setIsPermModalOpen(false);
                 setEditingPermissao(null);
                 setPermFormData({ modulo: '', moduloPai: '', acao: '', descricao: '' });
+                clearPermErrors();
                 fetchPermissoes();
                 fetchMatriz();
             } else {
@@ -295,6 +329,7 @@ export default function Perfis() {
     const handleEditPermissao = (permissao: Permissao) => {
         setEditingPermissao(permissao);
         setPermFormData({ modulo: permissao.modulo, moduloPai: permissao.moduloPai || '', acao: permissao.acao, descricao: permissao.descricao || '' });
+        clearPermErrors();
         setIsPermModalOpen(true);
     };
 
@@ -437,11 +472,11 @@ export default function Perfis() {
         <div className="space-y-6">
             <div className="flex justify-between items-center bg-white p-6 rounded-lg shadow-sm border border-gray-200 mb-6">
                 <div>
-                  <h1 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
-                    <Shield className="text-indigo-600" />
-                    Perfis & Acessos
-                  </h1>
-                  <p className="text-gray-500 mt-1">Gerencie os perfis de acesso e as matrizes de permissão.</p>
+                    <h1 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
+                        <Shield className="text-indigo-600" />
+                        Perfis & Acessos
+                    </h1>
+                    <p className="text-gray-500 mt-1">Gerencie os perfis de acesso e as matrizes de permissão.</p>
                 </div>
                 {activeTab === 'perfis' ? (
                     <button
@@ -552,9 +587,12 @@ export default function Perfis() {
                 <form id="perfil-form" onSubmit={handleSubmitPerfil} className="space-y-4">
                     <FormInput
                         label="Nome"
-                        required
                         value={formData.nome}
-                        onChange={(e) => setFormData({ ...formData, nome: e.target.value })}
+                        error={getPerfilError('nome')}
+                        onChange={(e) => {
+                            setFormData({ ...formData, nome: e.target.value });
+                            validatePerfilField('nome', e.target.value);
+                        }}
                         placeholder="Ex: Administrador"
                     />
                     <FormInput
@@ -678,27 +716,41 @@ export default function Perfis() {
                     <FormInput
                         label="Módulo Pai (Opcional)"
                         value={permFormData.moduloPai}
-                        onChange={(e) => setPermFormData({ ...permFormData, moduloPai: e.target.value })}
+                        error={getPermError('moduloPai')}
+                        onChange={(e) => {
+                            setPermFormData({ ...permFormData, moduloPai: e.target.value });
+                            validatePermField('moduloPai', e.target.value);
+                        }}
                         placeholder="Ex: Cadastros, Relatórios..."
                     />
                     <FormInput
                         label="Módulo"
-                        required
                         value={permFormData.modulo}
-                        onChange={(e) => setPermFormData({ ...permFormData, modulo: e.target.value })}
+                        error={getPermError('modulo')}
+                        onChange={(e) => {
+                            setPermFormData({ ...permFormData, modulo: e.target.value });
+                            validatePermField('modulo', e.target.value);
+                        }}
                         placeholder="Ex: Auditoria"
                     />
                     <FormInput
                         label="Ação"
-                        required
                         value={permFormData.acao}
-                        onChange={(e) => setPermFormData({ ...permFormData, acao: e.target.value })}
+                        error={getPermError('acao')}
+                        onChange={(e) => {
+                            setPermFormData({ ...permFormData, acao: e.target.value });
+                            validatePermField('acao', e.target.value);
+                        }}
                         placeholder="Ex: Visualizar"
                     />
                     <FormInput
                         label="Descrição"
                         value={permFormData.descricao}
-                        onChange={(e) => setPermFormData({ ...permFormData, descricao: e.target.value })}
+                        error={getPermError('descricao')}
+                        onChange={(e) => {
+                            setPermFormData({ ...permFormData, descricao: e.target.value });
+                            validatePermField('descricao', e.target.value);
+                        }}
                         placeholder="Breve descrição da permissão"
                     />
                 </form>

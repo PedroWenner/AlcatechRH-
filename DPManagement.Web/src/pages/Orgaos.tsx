@@ -31,6 +31,8 @@ export default function Orgaos() {
     nivel: 1,
     orgaoPaiId: ''
   });
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [showErrors, setShowErrors] = useState(false);
 
   const canEdit = hasPermission('Estrutura', 'Editar');
   const canDelete = hasPermission('Estrutura', 'Excluir');
@@ -73,13 +75,17 @@ export default function Orgaos() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.nome || !formData.abreviatura) {
-      alertError('Nome e Abreviatura são obrigatórios');
-      return;
+
+    const newErrors: Record<string, string> = {};
+    if (!formData.nome.trim()) newErrors.nome = 'O nome é obrigatório.';
+    if (!formData.abreviatura.trim()) newErrors.abreviatura = 'A abreviatura é obrigatória.';
+    if (formData.nivel > 1 && !formData.orgaoPaiId) {
+      newErrors.orgaoPaiId = 'O órgão pai é obrigatório para secretarias e departamentos.';
     }
 
-    if (formData.nivel > 1 && !formData.orgaoPaiId) {
-      alertError('Para Secretarias e Departamentos, é obrigatório selecionar a estrutura vinculada (Pai).');
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      setShowErrors(true);
       return;
     }
 
@@ -101,6 +107,8 @@ export default function Orgaos() {
       if (resData.success) {
         alertSuccess(resData.message || (editingItem ? 'Estrutura atualizada com sucesso' : 'Estrutura criada com sucesso'));
         setIsModalOpen(false);
+        setErrors({});
+        setShowErrors(false);
         fetchData();
       } else {
         alertError(resData.message || 'Erro ao salvar a estrutura', resData.errors?.join('\n'));
@@ -122,6 +130,8 @@ export default function Orgaos() {
       nivel: item.nivel,
       orgaoPaiId: item.orgaoPaiId || ''
     });
+    setErrors({});
+    setShowErrors(false);
     setIsModalOpen(true);
   };
 
@@ -162,6 +172,8 @@ export default function Orgaos() {
   const openNewModal = () => {
     setEditingItem(null);
     setFormData({ nome: '', abreviatura: '', nivel: 1, orgaoPaiId: '' });
+    setErrors({});
+    setShowErrors(false);
     setIsModalOpen(true);
   };
 
@@ -289,16 +301,22 @@ export default function Orgaos() {
           <FormInput
             label="Nome da Estrutura"
             value={formData.nome}
-            onChange={(e) => setFormData({ ...formData, nome: e.target.value })}
-            required
+            onChange={(e) => {
+              setFormData({ ...formData, nome: e.target.value });
+              if (errors.nome) setErrors({ ...errors, nome: '' });
+            }}
+            error={showErrors ? errors.nome : undefined}
             placeholder="Ex: Prefeitura Municipal de Teste"
           />
 
           <FormInput
             label="Abreviatura / Sigla"
             value={formData.abreviatura}
-            onChange={(e) => setFormData({ ...formData, abreviatura: e.target.value })}
-            required
+            onChange={(e) => {
+              setFormData({ ...formData, abreviatura: e.target.value });
+              if (errors.abreviatura) setErrors({ ...errors, abreviatura: '' });
+            }}
+            error={showErrors ? errors.abreviatura : undefined}
             placeholder="Ex: PMT"
           />
 
@@ -310,13 +328,14 @@ export default function Orgaos() {
                   const endpoint = getParentSearchEndpoint();
                   if (!endpoint) return [];
                   const res = await api.get(endpoint);
-                  const items = res.data.success ? res.data.data : res.data; // Fallback for safety
+                  const items = res.data.success ? res.data.data : res.data;
                   return items.filter((o: Orgao) => o.nome.toLowerCase().includes(term.toLowerCase()) || o.abreviatura.toLowerCase().includes(term.toLowerCase()));
                 }}
                 placeholder={`Buscar e selecionar ${formData.nivel === 2 ? 'órgão' : 'secretaria'}...`}
                 onSelect={(item) => {
                   if (item) {
                     setFormData({ ...formData, orgaoPaiId: item.id });
+                    if (errors.orgaoPaiId) setErrors({ ...errors, orgaoPaiId: '' });
                   } else {
                     setFormData({ ...formData, orgaoPaiId: '' });
                   }
@@ -324,6 +343,7 @@ export default function Orgaos() {
                 displayValue={(item) => `${item.nome} (${item.abreviatura})`}
                 keyValue={(item) => item.id}
                 defaultValue={editingItem?.orgaoPaiId ? editingItem.nomeAbreviaturaPai : undefined}
+                error={showErrors ? errors.orgaoPaiId : undefined}
               />
             </div>
           )}

@@ -61,6 +61,8 @@ export default function Vinculos() {
     dataAdmissao: null as Date | null,
     salarioBase: ''
   });
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [showErrors, setShowErrors] = useState(false);
 
   const canAdd = hasPermission('Vinculos', 'Criar');
   const canEdit = hasPermission('Vinculos', 'Editar');
@@ -108,30 +110,49 @@ export default function Vinculos() {
     setEditingVinculo(null);
     setFormData({
       colaboradorId: '', orgaoId: '', matricula: '', cargoId: '',
-      regimeJuridicoId: 0, formaIngressoId: 0, centroCustoId: '', 
+      regimeJuridicoId: 0, formaIngressoId: 0, centroCustoId: '',
       dataAdmissao: null, salarioBase: ''
     });
+    setErrors({});
+    setShowErrors(false);
     setIsModalOpen(true);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    const newErrors: Record<string, string> = {};
+    if (!formData.colaboradorId) newErrors.colaboradorId = 'O colaborador é obrigatório.';
+    if (!formData.orgaoId) newErrors.orgaoId = 'O órgão de lotação é obrigatório.';
+    if (!formData.matricula.trim()) newErrors.matricula = 'A matrícula é obrigatória.';
+    if (!formData.cargoId) newErrors.cargoId = 'O cargo é obrigatório.';
+    if (!formData.regimeJuridicoId) newErrors.regimeJuridicoId = 'O regime jurídico é obrigatório.';
+    if (!formData.formaIngressoId) newErrors.formaIngressoId = 'A forma de ingresso é obrigatória.';
+    if (!formData.centroCustoId) newErrors.centroCustoId = 'O centro de custo é obrigatório.';
+    if (!formData.dataAdmissao) newErrors.dataAdmissao = 'A data de admissão é obrigatória.';
+    const salarioBaseValue = typeof formData.salarioBase === 'string'
+      ? parseFloat(formData.salarioBase.replace(/\D/g, '')) / 100
+      : formData.salarioBase;
+    if (!salarioBaseValue || salarioBaseValue <= 0) newErrors.salarioBase = 'O salário base deve ser maior que zero.';
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      setShowErrors(true);
+      return;
+    }
+
     try {
       showLoading('Salvando vínculo...');
       let response;
       if (editingVinculo) {
         response = await api.put(`/vinculos/${editingVinculo.id}`, {
           ...formData,
-          salarioBase: typeof formData.salarioBase === 'string' 
-            ? parseFloat(formData.salarioBase.replace(/\D/g, '')) / 100 
-            : formData.salarioBase
+          salarioBase: salarioBaseValue
         });
       } else {
         response = await api.post('/vinculos', {
           ...formData,
-          salarioBase: typeof formData.salarioBase === 'string' 
-            ? parseFloat(formData.salarioBase.replace(/\D/g, '')) / 100 
-            : formData.salarioBase
+          salarioBase: salarioBaseValue
         });
       }
 
@@ -139,6 +160,8 @@ export default function Vinculos() {
       if (resData.success) {
         alertSuccess('Sucesso', resData.message || 'Operação realizada com sucesso.');
         setIsModalOpen(false);
+        setErrors({});
+        setShowErrors(false);
         fetchVinculos(pagination.currentPage);
       } else {
         alertError(resData.message || 'Erro ao salvar vínculo', resData.errors?.join('\n'));
@@ -164,6 +187,8 @@ export default function Vinculos() {
       dataAdmissao: v.dataAdmissao ? parseISO(v.dataAdmissao) : null,
       salarioBase: v.salarioBase.toString()
     });
+    setErrors({});
+    setShowErrors(false);
     setIsModalOpen(true);
   };
 
@@ -299,7 +324,7 @@ export default function Vinculos() {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         title={editingVinculo ? 'Editar Vínculo' : 'Novo Vínculo'}
-        size="xl"
+        size="4xl"
         footer={(
           <>
             <button
@@ -324,14 +349,17 @@ export default function Vinculos() {
             <div className="md:col-span-2">
               <Autocomplete
                 label="Colaborador (Pessoa)"
-                required
+                error={showErrors ? errors.colaboradorId : undefined}
                 onSearch={async (term) => {
                   const res = await api.get('/colaboradores', { params: { nome: term } });
                   return res.data.data?.items || [];
                 }}
                 displayValue={(c: Colaborador) => `${c.nome} (${c.cpf})`}
                 keyValue={(c: Colaborador) => c.id}
-                onSelect={(val: any) => setFormData({ ...formData, colaboradorId: val?.id || '' })}
+                onSelect={(val: any) => {
+                  setFormData({ ...formData, colaboradorId: val?.id || '' });
+                  if (errors.colaboradorId) setErrors({ ...errors, colaboradorId: '' });
+                }}
                 defaultValue={editingVinculo ? `${editingVinculo.colaboradorNome} (${editingVinculo.colaboradorCpf})` : ''}
                 placeholder="Buscar colaborador..."
               />
@@ -339,27 +367,36 @@ export default function Vinculos() {
 
             <FormInput
               label="Matrícula"
-              required
               value={formData.matricula}
-              onChange={(e) => setFormData({ ...formData, matricula: e.target.value })}
+              error={showErrors ? errors.matricula : undefined}
+              onChange={(e) => {
+                setFormData({ ...formData, matricula: e.target.value });
+                if (errors.matricula) setErrors({ ...errors, matricula: '' });
+              }}
               placeholder="Ex: 541289"
             />
 
             <div>
               <DatePicker
                 label="Data de Admissão"
-                required
                 selected={formData.dataAdmissao}
-                onChange={(date) => setFormData({ ...formData, dataAdmissao: date })}
+                error={showErrors ? errors.dataAdmissao : undefined}
+                onChange={(date) => {
+                  setFormData({ ...formData, dataAdmissao: date });
+                  if (errors.dataAdmissao) setErrors({ ...errors, dataAdmissao: '' });
+                }}
               />
             </div>
 
             <FormInput
               label="Salário Base"
-              required
               mask={maskMoney}
               value={formData.salarioBase}
-              onChange={(e) => setFormData({ ...formData, salarioBase: e.target.value })}
+              error={showErrors ? errors.salarioBase : undefined}
+              onChange={(e) => {
+                setFormData({ ...formData, salarioBase: e.target.value });
+                if (errors.salarioBase) setErrors({ ...errors, salarioBase: '' });
+              }}
               placeholder="R$ 0,00"
             />
           </div>
@@ -368,18 +405,21 @@ export default function Vinculos() {
             <div className="md:col-span-2">
               <Autocomplete
                 label="Local / Órgão de Lotação"
-                required
+                error={showErrors ? errors.orgaoId : undefined}
                 onSearch={async (term) => {
                   const res = await api.get('/orgaos');
                   const orgaos = res.data.data || [];
-                  return orgaos.filter((o: Orgao) => 
-                    o.nome.toLowerCase().includes(term.toLowerCase()) || 
+                  return orgaos.filter((o: Orgao) =>
+                    o.nome.toLowerCase().includes(term.toLowerCase()) ||
                     o.abreviatura.toLowerCase().includes(term.toLowerCase())
                   );
                 }}
                 displayValue={(o: Orgao) => `${o.nome} (${o.abreviatura})`}
                 keyValue={(o: Orgao) => o.id}
-                onSelect={(val: any) => setFormData({ ...formData, orgaoId: val?.id || '' })}
+                onSelect={(val: any) => {
+                  setFormData({ ...formData, orgaoId: val?.id || '' });
+                  if (errors.orgaoId) setErrors({ ...errors, orgaoId: '' });
+                }}
                 defaultValue={editingVinculo ? `${editingVinculo.orgaoNome} (${editingVinculo.orgaoAbreviatura})` : ''}
                 placeholder="Selecione o órgão..."
               />
@@ -388,14 +428,17 @@ export default function Vinculos() {
             <div className="md:col-span-2">
               <Autocomplete
                 label="Centro de Custo"
-                required
+                error={showErrors ? errors.centroCustoId : undefined}
                 onSearch={async (term) => {
                   const res = await api.get('/centro-custos', { params: { descricao: term } });
                   return res.data.data || [];
                 }}
                 displayValue={(cc: CentroCusto) => cc.descricao}
                 keyValue={(cc: CentroCusto) => cc.id}
-                onSelect={(val: any) => setFormData({ ...formData, centroCustoId: val?.id || '' })}
+                onSelect={(val: any) => {
+                  setFormData({ ...formData, centroCustoId: val?.id || '' });
+                  if (errors.centroCustoId) setErrors({ ...errors, centroCustoId: '' });
+                }}
                 defaultValue={editingVinculo ? editingVinculo.centroCustoDescricao : ''}
                 placeholder="Vincule ao Centro de Custo..."
               />
@@ -404,14 +447,17 @@ export default function Vinculos() {
             <div className="md:col-span-2">
               <Autocomplete
                 label="Cargo Ocupado"
-                required
+                error={showErrors ? errors.cargoId : undefined}
                 onSearch={async (term) => {
                   const res = await api.get('/cargos', { params: { nome: term } });
                   return res.data.data?.items || [];
                 }}
                 displayValue={(c: Cargo) => c.nome}
                 keyValue={(c: Cargo) => c.id}
-                onSelect={(val: any) => setFormData({ ...formData, cargoId: val?.id || '' })}
+                onSelect={(val: any) => {
+                  setFormData({ ...formData, cargoId: val?.id || '' });
+                  if (errors.cargoId) setErrors({ ...errors, cargoId: '' });
+                }}
                 defaultValue={editingVinculo ? editingVinculo.cargoNome : ''}
                 placeholder="Buscar cargo funcional..."
               />
@@ -419,18 +465,24 @@ export default function Vinculos() {
 
             <EnumSelect
               label="Regime Jurídico / Tipo de Vínculo"
-              required
               enumType="RegimeJuridico"
               value={formData.regimeJuridicoId}
-              onChange={(e) => setFormData({ ...formData, regimeJuridicoId: Number(e.target.value) })}
+              error={showErrors ? errors.regimeJuridicoId : undefined}
+              onChange={(e) => {
+                setFormData({ ...formData, regimeJuridicoId: Number(e.target.value) });
+                if (errors.regimeJuridicoId) setErrors({ ...errors, regimeJuridicoId: '' });
+              }}
             />
 
             <EnumSelect
               label="Forma de Ingresso"
-              required
               enumType="FormaIngresso"
               value={formData.formaIngressoId}
-              onChange={(e) => setFormData({ ...formData, formaIngressoId: Number(e.target.value) })}
+              error={showErrors ? errors.formaIngressoId : undefined}
+              onChange={(e) => {
+                setFormData({ ...formData, formaIngressoId: Number(e.target.value) });
+                if (errors.formaIngressoId) setErrors({ ...errors, formaIngressoId: '' });
+              }}
             />
           </div>
         </form>

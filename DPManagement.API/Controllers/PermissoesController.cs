@@ -1,6 +1,9 @@
 using DPManagement.Application.Common;
+using DPManagement.Application.DTOs;
 using DPManagement.Application.Interfaces;
+using DPManagement.Application.Validators;
 using DPManagement.Domain.Entities;
+using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
 
 namespace DPManagement.API.Controllers;
@@ -10,10 +13,12 @@ namespace DPManagement.API.Controllers;
 public class PermissoesController : ControllerBase
 {
     private readonly IPermissaoService _service;
+    private readonly IValidator<PermissaoRequestDto> _validator;
 
-    public PermissoesController(IPermissaoService service)
+    public PermissoesController(IPermissaoService service, IValidator<PermissaoRequestDto> validator)
     {
         _service = service;
+        _validator = validator;
     }
 
     [HttpGet]
@@ -68,17 +73,47 @@ public class PermissoesController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<IActionResult> Adicionar([FromBody] Permissao permissao)
+    public async Task<IActionResult> Adicionar([FromBody] PermissaoRequestDto request)
     {
+        var validation = await _validator.ValidateAsync(request);
+        if (!validation.IsValid)
+        {
+            var errors = validation.Errors.Select(e => e.ErrorMessage).ToList();
+            return BadRequest(OperationResult.Failure("Falha na validação.", errors.ToArray()));
+        }
+
+        var permissao = new Permissao
+        {
+            Modulo = request.Modulo,
+            ModuloPai = request.ModuloPai,
+            Acao = request.Acao,
+            Descricao = request.Descricao
+        };
+
         var result = await _service.AdicionarAsync(permissao);
         if (!result.Success) return BadRequest(result);
         return CreatedAtAction(nameof(ObterPorId), new { id = result.Data?.Id }, result);
     }
 
     [HttpPut("{id}")]
-    public async Task<IActionResult> Atualizar(Guid id, [FromBody] Permissao permissao)
+    public async Task<IActionResult> Atualizar(Guid id, [FromBody] PermissaoRequestDto request)
     {
-        if (id != permissao.Id) return BadRequest(OperationResult.Failure("ID da permissão não confere."));
+        var validation = await _validator.ValidateAsync(request);
+        if (!validation.IsValid)
+        {
+            var errors = validation.Errors.Select(e => e.ErrorMessage).ToList();
+            return BadRequest(OperationResult.Failure("Falha na validação.", errors.ToArray()));
+        }
+
+        var getResult = await _service.ObterPorIdAsync(id);
+        if (!getResult.Success) return NotFound(OperationResult.Failure("Permissão não encontrada."));
+
+        var permissao = getResult.Data;
+        permissao.Modulo = request.Modulo;
+        permissao.ModuloPai = request.ModuloPai;
+        permissao.Acao = request.Acao;
+        permissao.Descricao = request.Descricao;
+
         var result = await _service.AtualizarAsync(permissao);
         return result.Success ? Ok(result) : BadRequest(result);
     }
@@ -96,22 +131,4 @@ public class PermissoesController : ControllerBase
         var result = await _service.RemoverAsync(id);
         return result.Success ? Ok(result) : BadRequest(result);
     }
-}
-
-public class PermissaoDto
-{
-    public Guid Id { get; set; }
-    public string Modulo { get; set; } = string.Empty;
-    public string? ModuloPai { get; set; }
-    public string Acao { get; set; } = string.Empty;
-    public string? Descricao { get; set; }
-    public bool Ativo { get; set; }
-}
-
-public class PermissaoRequestDto
-{
-    public string Modulo { get; set; } = string.Empty;
-    public string? ModuloPai { get; set; }
-    public string Acao { get; set; } = string.Empty;
-    public string? Descricao { get; set; }
 }

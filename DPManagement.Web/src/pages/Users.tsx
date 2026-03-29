@@ -48,6 +48,8 @@ export default function Users() {
     senha: '',
     perfilId: ''
   });
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [showErrors, setShowErrors] = useState(false);
 
   useEffect(() => {
     fetchUsuarios();
@@ -108,6 +110,24 @@ export default function Users() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    const newErrors: Record<string, string> = {};
+    if (!formData.nome.trim()) newErrors.nome = 'O nome é obrigatório.';
+    if (!formData.email.trim()) {
+      newErrors.email = 'O e-mail é obrigatório.';
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      newErrors.email = 'Formato de e-mail inválido.';
+    }
+    if (!editingUser && !formData.senha) newErrors.senha = 'A senha é obrigatória.';
+    if (formData.senha && formData.senha.length < 6) newErrors.senha = 'A senha deve ter no mínimo 6 caracteres.';
+    if (!formData.perfilId) newErrors.perfilId = 'O perfil de acesso é obrigatório.';
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      setShowErrors(true);
+      return;
+    }
+
     showLoading('Salvando usuário...');
     try {
       let response;
@@ -127,6 +147,8 @@ export default function Users() {
         setIsModalOpen(false);
         setEditingUser(null);
         setFormData({ nome: '', email: '', senha: '', perfilId: '' });
+        setErrors({});
+        setShowErrors(false);
         fetchUsuarios();
       } else {
         alertError(resData.message || 'Erro ao salvar usuário', resData.errors?.join('\n'));
@@ -148,6 +170,8 @@ export default function Users() {
       senha: '',
       perfilId: user.perfilId
     });
+    setErrors({});
+    setShowErrors(false);
     setIsModalOpen(true);
   };
 
@@ -213,7 +237,7 @@ export default function Users() {
         </div>
         {canAdd && (
           <button
-            onClick={() => { setEditingUser(null); setFormData({ nome: '', email: '', senha: '', perfilId: '' }); setIsModalOpen(true); }}
+            onClick={() => { setEditingUser(null); setFormData({ nome: '', email: '', senha: '', perfilId: '' }); setErrors({}); setShowErrors(false); setIsModalOpen(true); }}
             className="flex items-center px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors shadow-sm"
           >
             <Plus size={20} className="mr-2" />
@@ -277,38 +301,54 @@ export default function Users() {
           <div className="space-y-4">
             <FormInput
               label="Nome Completo"
-              required
               value={formData.nome}
-              onChange={(e) => setFormData({ ...formData, nome: e.target.value })}
+              error={showErrors ? errors.nome : undefined}
+              onChange={(e) => {
+                setFormData({ ...formData, nome: e.target.value });
+                if (errors.nome) setErrors({ ...errors, nome: '' });
+              }}
             />
             <FormInput
               label="E-mail"
               type="email"
-              required
               value={formData.email}
-              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+              error={showErrors ? errors.email : undefined}
+              onChange={(e) => {
+                setFormData({ ...formData, email: e.target.value });
+                if (errors.email) setErrors({ ...errors, email: '' });
+              }}
             />
             <FormInput
               label={editingUser ? "Nova Senha (deixe em branco para ignorar)" : "Senha"}
               type="password"
-              required={!editingUser}
               value={formData.senha}
-              onChange={(e) => setFormData({ ...formData, senha: e.target.value })}
+              error={showErrors ? errors.senha : undefined}
+              onChange={(e) => {
+                setFormData({ ...formData, senha: e.target.value });
+                if (errors.senha) setErrors({ ...errors, senha: '' });
+              }}
             />
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Perfil de Acesso</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Perfil de Acesso <span className="text-red-500">*</span>
+              </label>
               <select
-                required
                 value={formData.perfilId}
-                onChange={e => setFormData({ ...formData, perfilId: e.target.value })}
-                className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-100 focus:border-indigo-500 outline-none"
+                onChange={(e) => {
+                  setFormData({ ...formData, perfilId: e.target.value });
+                  if (errors.perfilId) setErrors({ ...errors, perfilId: '' });
+                }}
+                className={`w-full rounded-md border px-3 py-2 text-sm transition-all outline-none focus:ring-2
+                  ${showErrors && errors.perfilId ? "border-red-500 bg-red-50 focus:ring-red-200" : "border-gray-300 focus:ring-indigo-100 focus:border-indigo-500"}
+                `}
               >
                 <option value="">Selecione um perfil...</option>
                 {perfis.map(p => (
                   <option key={p.id} value={p.id}>{p.nome}</option>
                 ))}
               </select>
+              {showErrors && errors.perfilId && <p className="text-sm text-red-600 mt-1">{errors.perfilId}</p>}
             </div>
           </div>
         </form>

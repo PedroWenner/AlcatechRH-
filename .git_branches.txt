@@ -1,0 +1,10 @@
+* master
+  remotes/origin/HEAD -> origin/feature/refactor-core-foundation
+  remotes/origin/bugfix/centrocusto-edit-vinculo
+  remotes/origin/feature/refactor-core-foundation
+  remotes/origin/feature/refactor-dbcontext-configurations
+  remotes/origin/feature/restricao-exclusao-cargos
+  remotes/origin/feature/restricao-exclusao-colaborador
+  remotes/origin/feature/rubrica-rotina-calculo
+  remotes/origin/feature/vinculo-salario-base
+  remotes/origin/master

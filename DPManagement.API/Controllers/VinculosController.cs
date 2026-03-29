@@ -1,5 +1,7 @@
+using DPManagement.Application.Common;
 using DPManagement.Application.DTOs;
 using DPManagement.Application.Interfaces;
+using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
 
 namespace DPManagement.API.Controllers;
@@ -9,10 +11,12 @@ namespace DPManagement.API.Controllers;
 public class VinculosController : ControllerBase
 {
     private readonly IVinculoService _service;
+    private readonly IValidator<VinculoCreateUpdateDto> _validator;
 
-    public VinculosController(IVinculoService service)
+    public VinculosController(IVinculoService service, IValidator<VinculoCreateUpdateDto> validator)
     {
         _service = service;
+        _validator = validator;
     }
 
     [HttpGet]
@@ -40,6 +44,13 @@ public class VinculosController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] VinculoCreateUpdateDto dto)
     {
+        var validation = await _validator.ValidateAsync(dto);
+        if (!validation.IsValid)
+        {
+            var errors = validation.Errors.Select(e => e.ErrorMessage).ToList();
+            return BadRequest(OperationResult.Failure("Falha na validação.", errors.ToArray()));
+        }
+
         var result = await _service.CreateAsync(dto);
         if (!result.Success) return BadRequest(result);
         return CreatedAtAction(nameof(GetById), new { id = result.Data?.Id }, result);
@@ -48,6 +59,13 @@ public class VinculosController : ControllerBase
     [HttpPut("{id}")]
     public async Task<IActionResult> Update(Guid id, [FromBody] VinculoCreateUpdateDto dto)
     {
+        var validation = await _validator.ValidateAsync(dto);
+        if (!validation.IsValid)
+        {
+            var errors = validation.Errors.Select(e => e.ErrorMessage).ToList();
+            return BadRequest(OperationResult.Failure("Falha na validação.", errors.ToArray()));
+        }
+
         var result = await _service.UpdateAsync(id, dto);
         return result.Success ? Ok(result) : BadRequest(result);
     }
