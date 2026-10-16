@@ -482,3 +482,11 @@ $RECYCLE.BIN/
 
 # Vim temporary swap files
 *.swp
+
+# Local config / logs
+DPManagement.API/appsettings.Development.json
+build_output.txt
+build_errors.txt
+**/dist/
+
+.agent/
