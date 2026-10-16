@@ -493,3 +493,6 @@ build_errors.txt
 # Arquivos locais de ferramentas
 .claude/settings.local.json
 .git_*.txt
+
+# Prompts de agentes de IA
+.agent/
