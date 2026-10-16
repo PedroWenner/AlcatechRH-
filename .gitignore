@@ -490,3 +490,6 @@ build_errors.txt
 **/dist/
 
 .agent/
+# Arquivos locais de ferramentas
+.claude/settings.local.json
+.git_*.txt
